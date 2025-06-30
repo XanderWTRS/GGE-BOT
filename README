@@ -68,6 +68,28 @@ Some info on the plugins:
   The incoming messages will come with a preview of the attack.
   Replace Mead Storm will only replace mead if it sees there is 2.1 hours left and wont skip bewarned.
   Khan does NOT replace your defence at the current becareful when running for too long.
+ggeConfig example:
+{
+    //These two say which server
+    "gameURL" : "wss://ep-live-mz-int1-sk1-gb1-game.goodgamestudios.com/",
+    "gameServer" : "EmpireEx_19",
+
+    "fontPath" : "",
+    "privateKey" : "",
+    "cert" : "",
+    "firefoxProfile" : "",
+    //Something to prevent unwanted people signing up and using the service
+    "signupToken" : "EXAMPLE_TOKEN_VERY_LONG_DO_CHANGE",
+
+    //Discord intergration is required for these
+    "noInternalWorker" : true,
+    "discordToken" : "",
+    "discordClientId" : "",
+    "internalWorkerName" : "",
+    "internalWorkerPass" : "",
+    "defaultAllianceName" : ""
+}
+
 
 What you need to do to use:
 1. get items_${VER}.json from the game client and place it within GGE-BOT folder as items.json
