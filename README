@@ -91,10 +91,9 @@ ggeConfig example:
 }
 
 
-What you need to do to use:
-1. get items_${VER}.json from the game client and place it within GGE-BOT folder as items.json
-2. grab the latest version of NodeJS
-3. npx playwright install
-4. npm install
-5. configure ggeConfig.json
-6. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
+What you need to do to use:=
+1. grab the latest version of NodeJS
+2. npx playwright install
+3. npm install
+4. configure ggeConfig.json
+5. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
