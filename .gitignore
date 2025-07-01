@@ -4,5 +4,5 @@ ggeConfig.json
 user.db
 package-lock.json
 assets/itemassets
-items.json
+items
 ItemsVersion.properties

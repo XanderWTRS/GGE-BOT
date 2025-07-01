@@ -23,6 +23,7 @@ if(isMainThread)
     }
     return
 }
+const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const EventEmitter = require("events")
 
@@ -88,25 +89,16 @@ function getMaxAttackers(targetLevel) {
 }
 const getAmountSoldiersFlank = e => 0 | Math.ceil(.2 * getMaxAttackers(e))
 const getAmountSoldiersMiddle = e => 0 | Math.ceil(getMaxAttackers(e) - 2 * getAmountSoldiersFlank(e))
-    
-let campRageNeeded = undefined
 
-const units = workerData.units
-const rageCapID = workerData.rageCapID
-const eventAutoScalingCamps = workerData.eventAutoScalingCamps
-
-const limiter = new RateLimiter({
-    tokensPerInterval: 1,
-    interval: 4500
-});
 /*
-    Actually know how many haves it has
+    Actually know how many waves it has
     
     Ability to say what it should use first strongest ect
 
     filling waves with presets
 */
 
+let campRageNeeded = undefined
 xtHandler.on("rpr", (obj) => {
     if(obj.EID != 72)
         return
@@ -125,10 +117,18 @@ xtHandler.on("adi", async (obj,r) => {
 
     if (obj.gaa.AI[0] != 35)
         return false
-    campRageNeeded = rageCapID[obj.gaa.AI[9]]
+    
+    const eventAutoScalingCamps = JSON.parse((await fs.readFile("./items/eventAutoScalingCamps.json")).toString())
+
+    campRageNeeded = eventAutoScalingCamps.find(obj => obj.gaa.AI[9] == obj.eventAutoScalingCampID).playerRageCap
 })
 
 const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+
+const limiter = new RateLimiter({
+    tokensPerInterval: 1,
+    interval: 4500
+});
 function attack(SX, SY, TX, TY, kid, tools, waves, options) {
     function randomIntFromInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
@@ -241,6 +241,9 @@ function attack(SX, SY, TX, TY, kid, tools, waves, options) {
             
             attackTarget.LP = ai[0] == 25 ? 3 : 0
             let lvl = undefined
+
+            const eventAutoScalingCamps = JSON.parse((await fs.readFile("./items/eventAutoScalingCamps.json")).toString())
+
             if (ai[0] == 2)
                 lvl = getLevel(ai[4], kid, ai[0])
             else if (ai[0] == 11)
@@ -248,11 +251,11 @@ function attack(SX, SY, TX, TY, kid, tools, waves, options) {
             else if (ai[0] == 25)
                 lvl = getLevel(ai[5], kid, ai[0])
             else if (ai[0] == 27)
-                lvl = eventAutoScalingCamps[ai[8]]
+                lvl = eventAutoScalingCamps.find(obj => ai[8] == obj.eventAutoScalingCampID).camplevel
             else if (ai[0] == 29)
-                lvl = eventAutoScalingCamps[ai[8]]
+                lvl = eventAutoScalingCamps.find(obj => ai[8] == obj.eventAutoScalingCampID).camplevel
             else if (ai[0] == 35)
-                lvl = eventAutoScalingCamps[ai[9]]
+                lvl = eventAutoScalingCamps.find(obj => ai[9] == obj.eventAutoScalingCampID).camplevel
             else if (ai[0] == 30)
                 lvl = 70
             else
@@ -319,11 +322,13 @@ function attack(SX, SY, TX, TY, kid, tools, waves, options) {
             let attackerGateBeriTools = []
             let attackerShieldBeriTools = []
             
+            const units = JSON.parse((await fs.readFile("./items/units.json")).toString())
+
             for (let i = 0; i < obj.gui.I.length; i++) {
                 const element = obj.gui.I[i];
                 let id = element[0]
                 let ammount = element[1]
-                let unitInfo = units[id]
+                let unitInfo = units.find(obj => id == obj.wodID)
                 if (unitInfo == undefined)
                     continue
                 else if (unitInfo.samuraiTokenBooster != undefined) {

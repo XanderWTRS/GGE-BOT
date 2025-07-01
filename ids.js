@@ -4,9 +4,8 @@ let tools = []
 let all_units = []
 const fs = require("fs")
 
-let xml = JSON.parse(fs.readFileSync("./items.json", { encoding: 'utf8' }));
-
-xml.buildings.forEach(element => {
+JSON.parse(fs.readFileSync("./items/buildings.json", { encoding: 'utf8' }))
+    .buildings.forEach(element => {
     buildings[element.name] ??= []
 
     if (element.buildingGroundType != "DECO" && element.buildingGroundType != "CustomDeco")
@@ -15,8 +14,8 @@ xml.buildings.forEach(element => {
         buildings[element.name][element.type] = element
     buildings[element.wodID] = element
 });
-
-xml.units.forEach((element) => {
+let _units = JSON.parse(fs.readFileSync("./items/units.json", { encoding: 'utf8' }))
+_units.forEach((element) => {
     if (element.level != undefined) {
         all_units[element.type] ??= []
         all_units[element.type][element.level] = element
@@ -25,7 +24,7 @@ xml.units.forEach((element) => {
         all_units[element.type] = element
     all_units[element.wodID] = element
 })
-xml.units.forEach((element) => {
+_units.forEach((element) => {
     if (!["Eventunit", "Barracks"].includes(element.name))
         return
     if (element.level != undefined) {
@@ -37,7 +36,7 @@ xml.units.forEach((element) => {
     units[element.wodID] = element
 });
 
-xml.units.forEach(element => {
+_units.forEach(element => {
     if (element.name != "Workshop")
         return
     if (element.level != undefined) {
