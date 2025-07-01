@@ -93,7 +93,8 @@ ggeConfig example:
 
 What you need to do to use:=
 1. grab the latest version of NodeJS
-2. npx playwright install
-3. npm install
-4. configure ggeConfig.json
-5. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
+2. open up powershell (Windows) or bash (Linux) and run these two commands in the same folder
+     npx playwright install
+     npm install
+3. configure ggeConfig.json
+4. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
