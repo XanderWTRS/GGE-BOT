@@ -11,13 +11,25 @@ const process = require("process")
 const { Worker } = require('node:worker_threads')
 const ActionType = require("./actions.json")
 const ErrorType = require("./errors.json")
-const ggeConfig = require("./ggeConfig.json")
 const { firefox } = require("playwright-core")
 
-const { chain } = require('stream-chain')
-const { parser } = require('stream-json')
-const { pick } = require('stream-json/filters/Pick')
-const { streamValues } = require('stream-json/streamers/StreamValues')
+const ggeConfigExample = `{
+    "gameURL" : "wss://ep-live-mz-int1-sk1-gb1-game.goodgamestudios.com/",
+    "gameServer" : "EmpireEx_19",
+
+    "fontPath" : "",
+    "privateKey" : "",
+    "cert" : "",
+    "firefoxProfile" : "",
+    "signupToken" : "EXAMPLE_TOKEN_VERY_LONG_DO_CHANGE",
+    
+    "noInternalWorker" : true,
+    "discordToken" : "",
+    "discordClientId" : "",
+    "internalWorkerName" : "",
+    "internalWorkerPass" : "",
+    "defaultAllianceName" : ""
+}`
 
 const plugins = require("./plugins")
   .filter(e => !e[1].hidden)
@@ -29,6 +41,15 @@ const plugins = require("./plugins")
   })
 
 async function start() {
+  try {
+    await fs.access("./ggeConfig.json")
+  }
+  catch (e) {
+    fs.writeFile("./ggeConfig.json", ggeConfigExample)
+    console.info("ggeConfig.json has been generated")
+  }
+  const ggeConfig = JSON.parse((await fs.readFile("./ggeConfig.json")).toString())
+
   if (ggeConfig.cert) {
     await fs.access(ggeConfig.cert)
   }
@@ -112,16 +133,19 @@ async function start() {
   let frame = undefined
   const startPage = async () => {
     const browser = await firefox.launch({
-      headless: true, ignoreDefaultArgs: true, firefoxUserPrefs:
-        { "security.ssl.enable_ocsp_stapling": false, "security.enterprise_roots.enabled": false, "general.useragent.override": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" }, args: [
+      headless: true, firefoxUserPrefs:
+        {"general.useragent.override": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"}
+    })
+    /*
+    { "security.ssl.enable_ocsp_stapling": false, "security.enterprise_roots.enabled": false, "general.useragent.override": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" }, args: [
           "-no-remote", "-wait-for-browser", "-foreground", "-juggler-pipe", "-silent", "-headless", ggeConfig.recaptchaTrick ? ("-profile", ggeConfig.firefoxProfile) : "",
           "disable-infobars", "--disable-extensions", "--no-sandbox", "--disable-application-cache", "--disable-gpu", "--disable-dev-shm-usage"]
-    })
+    */
     const page = await browser.newPage();
     await page.goto(!ggeConfig.recaptchaTrick ? "https://empire.goodgamestudios.com" : "https://empire.goodgamestudios.com/RECAPCHA.html");
-
+ 
     frame = !ggeConfig.recaptchaTrick ? page.frame("game") : page
-
+    
     await frame.waitForFunction(() => globalThis.window.grecaptcha != undefined)
 
     await frame.evaluate(() => new Promise(resolve =>

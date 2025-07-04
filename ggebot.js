@@ -6,9 +6,9 @@ const ActionType = require("./actions.json")
 const error = require("./err.json")
 const sqlite3 = require("sqlite3")
 const ggeConfig = require("./ggeConfig.json")
+
 if (isMainThread)
     throw Error("This should be running off of the main thread!")
-
 
 let _console = console
 const messageBuffer = []
