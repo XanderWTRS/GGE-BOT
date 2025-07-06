@@ -20,36 +20,39 @@ let commands = new Collection()
 
 if (workerData.internalWorker)
     client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isChatInputCommand()) return;
+        if (!interaction.isChatInputCommand()) return;
 
-    const command = commands.get(interaction.commandName);
+        const command = commands.get(interaction.commandName);
 
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
-        return;
-    }
-
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error(error);
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-        } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        if (!command) {
+            console.error(`No command matching ${interaction.commandName} was found.`);
+            return;
         }
-    }
-});
+
+        try {
+            await command.execute(interaction);
+        } catch (error) {
+            console.error(error);
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            } else {
+                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            }
+        }
+    });
 
 client.login(ggeConfig.discordToken);
 
 function refreshCommands() {
     const rest = new REST().setToken(ggeConfig.discordToken)
+    if (commands.size == 0)
+        console.warn("No commands")
+
     if (commands.size != 0)
         client.guilds.cache.forEach(async guild => {
             let commands = commands.map(command => command.data.toJSON())
-
-            rest.put(
+            
+            await rest.put(
                 Routes.applicationGuildCommands(ggeConfig.discordClientId, guild.id),
                 { body: commands },
             );
