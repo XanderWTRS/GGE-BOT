@@ -98,3 +98,12 @@ What you need to do to use:=
      npm install
 3. configure ./ggeConfig.json
 4. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
+
+For Discord:
+1. https://discord.com/developers/applications to create a bot
+2. Then goto bot catagory within your new created application
+3. Enable all privileged intents
+4. Goto OAuth2 catagory
+5. copy client ID and put them in the ggeConfig as discordClientId
+6. copy Client Secret and put them in the ggeConfig as discordToken
+7. set noInternalWorker to false and fill internalWorkerName, internalWorkerPass with a spare game account
