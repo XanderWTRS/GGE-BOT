@@ -10,6 +10,7 @@
     "playwright-core": "^1.52.0",
     "pretty-time": "^1.1.0",
     "pureimage": "^0.4.18",
+    "sharp": "^0.34.2",
     "sqlite3": "^5.1.7",
     "stream-chain": "^3.4.0",
     "stream-json": "^1.9.1",
