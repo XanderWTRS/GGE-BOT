@@ -4,8 +4,7 @@ let tools = []
 let all_units = []
 const fs = require("fs")
 
-JSON.parse(fs.readFileSync("./items/buildings.json", { encoding: 'utf8' }))
-    .buildings.forEach(element => {
+JSON.parse(fs.readFileSync("./items/buildings.json", { encoding: 'utf8' })).forEach(element => {
     buildings[element.name] ??= []
 
     if (element.buildingGroundType != "DECO" && element.buildingGroundType != "CustomDeco")
