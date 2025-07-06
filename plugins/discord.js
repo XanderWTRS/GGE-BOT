@@ -43,22 +43,6 @@ if (workerData.internalWorker)
 
 client.login(ggeConfig.discordToken);
 
-function refreshCommands() {
-    const rest = new REST().setToken(ggeConfig.discordToken)
-    if (commands.size == 0)
-        console.warn("No commands")
-
-    if (commands.size != 0)
-        client.guilds.cache.forEach(async guild => {
-            let commands = commands.map(command => command.data.toJSON())
-            
-            await rest.put(
-                Routes.applicationGuildCommands(ggeConfig.discordClientId, guild.id),
-                { body: commands },
-            );
-        });
-}
-
 /** @type {Promise<Client>} */
 let clientPromise =  new Promise((resolve, reject) => {
     client.once("error", reject)
@@ -67,4 +51,22 @@ let clientPromise =  new Promise((resolve, reject) => {
         resolve(client)
     })
 })
+
+async function refreshCommands() {
+    await clientPromise
+    const rest = new REST().setToken(ggeConfig.discordToken)
+    if (commands.size == 0)
+        console.warn("No commands")
+
+    if (commands.size != 0)
+        client.guilds.cache.forEach(async guild => {
+            let _commands = commands.map(command => command.data.toJSON())
+            
+            await rest.put(
+                Routes.applicationGuildCommands(ggeConfig.discordClientId, guild.id),
+                { body: _commands },
+            );
+        });
+}
+
 module.exports = { refreshCommands, client: clientPromise,commands }

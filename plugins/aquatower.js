@@ -152,8 +152,10 @@ xtHandler.on("lli", async (_, r) => {
                 const channel = await (await client).channels.fetch(channelID)
 
                 let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                if (!message || message.author.id != (await client).user.id)
+                if (!message || message.author.id != (await client).user.id) {
                     message = await channel.send({ content: "``` ```", flags: [4096] })
+                    return true
+                }
 
                 if (message.content == msg)
                     return false

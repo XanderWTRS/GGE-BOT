@@ -213,6 +213,10 @@ xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r=
 
 let loginAttempts = 0
 xtHandler.on("lli", (_,r) => {
+    if(r == 453)
+    {
+        setTimeout(() => retry(), _.CD * 1000)
+    }
     if (r == 0) {
         parentPort.postMessage([ActionType.Started])
         console.log("Logged in")
