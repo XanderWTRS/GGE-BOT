@@ -83,7 +83,7 @@ const getUser = require('./getUser.js');
                 if (index >= maxListedAquaObjects || playerId > 0)
                     return false
 
-                let hour12 = new Date((deltaTime + 3600) * 1000 + currentDate).toLocaleTimeString('en-US')
+                let hour12 = new Date((deltaTime + 3600) * 1000 + currentDate).toLocaleTimeString()
                 if (hour12.length <= 10)
                     hour12 += ' '
 

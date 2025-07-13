@@ -120,7 +120,7 @@ xtHandler.on("adi", async (obj,r) => {
     
     const eventAutoScalingCamps = JSON.parse((await fs.readFile("./items/eventAutoScalingCamps.json")).toString())
 
-    campRageNeeded = eventAutoScalingCamps.find(obj => obj.gaa.AI[9] == obj.eventAutoScalingCampID).playerRageCap
+    campRageNeeded = eventAutoScalingCamps.find(obj2 => obj.gaa.AI[9] == obj2.eventAutoScalingCampID).playerRageCap
 })
 
 const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
