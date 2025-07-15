@@ -106,4 +106,4 @@ For Discord:
 4. Goto OAuth2 catagory
 5. copy client ID and put them in the ggeConfig as discordClientId
 6. copy Client Secret and put them in the ggeConfig as discordToken
-7. set noInternalWorker to false and fill internalWorkerName, internalWorkerPass with a spare game account
+7. set noInternalWorker to false and fill internalWorkerName, internalWorkerPass with a spare game account one that can at least access all kingdoms including aqua
