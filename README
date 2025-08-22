@@ -95,9 +95,10 @@ What you need to do to use:=
 1. grab the latest version of NodeJS
 2. open up powershell (Windows) or bash (Linux) and run these two commands in the same folder
      npx playwright install
-     npm install
-3. configure ./ggeConfig.json
-4. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
+4. goto the directory of the bot in powershell and run
+5. npm install
+6. then you can configure ./ggeConfig.json or let it generate one for you.
+7. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
 
 For Discord:
 1. https://discord.com/developers/applications to create a bot
