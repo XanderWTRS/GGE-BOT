@@ -1,12 +1,12 @@
 {
   "dependencies": {
+    "@playwright/test": "^1.55.0",
     "cookie-parser": "^1.4.7",
     "discord.js": "^14.16.3",
     "emoji-dictionary": "^1.0.12",
     "events": "^3.3.0",
     "express": "^4.21.1",
     "limiter": "^2.1.0",
-    "mongodb": "6.17",
     "playwright-core": "^1.52.0",
     "pretty-time": "^1.1.0",
     "pureimage": "^0.4.18",
