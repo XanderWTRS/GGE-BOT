@@ -45,9 +45,9 @@ client.login(ggeConfig.discordToken);
 
 /** @type {Promise<Client>} */
 let clientPromise =  new Promise((resolve, reject) => {
-    client.once("error", reject)
-    client.once("ready", () => {
-        client.off("error", reject)
+    client.once(Events.Error, reject)
+    client.once(Events.ClientReady, () => {
+        client.off(Events.Error, reject)
         resolve(client)
     })
 })
