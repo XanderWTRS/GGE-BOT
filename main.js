@@ -21,7 +21,7 @@ const ggeConfigExample = `{
     "privateKey" : "",
     "cert" : "",
     "firefoxProfile" : "",
-    "signupToken" : "EXAMPLE_TOKEN_VERY_LONG_DO_CHANGE",
+    "signupToken" : "",
     
     "noInternalWorker" : true,
     "discordToken" : "",
