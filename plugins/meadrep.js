@@ -82,7 +82,7 @@ xtHandler.on("lli", async (_, r) => {
         needMead()
     }, 1000 * 10)
 
-    let [obj, _] = await waitForResult("kpl", 1000 * 10)
+    let [obj, _2] = await waitForResult("kpl", 1000 * 10)
     
     let rt = obj.RT.find(e => e.KID == 4)
     
