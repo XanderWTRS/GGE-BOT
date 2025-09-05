@@ -74,7 +74,7 @@ async function needMead() {
         console.warn("Is storm even unlocked?")
     }
 }
-xtHandler.on("lli", async (obj, r) => {
+xtHandler.on("lli", async (_, r) => {
     if(r != 0)
         return
 
