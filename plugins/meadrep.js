@@ -74,7 +74,7 @@ async function needMead() {
         console.warn("Is storm even unlocked?")
     }
 }
-xtHandler.on("lli", async (obj, r) => {
+xtHandler.on("lli", async (_, r) => {
     if(r != 0)
         return
 
@@ -82,7 +82,7 @@ xtHandler.on("lli", async (obj, r) => {
         needMead()
     }, 1000 * 10)
 
-    let [obj, _] = await waitForResult("kpl", 1000 * 10)
+    let [obj, _2] = await waitForResult("kpl", 1000 * 10)
     
     let rt = obj.RT.find(e => e.KID == 4)
     
