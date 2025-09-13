@@ -215,6 +215,7 @@ let loginAttempts = 0
 xtHandler.on("lli", (_,r) => {
     if(r == 453)
     {
+	console.log(`Timed out for: ${_.CD}`)
         setTimeout(() => retry(), _.CD * 1000)
     }
     if (r == 0) {

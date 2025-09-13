@@ -154,7 +154,7 @@ xtHandler.on("lli", async (_, result) => {
             rect.w = rect.w > 1286 ? 1286 : rect.w
             rect.h = rect.h > 1286 ? 1286 : rect.h
 
-            await sendXT("gaa", JSON.stringify({
+            sendXT("gaa", JSON.stringify({
                 KID: kid,
                 AX1: rect.x,
                 AY1: rect.y,

@@ -48,7 +48,7 @@ xtHandler.on("cat", async (obj, result) => {
     let TY = attackSource[2]
 
     for (let i = 0; i < attackSource[5] / 60 / 30; i++) {
-        await sendXT("msd", JSON.stringify({ "X": TX, "Y": TY, "MID": -1, "NID": -1, "MST": "MS4", "KID": `${obj.A.M.KID}` }))
+        sendXT("msd", JSON.stringify({ "X": TX, "Y": TY, "MID": -1, "NID": -1, "MST": "MS4", "KID": `${obj.A.M.KID}` }))
 
         var [obj2, _] = await waitForResult("msd", 7000, (obj, result) => {
             if (result != 0)
@@ -81,7 +81,7 @@ xtHandler.on("lli", async (_, result) => {
     let SY = Number(obj.gca.A[2])
     let attackFort = async (TX, TY, ai) => {
         for (let i = 0; i < ai[5] / 60 / 30; i++) {
-            await sendXT("msd", JSON.stringify({ "X": TX, "Y": TY, "MID": -1, "NID": -1, "MST": "MS4", "KID": `${kid}` }))
+            sendXT("msd", JSON.stringify({ "X": TX, "Y": TY, "MID": -1, "NID": -1, "MST": "MS4", "KID": `${kid}` }))
             var [obj2, _] = await waitForResult("msd", 7000, (obj, result) => {
                 if (result != 0)
                     return false
@@ -138,7 +138,7 @@ xtHandler.on("lli", async (_, result) => {
     }
 
     while (true) {
-        await sendXT("fnm", JSON.stringify({"T":type,"KID":kid,"LMIN":-1,"LMAX":-1,"NID":-801}), "str")
+        sendXT("fnm", JSON.stringify({"T":type,"KID":kid,"LMIN":-1,"LMAX":-1,"NID":-801}), "str")
         let [obj, _] = await waitForResult("fnm", 8500, (obj, result) => {
             if (result != 0)
                 return false
