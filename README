@@ -77,7 +77,6 @@ ggeConfig example:
     "fontPath" : "",
     "privateKey" : "",
     "cert" : "",
-    "firefoxProfile" : "",
     //Something to prevent unwanted people signing up and using the service
     "signupToken" : "EXAMPLE_TOKEN_VERY_LONG_DO_CHANGE",
 
@@ -92,7 +91,7 @@ ggeConfig example:
 What you need to do to use (Windows):
   Goto release download the powershell file run it and it should be on your desktop
   Then go in there and press start.bat
-What you need to do to use (Other OS):=
+What you need to do to use (Other OS):
 1. grab the latest version of NodeJS
 2. open up powershell (Windows) or bash (Linux) and run these two commands in the same folder
      npx playwright install
