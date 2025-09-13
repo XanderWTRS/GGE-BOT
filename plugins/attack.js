@@ -83,50 +83,12 @@ function getTotalAmountTools(e, t, n) {
     return 1 === e ? t < 11 ? 10 : t < 37 ? 20 : t < 50 ? 30 : t < 69 ? 40 : 50 : t < 37 ? 10 : t < 50 ? 20 : t < 69 ? 30 : 0 | Math.ceil(40 + n)
 }
 
-/*
-i.areaType == u.WorldConst.AREA_TYPE_CAPITAL ? 
-    : 
-    if(areaType == AREA_TYPE_CAPITAL)
-        this._waves.push(new o.CastleAttackWaveVO(e,p.CastleModel.landmark.capitalLandmark.minDefenseLevel,i)) 
-    else if(areaType == AREA_TYPE_CAPITAL)
-        this._waves.push(new o.CastleAttackWaveVO(e,p.CastleModel.landmark.metroLandmark.minDefenseLevel,i))
-    else if(areaType == AREA_TYPE_KINGS_TOWER)
-        this._waves.push(new o.CastleAttackWaveVO(e,l.OutpostConst.KINGS_TOWER_DEFAULT_LEVEL,i)) 
-    else if(areaType == AREA_TYPE_MONUMENT)
-        this._waves.push(new o.CastleAttackWaveVO(e,l.OutpostConst.MONUMENT_DEFAULT_LEVEL,i)) 
-    else if(areaType == AREA_TYPE_LABORATORY)
-        this._waves.push(new o.CastleAttackWaveVO(e,l.OutpostConst.LABORATORY_DEFAULT_LEVEL,i)) 
-    else
-        this._waves.push(new o.CastleAttackWaveVO(e,0,i))
-        const waveUnlockLevelList = [0, 13, 26, 51]
-        getMaxWaveCount = function(e) {
-            for (var n = 1, i = waveUnlockLevelList.length - 1; i >= 0; i--)
-                if (e >= waveUnlockLevelList[i]) {
-                    n = i + 1;
-                    break
-                }
-            return n
-        }
-        ,
-        CombatConst.getMaxWaveCountWithBonus = function(e, t, n) {
-            return CombatConst.getMaxWaveCount(e, t) + n
-        }
-*/
-
 function getMaxAttackers(targetLevel) {
     let t = 320;
     return targetLevel <= 69 && (t = Math.min(260, 5 * targetLevel + 8)), t
 }
 const getAmountSoldiersFlank = e => 0 | Math.ceil(.2 * getMaxAttackers(e))
 const getAmountSoldiersMiddle = e => 0 | Math.ceil(getMaxAttackers(e) - 2 * getAmountSoldiersFlank(e))
-
-/*
-    Actually know how many waves it has
-    
-    Ability to say what it should use first strongest ect
-
-    filling waves with presets
-*/
 
 let campRageNeeded = undefined
 let playerLevel = undefined
