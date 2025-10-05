@@ -36,6 +36,9 @@ let wavePattern = {
 let createLayout = ((GA) => {
   let passThroughStream = new Stream.PassThrough()
     ; (async () => {
+    
+      if(!ggeConfig.fontPath)
+        ggeConfig.fontPath = "C:\\Windows\\Fonts\\segoeui.ttf"
       await PImage.registerFont(ggeConfig.fontPath, "arial").load()
 
       let img = await PImage.decodePNGFromStream(fs.createReadStream("./assets/asset.png"))
