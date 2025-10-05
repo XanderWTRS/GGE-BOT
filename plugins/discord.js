@@ -14,20 +14,26 @@ const ggeConfig = require("../ggeConfig.json")
 let clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
 let client = new Client(clientOptions)
 
-client.on(Events.ClientReady, () => client.user.setActivity('github.com/darrenthebozz/GGE-BOT'))
-
 let commands = new Collection()
 
 if (workerData.internalWorker)
     client.on(Events.InteractionCreate, async interaction => {
-        if (!interaction.isChatInputCommand()) return;
-
         const command = commands.get(interaction.commandName);
-
+        
         if (!command) {
             console.error(`No command matching ${interaction.commandName} was found.`);
             return;
         }
+
+        if (interaction.isAutocomplete()) {
+            try {
+                await command.autoComplete(interaction);
+            } catch (error) {
+                console.error(error);
+            }
+            return
+        }
+        if (!interaction.isChatInputCommand()) return;
 
         try {
             await command.execute(interaction);
@@ -40,7 +46,7 @@ if (workerData.internalWorker)
             }
         }
     });
-
+client.on(Events.ClientReady, () => client.user.setActivity('https://github.com/darrenthebozz/GGE-BOT/edit/main/plugins/discord.js'))
 client.login(ggeConfig.discordToken);
 
 /** @type {Promise<Client>} */
@@ -56,7 +62,7 @@ async function refreshCommands() {
     await clientPromise
     const rest = new REST().setToken(ggeConfig.discordToken)
     if (commands.size == 0)
-        console.warn("No commands")
+        console.warn(`[${name}] No commands`)
 
     if (commands.size != 0)
         client.guilds.cache.forEach(async guild => {
