@@ -1,5 +1,6 @@
+const name = "score"
 if (require('node:worker_threads').isMainThread)
-    return module.exports = { hidden: true }
+    return module.exports = { name, hidden: true }
 
 const { xtHandler, sendXT, waitForResult } = require("../ggebot")
 const { client } = require('./discord')
@@ -12,7 +13,7 @@ async function getStormRanks(i) {
     await i.deferReply()
     if (playerids.length == 0) {
         try {
-            await sendXT("hgh", JSON.stringify({ LT: 2, SV: `` }))
+            sendXT("hgh", JSON.stringify({ LT: 2, SV: `` }))
             let [obj2, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -25,8 +26,8 @@ async function getStormRanks(i) {
             for (let j = 1; j + 1 <= 3000; j += 8) {
                 promises.push((async () => {
                     try {
-                    await sendXT("hgh", JSON.stringify({ LT: 2, SV: `${j}` }))
-                    let [obj, _2] = await waitForResult("hgh", 1000 * 60, (obj, result) => {
+                    sendXT("hgh", JSON.stringify({ LT: 2, SV: `${j}` }))
+                    let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                         if (result != 0)
                             return false
 
@@ -59,7 +60,7 @@ async function getStormRanks(i) {
     let lootTable = []
     await Promise.all(playerids.map(async (pid) => {
         try {
-        await sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }));
+        sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }));
         let [obj, _2] = await waitForResult("gpe", 1000 * 60, (obj, result) => {
             if (result != 0)
                 return false
@@ -93,8 +94,8 @@ async function getStormRanks(i) {
 async function getAllianceEventRank(interaction, LT) {
     let getAllianceByName = (name) => new Promise(async (resolve, reject) => {
         try {
-            await sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
-            let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
+            sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
+            let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
 
@@ -168,7 +169,7 @@ async function getAllianceEventRank(interaction, LT) {
 
     let commonGetFunc = async (j) => {
         for (let i = 1; i <= j; i++) {
-            await sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `` }))
+            sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `` }))
             let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -181,7 +182,7 @@ async function getAllianceEventRank(interaction, LT) {
             for (let j = 1; j + 1 <= obj.LR; j += 8) {
                 promises.push((async () => {
                     try {
-                        await sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `${j}` }))
+                        sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `${j}` }))
                         let [obj, _2] = await waitForResult("hgh", 1000 * 10, (obj, result) => {
                             if (result != 0)
                                 return false
@@ -222,7 +223,7 @@ async function getAllianceEventRank(interaction, LT) {
                 lootTable.push([e.N, -1])
                 return
             }
-            await sendXT("hgh", JSON.stringify({ LT: LT, SV: `${e.N}` }))
+            sendXT("hgh", JSON.stringify({ LT: LT, SV: `${e.N}` }))
             try {
                 let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
                     if (result != 0)
@@ -252,7 +253,7 @@ async function getAllianceEventRank(interaction, LT) {
     else if (LT == "Storm") {
         let playerids = await getAlliancePlayerID(AID)
         await Promise.all(playerids.map(async pid => {
-            await sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }));
+            sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }));
             let [obj, _2] = await waitForResult("gpe", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -273,7 +274,7 @@ async function getAllianceEventRank(interaction, LT) {
                 return
             }
             LT = 54
-            await sendXT("hgh", JSON.stringify({ LT: LT, LID : 1, SV: `${e.N}` }))
+            sendXT("hgh", JSON.stringify({ LT: LT, LID : 1, SV: `${e.N}` }))
             try {
                 let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
                     if (result != 0)
@@ -291,7 +292,7 @@ async function getAllianceEventRank(interaction, LT) {
                 lootTable.push([e.N, -1])
             }
             LT == 55
-            await sendXT("hgh", JSON.stringify({ LT: LT, LID : 2, SV: `${e.N}` }))
+            sendXT("hgh", JSON.stringify({ LT: LT, LID : 2, SV: `${e.N}` }))
             try {
                 let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
                     if (result != 0)
@@ -339,14 +340,25 @@ async function getAllianceEventRank(interaction, LT) {
 }
 
 let alliances = []
-xtHandler.on("lli", async (_2, result) => {
-    if (result != 0)
+xtHandler.on("lli", async (_,r) => {
+    if (r != 0)
         return
-
+    //TODO: Not this.
+    let canFuckingWork = false
+    while (!canFuckingWork) {
+        try {
+            sendXT("hgh", JSON.stringify({ LT: 11, LID: 6, SV: `${1}` }))
+            await waitForResult("hgh", 1000 * 5)
+            canFuckingWork = true
+        }
+        catch(e) {
+            console.warn(e)
+        }
+    }
     if (alliances.length == 0) {
         for (let j = 1; j < 32000; j += 8) {
             try {
-                await sendXT("hgh", JSON.stringify({ LT: 11, SV: `${j}` }))
+                sendXT("hgh", JSON.stringify({ LT: 11, LID:6, SV: `${j}` }))
                 let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                     if (result != 0)
                         return false
