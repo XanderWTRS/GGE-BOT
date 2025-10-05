@@ -46,7 +46,7 @@ if (workerData.internalWorker)
             }
         }
     });
-client.on(Events.ClientReady, () => client.user.setActivity('https://github.com/darrenthebozz/GGE-BOT/edit/main/plugins/discord.js'))
+client.on(Events.ClientReady, () => client.user.setActivity('https://github.com/darrenthebozz/GGE-BOT'))
 client.login(ggeConfig.discordToken);
 
 /** @type {Promise<Client>} */
