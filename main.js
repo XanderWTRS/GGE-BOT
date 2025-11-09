@@ -245,13 +245,15 @@ async function start() {
 `)
   userDatabase.exec(
     `CREATE TABLE IF NOT EXISTS "SubUsers" (
+  "id"	INTEGER,
 	"uuid"	TEXT NOT NULL,
 	"name"	TEXT NOT NULL,
 	"pass"	TEXT NOT NULL,
 	"plugins"	TEXT,
 	"state"	INTEGER,
   "externalEvent" INTEGER,
-	"server"	INTEGER
+	"server"	INTEGER,
+  PRIMARY KEY("id" AUTOINCREMENT)
 );
 `)
 
