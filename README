@@ -70,24 +70,15 @@ Some info on the plugins:
   Khan does NOT replace your defence at the current becareful when running for too long.
 ggeConfig example:
 {
-    //These two say which server
-    "gameURL" : "wss://ep-live-mz-int1-sk1-gb1-game.goodgamestudios.com/",
-    "gameServer" : "EmpireEx_19",
-
     "fontPath" : "",
     "privateKey" : "",
     "cert" : "",
-    "firefoxProfile" : "",
     //Something to prevent unwanted people signing up and using the service
     "signupToken" : "EXAMPLE_TOKEN_VERY_LONG_DO_CHANGE",
 
-    //Discord intergration is required for these
-    "noInternalWorker" : true,
     "discordToken" : "",
     "discordClientId" : "",
-    "internalWorkerName" : "",
-    "internalWorkerPass" : "",
-    "defaultAllianceName" : ""
+    "discordClientSecret": ""
 }
 What you need to do to use (Windows):
   Goto release download the powershell file run it and it should be on your desktop
@@ -106,5 +97,4 @@ For Discord:
 2. Then goto bot catagory within your new created application
 3. Enable all privileged intents
 4. Goto OAuth2 catagory
-5. copy client ID and put them in the ggeConfig as discordClientId
-6. copy Client Secret and put them in the ggeConfig as discordToken
+5. Setup the ggeConfig fields appropriately
