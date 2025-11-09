@@ -1,34 +1,31 @@
-const { isMainThread, workerData, parentPort } = require('node:worker_threads');
+const { isMainThread } = require('node:worker_threads');
 const name = "Aquaisland"
 
 if (isMainThread)
     return module.exports = {
         name: name,
-        force: true,
         pluginOptions: [
             {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID",
                 key: "channelID",
             },
             
             {
-                type: "Text",
+                type: "Channel",
                 label: "Alert Channel ID",
                 key: "alertChannelID",
             }
         ]
 };
 
-if (!workerData.internalWorker)
-    return
-
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
-const { client } = require('./discord')
 const pretty = require('pretty-time');
-const { TargetType, mapObjects, addToWhiteList } = require("./getregions.js");
-const getUser = require('./getUser.js');
+const { events, botConfig } = require("../../ggebot")
+const { clientReady } = require('./discord')
+const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
+const getUser = require('../getUser.js');
 
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
     addToWhiteList(24)
 
     let maxListedAquaObjects = 64
@@ -50,7 +47,7 @@ const getUser = require('./getUser.js');
         needSort = true
     })
 
-    xtHandler.on("lli", async (_,r) => r == 0 ? 
+    events.once("load", async () => 
         setInterval(async () => {
             let currentDate = new Date().getTime()
             if (needSort) {
@@ -94,23 +91,20 @@ const getUser = require('./getUser.js');
     
                     let mention = "<@&1266227924592496670> "
 
-                    let channelIDs = (await getUser()).map(user => user.state ? user.plugins?.aquaisland?.alertChannelID : undefined).filter(channelID => channelID)
+                    try {
+                        const channel = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
 
-                    channelIDs.forEach(async channelID => {
-                        try {
-                            const channel = await (await client).channels.fetch(channelID)
-
-                            channel.send(
-                                mention + 
-                                `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` + 
-                                ` <t:${Math.round(new Date().getTime() / 1000 + deltaTime)}:R>`
-                            )
-                            return true
-                        }
-                        catch (e) {
-                            console.warn(e)
-                        }
-                    });
+                        channel.send(
+                            mention +
+                            `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
+                            ` <t:${Math.round(new Date().getTime() / 1000 + deltaTime)}:R>`
+                        )
+                        return true
+                    }
+                    catch (e) {
+                        console.warn(e)
+                    }
+                    
                 }
                 if (deltaTime <= 0 && !mapObject.updateRealtime) {
                     mapObject.updateRealtime = true
@@ -137,15 +131,12 @@ const getUser = require('./getUser.js');
 
             msg += "```"
 
-            let channelIDs = (await getUser()).map(user => user.state ? user.plugins?.aquaisland?.channelID : undefined).filter(channelID => channelID)
-        
-            channelIDs.every(async channelID => {
                 try {
-                    const channel = await (await client).channels.fetch(channelID)
+                    const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
     
                     let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                    if (!message || message.author.id != (await client).user.id)
-                        message = await channel.send({ content: "``` ```", flags: [4096] })
+                    if (!message || message.author.id != (await clientReady).user.id)
+                        message = await channel.send({ content: "```Loading...```", flags: [4096] })
     
                     if (message.content == msg)
                         return false
@@ -156,6 +147,6 @@ const getUser = require('./getUser.js');
                     console.warn(e)
                     return true
                 }
-            });
-        }, 6 * 1000).unref() : void 0)
+            
+        }, 6 * 1000).unref())
 

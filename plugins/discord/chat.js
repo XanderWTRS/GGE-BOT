@@ -1,4 +1,4 @@
-const { workerData, isMainThread } = require('node:worker_threads')
+const { isMainThread } = require('node:worker_threads')
 const name = "Chat"
 if (isMainThread)
     return module.exports = {
@@ -6,7 +6,7 @@ if (isMainThread)
         description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID",
                 key: "channelID",
             },
@@ -19,12 +19,13 @@ if (isMainThread)
             }
         ]
     };
+
 const turl = require('turl')
 const emoji = require("emoji-dictionary");
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
-const { client } = require('./discord')
+const { xtHandler, sendXT, waitForResult, botConfig } = require("../../ggebot")
+const { clientReady } = require('./discord')
 
-const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 function parseMessage(e) {
     if (!e)
@@ -55,10 +56,10 @@ function unparseMessage(e) {
 
     return e = e.replaceAll("%", "&percnt;").replaceAll('"', "&quot;").replaceAll("'", "&145;").replaceAll("\n", "<br>").replaceAll("\\", "%5C").replaceAll(/(\[|\])/g, " ")
 }
-client.then(async client => {
+clientReady.then(async client => {
     let channel = await client.channels.fetch(pluginOptions.channelID)
     xtHandler.on("acm", (obj) => {
-        if (obj.CM.PN.toLowerCase() == workerData.name.toLowerCase())
+        if (obj.CM.PN.toLowerCase() == botConfig.name.toLowerCase())
             return;
 
         var msg = parseMessage(obj.CM.MT)

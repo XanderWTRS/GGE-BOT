@@ -1,5 +1,4 @@
-const {workerData, isMainThread} = require('node:worker_threads')
-
+const {isMainThread} = require('node:worker_threads')
 const name = "Attack Forts"
 
 if (isMainThread)
@@ -46,9 +45,9 @@ if (isMainThread)
         ]
     }
 
-const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)]
 
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
+const { xtHandler, sendXT, waitForResult, events, botConfig } = require("../../ggebot")
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)]
 const attack = require("./attack.js")
 const pretty = require('pretty-time');
 const kid = 4
@@ -103,10 +102,7 @@ xtHandler.on("gam", (obj, result) => {
         blackListedCoords.push([m.TA[1], m.TA[2]])
     });
 })
-xtHandler.on("lli", async (_, result) => {
-    if (result != 0)
-        return
-
+events.once("load", async () => {
     sendXT("jca", JSON.stringify({ "CID": -1, "KID": kid }))
     setInterval(() => sendXT("jca", JSON.stringify({ "CID": -1, "KID": kid })), 1000 * 60 * 5).unref()
 
@@ -119,9 +115,9 @@ xtHandler.on("lli", async (_, result) => {
 
     let SX = Number(obj.gca.A[1])
     let SY = Number(obj.gca.A[2])
-    let attackFort = async (TX, TY) => {
+    let attackFort = async (TX, TY,ai) => {
         while (true) {
-            let eventEmitter = attack(SX, SY, TX, TY, kid, undefined, 3)
+            let eventEmitter = attack(SX, SY, TX, TY, kid, undefined, 3, { ai: ai})
             try {
                 let info = await new Promise((resolve, reject) => {
                     //FIXME: Possible memory leakage. Need to remove resolve and reject on await completion
@@ -273,11 +269,11 @@ xtHandler.on("lli", async (_, result) => {
                     for (let i = 0; i < AI.length; i++) {
                         const ai = AI[i];
                         if (!blackListedCoords.every(([x, y]) => x != ai[1] || y != ai[2])) {
-                            console.info(`[${name}] skipping ${ai[1]}:${ai[2]} already hitting`)
+                            console.info(`[${name}] Skipping ${ai[1]}:${ai[2]} already hitting`)
                             continue;
                         }
 
-                        await attackFort(ai[1], ai[2])
+                        await attackFort(ai[1], ai[2], ai)
 
                         if (timeStart / 1000 * 60 * 60 * 1.5 < new Date().getTime() / 1000) {
                             console.info(`[${name}] time elapsed 1.5 hours rescanning from scratch`)
@@ -297,17 +293,17 @@ xtHandler.on("lli", async (_, result) => {
     }
 })
 
-/** @type {Status} */
-const status = require("./status.js");
+let aquamarine = 0
+xtHandler.on("grc", (obj, r) => r == 0 ? aquamarine = obj.A : void 0)
 
 if (pluginOptions["buycoins"]) {
     xtHandler.addListener("jaa", (_, r) => {
         if (r != 0)
             return
 
-        if (status.aquamarine > 500000) { //might not work
+        if (aquamarine > 500000) { //might not work
             sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-            console.info("Buying Coins")
+            console.info(`[${name}] Buying Coins`)
         }
     })
 }
@@ -316,9 +312,9 @@ if (pluginOptions["buydeco"]) {
         if (r != 0)
             return
 
-        if (status.aquamarine > 500000) {
+        if (aquamarine > 500000) {
             sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-            console.info("Buying Deco")
+            console.info(`[${name}] Buying Deco`)
         }
     })
 }
@@ -327,9 +323,9 @@ if (pluginOptions["buyxp"]) {
         if (r != 0)
             return
 
-        for (let i = 0; i < Math.floor(status.aquamarine / 10000); i++) {
+        for (let i = 0; i < Math.floor(aquamarine / 10000); i++) {
             sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-            console.info("Got XP")
+            console.info(`[${name}] Got XP`)
         }
     })
 }

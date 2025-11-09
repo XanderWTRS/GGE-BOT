@@ -1,34 +1,31 @@
-const { isMainThread, workerData, parentPort, threadId } = require('node:worker_threads');
+const { isMainThread, parentPort, threadId } = require('node:worker_threads');
 const name = "Aqua Tower"
 
 if (isMainThread)
     return module.exports = {
         name: name,
-        force: true,
         pluginOptions: [
             {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID",
                 key: "channelID",
             },
 
             {
-                type: "Text",
+                type: "Channel",
                 label: "Alert Channel ID",
                 key: "alertChannelID",
             }
         ]
     };
 
-if (!workerData.internalWorker)
-    return
-
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
-const { client } = require('./discord')
+const { events, botConfig } = require("../../ggebot")
+const { clientReady } = require('./discord')
 const pretty = require('pretty-time');
-const { TargetType, mapObjects, addToWhiteList } = require("./getregions.js");
-const getUser = require('./getUser.js');
+const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
+const getUser = require('../getUser.js');
 
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 addToWhiteList(25)
 let aquaMapObjects = []
 let needSort = false
@@ -46,18 +43,15 @@ mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapO
             map.set(mapObject, true)
 
             let mention = "<@&1266227556529606676> "
-            let channelIDs = (await getUser()).map(user => user.state ? user.plugins?.aquatower?.alertChannelID : undefined).filter(channelID => channelID)
-
-            channelIDs.forEach(async channelID => {
                 try {
-                    const channel = await (await client).channels.fetch(channelID)
+                    const channel = channelID = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
                     channel.send(mention + `${mapObject.x}:${mapObject.y} ${type == 9 ? "(Easy)" : "(Hard)"}`)
                     return true
                 }
                 catch (e) {
                     console.warn(e)
                 }
-            });
+            
         }
 
         return
@@ -70,9 +64,7 @@ mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapO
 })
 let maxAquaTowers = 60
 
-xtHandler.on("lli", async (_, r) => {
-    if (r != 0)
-        return
+events.once("load", async (_, r) => {
     setInterval(async () => {
         let currentDate = new Date().getTime()
         if (needSort) {
@@ -145,15 +137,12 @@ xtHandler.on("lli", async (_, r) => {
 
         msg += "```"
 
-        let channelIDs = (await getUser()).map(user => user.state ? user.plugins?.aquatower?.channelID : undefined).filter(channelID => channelID)
-
-        channelIDs.every(async channelID => {
             try {
-                const channel = await (await client).channels.fetch(channelID)
+                const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
 
                 let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                if (!message || message.author.id != (await client).user.id) {
-                    message = await channel.send({ content: "``` ```", flags: [4096] })
+                if (!message || message.author.id != (await clientReady).user.id) {
+                    message = await channel.send({ content: "```Loading...```", flags: [4096] })
                     return true
                 }
 
@@ -166,6 +155,5 @@ xtHandler.on("lli", async (_, r) => {
                 console.warn(e)
                 return true
             }
-        });
     }, 6 * 1000).unref()
 })

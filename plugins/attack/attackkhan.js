@@ -1,4 +1,4 @@
-const {workerData, isMainThread} = require('node:worker_threads')
+const {isMainThread} = require('node:worker_threads')
 
 const name = "Attack Khan"
 
@@ -24,16 +24,22 @@ if (isMainThread)
                 key: "wavesTillChests",
                 default: 4
             },
+            {
+                type: "Checkbox",
+                label: "Max Hit",
+                key: "maxHit",
+                default: false
+            },
         ]
         
     }
 
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
+const { xtHandler, sendXT, waitForResult, events, botConfig } = require("../../ggebot")
 const attack = require("./attack.js")
 const pretty = require('pretty-time')
 const kid = 0
 const type = 35
-const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 xtHandler.on("cat", async (obj, result) => {
     if (result != 0)
@@ -63,11 +69,8 @@ xtHandler.on("cat", async (obj, result) => {
             break
     }
 })
-
-xtHandler.on("lli", async (_, result) => {
-    if (result != 0)
-        return
-
+let quit = false
+events.once("load", async () => {
     sendXT("jca", JSON.stringify({ "CID": -1, "KID": kid }))
 
     var [obj, result] = await waitForResult("jaa", 1400 * 10, (obj, result) => {
@@ -93,7 +96,7 @@ xtHandler.on("lli", async (_, result) => {
             if (obj2.AI[5] <= 0)
                 break
         }
-        while (true) {
+        while (!quit) {
             let rangeArray = undefined
             if(pluginOptions.commanderWhiteList && pluginOptions.commanderWhiteList != "") {
                 const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a=>a-1);
@@ -102,7 +105,8 @@ xtHandler.on("lli", async (_, result) => {
             let eventEmitter = attack(SX, SY, TX, TY, kid, undefined, undefined, {
                 commanderWhiteList : rangeArray,
                 lowValueChests : pluginOptions.lowValueChests,
-                wavesTillChests : pluginOptions.wavesTillChests
+                wavesTillChests : pluginOptions.wavesTillChests,
+                maxHit : pluginOptions.maxHit, ai: ai
             })
             try {
                 let info = await new Promise((resolve, reject) => {
@@ -121,7 +125,6 @@ xtHandler.on("lli", async (_, result) => {
                 let timeout = (ms) => new Promise(r => setTimeout(r, ms).unref());
                 switch (e) {
                     case "NO_MORE_TROOPS":
-                        console.info(`[${name}] No more troops`)
                         let [obj, _] = await waitForResult("cat", 1000 * 60 * 60 * 24, (obj, result) => {
                             return result == 0 && obj.A.M.KID == kid
                         })
@@ -129,15 +132,19 @@ xtHandler.on("lli", async (_, result) => {
                         console.info(`[${name}] Waiting ${obj.A.M.TT - obj.A.M.PT + 1} seconds for more troops`)
                         await timeout((obj.A.M.TT - obj.A.M.PT + 1) * 1000)
                         continue
+                    case "LORD_IS_USED":
+                    case "CANT_START_NEW_ARMIES":
+                        break
                     default:
-                        console.warn(e)
+                        quit = true
                 }
+                console.warn(`[${name}] ${e}`)
             }
             break;
         }
     }
 
-    while (true) {
+    while (!quit) {
         sendXT("fnm", JSON.stringify({"T":type,"KID":kid,"LMIN":-1,"LMAX":-1,"NID":-801}), "str")
         let [obj, _] = await waitForResult("fnm", 8500, (obj, result) => {
             if (result != 0)

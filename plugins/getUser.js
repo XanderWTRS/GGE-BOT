@@ -1,5 +1,6 @@
+const name = "Get User"
 if (require('node:worker_threads').isMainThread)
-  return module.exports = { hidden: true }
+  return module.exports = { name, hidden: true }
 
 const sqlite3 = require("sqlite3")
 
@@ -16,6 +17,7 @@ class User {
     this.pass = String(obj?.pass)
     this.plugins = obj?.plugins
     this.plugins ??= {}
+    this.externalEvent = Boolean(obj?.externalEvent)
   }
 }
 

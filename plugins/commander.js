@@ -1,10 +1,12 @@
+const name = "commander"
+
 if (require('node:worker_threads').isMainThread)
-    return module.exports = { hidden: true }
+    return module.exports = {name, hidden: true }
 
 //Failing here Lord ID not properly aqquired
 //This thing is gonna give you a stroke...
 
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
+const { xtHandler, sendXT, waitForResult, events } = require("../ggebot")
 const playerid = require("./playerid.js")
 
 const event = new EventTarget()
@@ -34,11 +36,14 @@ async function useCommander(LID) {
         usedCommandersR.push(LID)
     return LID
 }
-const waitForCommanderAvailable = (arr) => new Promise(async resolve => {
+const waitForCommanderAvailable = (arr, func) => new Promise(async resolve => {
     let usedCommandersR = await usedCommanders
     let commandersR = await commanders
 
-    let LID = commandersR.find(e => (!arr || arr.includes(e.VIS)) && !usedCommandersR.includes(e.ID))?.ID
+    let LID = commandersR.find(e => 
+        ((!arr || arr.includes(e.VIS)) && 
+        !usedCommandersR.includes(e.ID)) && (func == undefined || func(e.ID))
+    )?.ID
     if (LID != undefined) {
         return resolve(useCommander(LID))
     }
@@ -52,10 +57,7 @@ const waitForCommanderAvailable = (arr) => new Promise(async resolve => {
     event.addEventListener("freedCommander", checkForCommander)
 })
 
-xtHandler.on("lli", async (_, result) => {
-    if (result != 0)
-        return
-
+events.once("load", async () => {
     let parseGLI = (gli) => {
         //I don't like
         //Need to change the resolved objects inner items instead of itself
@@ -122,5 +124,6 @@ xtHandler.on("lli", async (_, result) => {
 module.exports = {
     waitForCommanderAvailable,
     useCommander,
-    freeCommander
+    freeCommander,
+    gli : async() => await commanders
 }

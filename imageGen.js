@@ -124,7 +124,9 @@ let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxH
     ctx.fillText(`${count}`, x + (unitImage.width - textLength.width) / 2, y + unitImage.height + textHeight)
 
     if (unit?.level) {
-      let image = await PImage.decodePNGFromStream(fs.createReadStream("./assets/image.png"))
+      let asset = await getAsset(`Colleactable_LevelIndicator_Unit`)
+      
+      let image = await PImage.decodePNGFromStream(asset)
       textHeight = 12
       ctx.font = `${textHeight}px arial`
       textLength = ctx.measureText(`${unit.level}`)

@@ -1,4 +1,4 @@
-const {workerData, isMainThread} = require('node:worker_threads')
+const {isMainThread} = require('node:worker_threads')
 
 const name = "Attack Fortress (Glacier)"
 
@@ -8,13 +8,13 @@ if (isMainThread)
         description : "Hits Fortresses (Glacier)"
     }
 
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
+const { xtHandler, sendXT, waitForResult, events, botConfig } = require("../../ggebot")
 const attack = require("./attack.js")
 const pretty = require('pretty-time')
 const kid = 2
 const type = 11
 
-const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 let blackListedCoords = []
 
 xtHandler.on("gam", (obj, result) => {
@@ -65,10 +65,7 @@ function spiralCoordinates(n) {
 
     return { x, y };
 }
-xtHandler.on("lli", async (_, result) => {
-    if (result != 0)
-        return
-
+events.once("load", async () => {
     sendXT("jca", JSON.stringify({ "CID": -1, "KID": kid }))
 
     var [obj, result] = await waitForResult("jaa", 1400 * 10, (obj, result) => {
@@ -82,7 +79,7 @@ xtHandler.on("lli", async (_, result) => {
     let SY = Number(obj.gca.A[2])
     let attackFort = async (TX, TY, ai) => {
         while (true) {
-            let eventEmitter = attack(SX, SY, TX, TY, kid, undefined, 3, { abi :true})
+            let eventEmitter = attack(SX, SY, TX, TY, kid, undefined, 3, { abi :true, ai: ai})
             try {
                 let info = await new Promise((resolve, reject) => {
                     eventEmitter.once("sent", resolve)
@@ -193,11 +190,11 @@ xtHandler.on("lli", async (_, result) => {
                 for (let i = 0; i < AI.length; i++) {
                     const ai = AI[i];
                     if (!blackListedCoords.every(([x, y]) => x != ai[1] || y != ai[2])) {
-                        console.info(`[${name}] skipping ${ai[1]}:${ai[2]} already hitting`)
+                        console.info(`[${name}] Skipping ${ai[1]}:${ai[2]} already hitting`)
                         continue;
                     }
 
-                    await attackFort(ai[1], ai[2])
+                    await attackFort(ai[1], ai[2],ai)
                 }
             }
             catch (e) {

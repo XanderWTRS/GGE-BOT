@@ -6,3 +6,4 @@ package-lock.json
 assets/itemassets
 items
 ItemsVersion.properties
+lang.json

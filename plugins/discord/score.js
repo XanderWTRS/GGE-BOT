@@ -1,13 +1,54 @@
-const name = "score"
+const name = "Slash Commands"
 if (require('node:worker_threads').isMainThread)
-    return module.exports = { name, hidden: true }
+    return module.exports = { name }
 
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
-const { client } = require('./discord')
-const { SlashCommandBuilder, Interaction } = require('discord.js');
-const { refreshCommands, commands } = require("./discord.js")
-const ggeConfig = require("../ggeConfig.json")
+const { Events, SlashCommandBuilder, Interaction, Collection, REST, Routes } = require('discord.js');
+const { client, clientReady } = require('./discord')
+const { xtHandler, sendXT, waitForResult, events, botConfig } = require("../../ggebot")
+const { ClientCommands, HighscoreType, Types, AreaType } = require('../../protocols.js');
+const ggeConfig = require("../../ggeConfig.json");
+const allianceID = require('../allianceid.js');
+let commands = new Collection()
+async function refreshCommands() {
+    await clientReady
+    const rest = new REST().setToken(ggeConfig.discordToken)
+    if (commands.size == 0)
+        return console.warn(`[${name}] No commands`)
+    
+    await rest.put(
+        Routes.applicationGuildCommands(ggeConfig.discordClientId, botConfig.discordData.discordGuildId),
+        { body: commands.map(command => command.data.toJSON()) },
+    )
+}
+client.on(Events.InteractionCreate, async interaction => {
+    const command = commands.get(interaction.commandName);
 
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    if (interaction.isAutocomplete()) {
+        try {
+            await command.autoComplete(interaction);
+        } catch (error) {
+            console.error(error);
+        }
+        return
+    }
+    if (!interaction.isChatInputCommand()) return;
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+        } else {
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    }
+});
 let playerids = []
 async function getStormRanks(i) {
     await i.deferReply()
@@ -135,7 +176,7 @@ async function getAllianceEventRank(interaction, LT) {
         }
         xtHandler.addListener("ain", listener)
     })
-    let getAlliancePlayerID = (AID) => new Promise((resolve, reject) => {//%xt%EmpireEx_19%ain%1%{"AID":2480}%
+    let getAlliancePlayerID = (AID) => new Promise((resolve, reject) => {
         sendXT("ain", JSON.stringify({ AID: AID }))
         let listener = (obj, result) => {
             if (result == 114) {
@@ -156,10 +197,11 @@ async function getAllianceEventRank(interaction, LT) {
         xtHandler.addListener("ain", listener)
     })
     await interaction.deferReply()
-    let allianceName = interaction.options.getString('name') ?? ggeConfig.defaultAllianceName
-    let AID = undefined
+    let allianceName = interaction.options.getString('name')
+    let AID = await allianceID
     try {
-        AID = await getAllianceByName(allianceName)
+        if(allianceName)
+            AID = await getAllianceByName(allianceName)
     }
     catch {
         await interaction.editReply("Could not find the alliance specified");
@@ -340,10 +382,7 @@ async function getAllianceEventRank(interaction, LT) {
 }
 
 let alliances = []
-xtHandler.on("lli", async (_,r) => {
-    if (r != 0)
-        return
-    //TODO: Not this.
+events.once("load", async () => {
     let canFuckingWork = false
     while (!canFuckingWork) {
         try {
@@ -393,7 +432,62 @@ let genericAutoComplete = async (interaction) => {
         filtered.map(choice => ({ name: choice, value: choice })),
     );
 };
+let getHonourRanking = async (interaction) => {
+    interaction.deferReply()
+    let getHonourList = async function*() {
+        fullout:
+        for (let j = 1; j + 1 <= 3000; j += 8) {
+            let highScoreData = await ClientCommands.getHighScore(HighscoreType.honour, 6, j)()
+            for (let i = 0; i < highScoreData.list.length; i++) {
+                const e = highScoreData.list[i];
+                if (e.playerData.isRuin && !e.playerData.castlePositionList.every(e => e.areaType == AreaType.outpost))
+                    continue
+                if (e.playerData.remainingNoobTime)
+                    continue
+                if (e.playerData.remainingPeaceTime)
+                    continue
+                if (e.ammount == 0)
+                    break fullout
+                if(ggeConfig.blackListedAlliances?.includes(e.playerData.allianceName))
+                    continue
+                
+                yield e.playerData
+            }
+        }
+    }
+    let playerList = []
+    for await (const player of getHonourList()) {
+        if(!playerList.find(e => e[0] == player.name))
+            playerList.push([player.name, `${Math.round(player.mightPoints / 1000000)}M`, player.honour])
+    }
+    playerList.sort((a,b) => b[2] - a[2])
+    let msg = "```"
+    for (let i = 0; i < playerList.length; i++) {
+        const playerData = playerList[i];
+        msg += `${playerData[0]} ${playerData[1]} ${playerData[2]}\n`
+    }
 
+    while (msg.length >= 2000 - 3)
+        msg = msg.replace(/\n.*$/, '')
+
+    msg += "```"
+    await interaction.editReply(msg);
+}
+
+let getAllianceQuestPointCount = async (interaction) => {
+    interaction.deferReply()
+    let allianceQuestsScore = await ClientCommands.allianceQuestPointCount()()
+    allianceQuestsScore.list.sort((a,b) => a.points - b.points)
+    let msg = "```"
+    
+    allianceQuestsScore.list.forEach(e => msg += `${e.name} ${e.points}`)
+
+    while (msg.length >= 2000 - 3)
+        msg = msg.replace(/\n.*$/, '')
+
+    msg += "```"
+    await interaction.editReply(msg);
+}
 ([
     {
         data: new SlashCommandBuilder()
@@ -455,6 +549,15 @@ let genericAutoComplete = async (interaction) => {
         },
         autoComplete: genericAutoComplete
     },
+    {
+        data: new SlashCommandBuilder()
+            .setName('honour')
+            .setDescription('grabs honour from useful targets')
+        ,
+        async execute(/**@type {Interaction}*/interaction) {
+            await getHonourRanking(interaction)
+        },
+    },
     // {
     //     data: new SlashCommandBuilder()
     //         .setName('berimond-invasion')
@@ -502,7 +605,7 @@ let genericAutoComplete = async (interaction) => {
     },
     {
         data: new SlashCommandBuilder()
-            .setName('loot')
+            .setName(botConfig.externalEvent ? "external_loot" : 'loot')
             .setDescription('grabs loot rankings from selected alliance')
             .addStringOption(option =>
                 option.setName("name")
@@ -522,7 +625,19 @@ let genericAutoComplete = async (interaction) => {
             await getStormRanks(interaction)
         },
         autoComplete: genericAutoComplete
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('grandtournament')
+            .setDescription('grabs grand tournament scores'),
+        async execute(/**@type {Interaction}*/interaction) {
+            await getAllianceQuestPointCount(interaction)
+        },
     }
-]).forEach(e => commands.set(e.data.name, e));
+]).forEach(e => { 
+    if(botConfig.externalEvent && !e.data.name.includes("external_"))
+        return
+    commands.set(e.data.name, e)
+});
 
 refreshCommands.bind(this)()

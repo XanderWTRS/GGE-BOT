@@ -1,4 +1,4 @@
-const { workerData, isMainThread } = require('node:worker_threads')
+const { isMainThread } = require('node:worker_threads')
 const name = "Alert"
 if (isMainThread)
     return module.exports = {
@@ -6,29 +6,43 @@ if (isMainThread)
         description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID",
                 key: "channelID",
             },            {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID Aqua",
                 key: "channelIDAqua",
             }
         ]
     };
-    
-const { xtHandler } = require("../ggebot")
-const { client } = require('./discord')
-const AID = require("./allianceid.js")
 
 const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
-const { createLayout } = require("../imageGen.js")
-const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+
+const { xtHandler, botConfig } = require("../../ggebot")
+const { clientReady } = require('./discord')
+const AID = require("../allianceid.js")
+const { createLayout } = require("../../imageGen.js")
+
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 let movements = []
-client.then(async client => {
-    let channelAlert = await client.channels.fetch(pluginOptions.channelID)
-    let channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
+clientReady.then(async client => {
+    //TODO: reload proof this
+    let channelAlert
+    try {
+     channelAlert = await client.channels.fetch(pluginOptions.channelID)
+    }
+    catch (e) {
+        console.warn(`[${name}] ${e}`)
+    }
+    let channelAquaAlert
+    try {
+     channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
+    }
+    catch (e) {
+        console.warn(`[${name}] ${e}`)
+    }
 
     let bannedOIDS = [
         3077107,
@@ -45,7 +59,7 @@ client.then(async client => {
                 defence: 1
             }
     
-            if (movement.M.T != movementType.attack)
+            if (![0,25,31,24,29].includes(movement.M.T))
                 return;
     
             let e = movements.find((e) => e.M.MID == movement.M.MID)
@@ -74,15 +88,20 @@ client.then(async client => {
             let attackerName = attacker.N;
             let attackerAlliance = attacker.AN;
             let attackerArea = movement.M.SA[10]
-            if(bannedOIDS.includes(movement.M.SA[4])) 
+            if(bannedOIDS.includes(movement.M.SA[4]) && !botConfig.externalEvent) 
                 return
 
-            let member = channelAlert.members.find((e) => e.displayName == victim.N)
-            let mention = member?.displayName ? `<@${member.id}> ` : ``
-    
             let victimName = victim.N
             let victimArea = movement.M.TA[10]
-            
+
+            if(botConfig.externalEvent)
+            {
+                victimName = victimName.replace(/_[^_]+$/,'')
+            }
+
+            let member = channelAlert.members.find((e) => e.displayName == victimName)
+            let mention = member?.displayName ? `<@${member.id}> ` : ``
+    
             let kidName = [
                 "\u001b[2;32mThe Great Empire\u001b[0m",
                 "\u001b[2;33mBurning Sands\u001b[0m",
@@ -105,6 +124,8 @@ client.then(async client => {
             let clicks = Math.round(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 10) / 10;
     
             let channel = ((movement.M.KID != 4) ? channelAlert : channelAquaAlert)
+            if(channel == undefined)
+                return
             let content = `${mention}` +
                 "```ansi\n" +
                 `${attackerName} (${attackerArea}) from ${attackerAlliance} is attacking ${victimName} (${victimArea}) in ${kidName[movement.M.KID]} ${clicks} clicks` +

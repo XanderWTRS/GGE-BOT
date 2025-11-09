@@ -14,5 +14,8 @@
     "AddAquaIsland" : 12,
     "AddAquaTower" : 13,
     "Started" : 14,
-    "CAPTCHA" : 15
+    "CAPTCHA" : 15,
+    "GetExternalEvent" : 16,
+    "SetPluginOptions" : 17,
+    "GetChannels" : 18
 }

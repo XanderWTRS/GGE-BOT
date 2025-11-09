@@ -1,4 +1,4 @@
-const { isMainThread, workerData, parentPort } = require('node:worker_threads');
+const { isMainThread } = require('node:worker_threads');
 const name = "GetRegion"
 
 if (isMainThread)
@@ -7,7 +7,7 @@ if (isMainThread)
         hidden: true
     };
 
-    const { xtHandler, sendXT, waitForResult } = require("../ggebot")
+    const { xtHandler, sendXT, events } = require("../ggebot")
 const EventEmitter = require('node:events')
 
 class TargetType {
@@ -67,7 +67,7 @@ let getTowers = () => {
         for (let kid = 1; kid <= 4; kid++) {
             for (let x = 0; x < 1286; x += 100) {
                 for (let y = 0; y < 1286; y += 100) {
-                    await sendXT("gaa", JSON.stringify(
+                    sendXT("gaa", JSON.stringify(
                         {
                             KID: kid,
                             AX1: x,
@@ -100,9 +100,7 @@ let getTowers = () => {
     _getTowers()
 }
 
-xtHandler.on("lli", async (_,r) => {
-    if(r != 0)
-        return
+events.once("load", async () => {
     setInterval(getTowers, 1800 * 1000).unref()
     getTowers()
 })
@@ -134,7 +132,7 @@ xtHandler.on("gaa", obj => {
                 }
 
                 this.updateTimer = setInterval(async () => {
-                    await sendXT("gaa", JSON.stringify(
+                    sendXT("gaa", JSON.stringify(
                         {
                             KID: this.kid,
                             AX1: this.x,

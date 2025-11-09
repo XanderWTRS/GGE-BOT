@@ -1,95 +1,95 @@
-const {workerData, isMainThread} = require('node:worker_threads')
+const { isMainThread } = require('node:worker_threads')
 
 const name = "Mead replace"
 
 if (isMainThread)
     return module.exports = {
-        name : name,
-        description : "Mead replace",
+        name: name,
+        description: "Mead replace",
     }
 
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
+const {
+    ClientCommands,
+    KingdomSkipType,
+    MinuteSkipType,
+    KingdomID,
+    AreaType,
+    getResourceCastleList,
+    getKingdomInfoList
+} = require("../protocols.js")
 
-let dcl = undefined
-let gcl = undefined
+const { events } = require("../ggebot")
 
-xtHandler.on("dcl", (obj) => {
-    dcl = obj
-})
+let hoursLeftTillRefilMandatory = 2.1
+let hoursLeftTillRefilWarning = 3.1
+let sendResTimeout = 29 * 30 * 1000
+let targetKingdomID = KingdomID.stormIslands
 
-xtHandler.on("gcl", (obj) => {
-    gcl = obj
-})
-const externalKingdom = 12
-const stormIslands = 4
-const greatEmpire = 0
-const castleType = 0
-const areaID = 3
-const mainCastle = 1
+events.once("load", async () => {
+    let kingdomInfoList = await getKingdomInfoList()
+    let resourceCastleList = await getResourceCastleList()
 
-let hoursLeftTillRefil = 2.1
+    if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+        return console.warn(`[${name}] refusing to run without ${KingdomID[targetKingdomID]} unlocked`)
 
-async function needMead() {
-    try {
-        await sendXT("dcl", JSON.stringify({CD : 1}))
+    let checkMead = async () => {
+        let dcl = await ClientCommands.getDetailedCastleList()()
+        let stormAreaID = resourceCastleList.castles.find(e => e.kingdomID == targetKingdomID)
+            .areaInfo.find(e => e.type == AreaType.externalKingdom)
+            .extraData[0] // AreaID
 
-        {
-            let [obj] = await waitForResult("dcl", 1000 * 10)
-            dcl = obj //hacky nooo
-        }
-        let ai = gcl.C.find(k => k.KID == stormIslands).AI.find(ai => ai.AI[castleType] == externalKingdom)
-        let areaInfo = dcl.C.find(k => k.KID == stormIslands).AI.find(ai2 => ai2.AID == ai.AI[areaID])
-        
-        // console.log((areaInfo.MEAD / (areaInfo.gpa.DMEADC / 10) - 2.1) * 60 * 60)
-        if(areaInfo?.gpa?.MRMEAD == undefined || areaInfo.gpa.MRMEAD <= 0)
-            return console.warn("No mead storage")
-        if(areaInfo.MEAD / (areaInfo.gpa.DMEADC / 10) > 2.1) {
-            let time = (areaInfo.MEAD / (areaInfo.gpa.DMEADC / 10) - hoursLeftTillRefil) * 60 * 60 * 1000
-            if(areaInfo.gpa.DMEADC != 0) //2147483647
-                setTimeout(needMead, Math.min(time, 2147483647))
-            
-            return console.log("Don't need mead")
-        }
-        console.log("Need mead")
-        //From where? Try ops... Don't take from those who are in the negatives todo
-        let mainCastleAI = gcl.C.find(k => k.KID == greatEmpire).AI.find(ai => ai.AI[castleType] == mainCastle)
+        let resource = kingdomInfoList.resourceTransferList.find(e => e.kingdomID == targetKingdomID)
+        let stormAreaInfo = dcl.castles.find(e => e.kingdomID == targetKingdomID).areaInfo.find(ai => ai.areaID == stormAreaID)
 
-        console.log(`Will try to send ${Math.floor(areaInfo.gpa.MRMEAD - areaInfo.MEAD)} Mead`)
-        await sendXT("kgt", JSON.stringify({"SCID":mainCastleAI.AI[areaID],"SKID":greatEmpire,"TKID":stormIslands,"G":[["MEAD", Math.floor(areaInfo.gpa.MRMEAD - areaInfo.MEAD)]]}))
-        console.log((areaInfo.gpa.MRMEAD / (areaInfo.gpa.DMEADC / 10) - hoursLeftTillRefil) * 60 * 60 * 1000)
-        if(areaInfo.gpa.DMEADC != 0)
-            setTimeout(needMead, (areaInfo.gpa.MRMEAD / (areaInfo.gpa.DMEADC / 10) - hoursLeftTillRefil) * 60 * 60 * 1000)
-        let [obj, r] = await waitForResult("kgt", 1000 * 10)
-        let rt = obj.kpi.find(e => e.KID == 4)
-        
-        if (areaInfo.gpa.MRMEAD / (areaInfo.gpa.DMEADC / 10) < hoursLeftTillRefil) {
+        let resourceMead = resource?.resources?.find(e => e.type == "MEAD")
+        if (resourceMead)
+            stormAreaInfo.mead += resourceMead.count
 
-            for (let i = 0; i < rt.RS / 60 / 60 * 2; i++) {
-                await sendXT("msk", JSON.stringify({ "MST": "MS4", "KID": "4", "TT": "2" }))
+        let meadLossPerHour = stormAreaInfo.mead / stormAreaInfo.getProductionData.MeadConsumptionRate
+        let hoursTillRefill = Math.max(0, meadLossPerHour - hoursLeftTillRefilMandatory)
+
+        if (meadLossPerHour == Infinity || isNaN(meadLossPerHour))
+            return console.log(`[${name}] Will never need to send mead`)
+
+        if (stormAreaInfo.getProductionData.maxAmmountMead / stormAreaInfo.getProductionData.MeadConsumptionRate < hoursLeftTillRefilWarning)
+            console.warn(`[${name}] Please aim above ${hoursLeftTillRefilWarning} hours I won't work well under that`)
+
+        if (resource?.remainingTime >= (stormAreaInfo.mead - (resourceMead ? resourceMead.count : 0)) / stormAreaInfo.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
+            console.log(`[${name}] Using ${Math.floor(resource.remainingTime / 60 / 30)} 30 minute skips`)
+            for (let i = 0; i < resource.remainingTime / 60 / 30; i++) {
+                await ClientCommands.getMinuteSkipKingdom(MinuteSkipType["30minute"], targetKingdomID, KingdomSkipType.sendResource)()
             }
+            resource.remainingTime = 0
         }
-    }
-    catch (e) {
-        console.warn(e)
-        console.warn("Is storm even unlocked?")
-    }
-}
-xtHandler.on("lli", async (_, r) => {
-    if(r != 0)
-        return
+        else
+            console.log(`[${name}] Don't need to send mead for another ${Math.round(hoursTillRefill)} hours`)
 
-    setTimeout(async () => { //Not sure what I was on to do this but aint changing it.
-        needMead()
-    }, 1000 * 10)
 
-    let [obj, _2] = await waitForResult("kpl", 1000 * 10)
-    
-    let rt = obj.RT.find(e => e.KID == 4)
-    
-    if(rt.RS < hoursLeftTillRefil / 60 / 60)
-        return
+        setTimeout(async () => {
+            let dcl = await ClientCommands.getDetailedCastleList()()
+            let stormAreaID = resourceCastleList.castles.find(e => e.kingdomID == targetKingdomID)
+                .areaInfo.find(e => e.type == AreaType.externalKingdom)
+                .extraData[0] // AreaID
 
-    for (let i = 0; i < rt.RS / 60 / 60 * 2; i++) {
-        await sendXT("msk", JSON.stringify({"MST":"MS4","KID":"4","TT":"2"}))
+            let stormAreaInfo = dcl.castles.find(e => e.kingdomID == targetKingdomID).areaInfo.find(ai => ai.areaID == stormAreaID)
+
+            let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmmountMead - stormAreaInfo.mead))
+            let mainCastleAreaID = resourceCastleList.castles.find(e => e.kingdomID == KingdomID.greatEmpire)
+                .areaInfo.find(e => e.type == AreaType.mainCastle).extraData[0]
+
+            let info = await ClientCommands.getKingdomInfo(
+                mainCastleAreaID,
+                KingdomID.greatEmpire,
+                targetKingdomID,
+                [["MEAD", ammount]]
+            )()
+            if (info.result == 0)
+                console.log(`[${name}] Sent ${ammount} mead to ${KingdomID[targetKingdomID]}`)
+            else
+                console.log(`[${name}] Failed to send ${ammount} mead to ${KingdomID[targetKingdomID]}`)
+            setTimeout(checkMead, sendResTimeout)
+
+        }, Math.min(hoursTillRefill * 60 * 60 * 1000, 2147483647))
     }
+    checkMead()
 })

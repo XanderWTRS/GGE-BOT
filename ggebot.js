@@ -1,34 +1,33 @@
 process.on('uncaughtException', console.error) //Wanna cry? Remove this.
-const { isMainThread, workerData, parentPort } = require('node:worker_threads');
+const { isMainThread, workerData, parentPort, BroadcastChannel } = require('node:worker_threads');
 const EventEmitter = require('node:events')
 const WebSocket = require('ws')
 const ActionType = require("./actions.json")
 const error = require("./err.json")
 const sqlite3 = require("sqlite3")
-const ggeConfig = require("./ggeConfig.json")
-
+const events = new EventEmitter()
 if (isMainThread)
-    throw Error("This should be running off of the main thread!")
+    return
+let botConfig = workerData
+//TODO: make the server actually fill auto vals!
+botConfig.gameURL ??= "ep-live-mz-int1-sk1-gb1-game.goodgamestudios.com"
+botConfig.gameServer ??= "EmpireEx_19"
 
 let _console = console
-const messageBuffer = []
-let messageBufferCount = 0
+
 function mngLog(msg,logLevel) {
-    if(logLevel > 0)
-       _console.log(msg)
+    // if(logLevel > 0)
+    _console.log(`[${botConfig.name}] ${msg}`)
     let now = new Date();
     let hours = now.getHours();
     let minutes = now.getMinutes();
     
     hours = hours < 10 ? '0' + hours : hours;
     minutes = minutes < 10 ? '0' + minutes : minutes;
-
-    messageBuffer[messageBufferCount] = [logLevel, `[${hours + ':' + minutes}] ` + msg]
-    messageBufferCount = (messageBufferCount + 1) % 25
     
-    parentPort.postMessage([ActionType.GetLogs,[messageBuffer, messageBufferCount]])
+    parentPort.postMessage([ActionType.GetLogs,[logLevel, `[${hours + ':' + minutes}] ` + msg]])
 }
-if (!workerData.internalWorker) {
+if (!botConfig.internalWorker) {
     console = {}
     console.log = msg => mngLog(msg, 0)
     console.info = msg => mngLog(msg, 0)
@@ -36,19 +35,30 @@ if (!workerData.internalWorker) {
     console.error = msg => mngLog(msg, 2)
 }
 
+events.on("configModified", () => {
+    console.log(`[GGEBOT] config has been reload`)
+})
+
 const rawProtocolSeparator = "%"
 
 const xtHandler = new EventEmitter()
 
 function sendXT(cmdName, paramObj) {
-    webSocket.send(rawProtocolSeparator + ["xt", ggeConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
+    webSocket.send(rawProtocolSeparator + ["xt",  botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
 }
 
+/**
+ * 
+ * @param {string} key 
+ * @param {number} timeout 
+ * @param {function(object,number)} func 
+ * @returns {Promise<[obj: object, result: Number]>}
+ */
 const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if (timeout == undefined) 
-        throw Error(`waitForResult: No timeout specified`)
+        reject(`waitForResult: No timeout specified`)
 
-    func ??= (_, result) => result == 0
+    func ??= _ => true
 
     let timer;
     let result;
@@ -59,54 +69,48 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             let msg = (result == undefined || result == 0) ? `Timed out waiting for ${key}` : !error[result] ? result : error[result]
             reject(msg)
         }, timeout)
-        timer.unref()
     }
 
     let helperFunction = (data, _result) => {
         if (result != 0)
             result = _result
-        if (!func(data, _result))
+        if (!func(Object(data), Number(_result)))
             return
 
         xtHandler.removeListener(key, helperFunction)
         clearInterval(timer)
-        resolve([data, _result])
+        resolve([Object(data), Number(_result)])
     }
 
     xtHandler.addListener(key, helperFunction)
 })
 
-const webSocket = new WebSocket(ggeConfig.gameURL);
+const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`);
 webSocket.onopen = _ => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
 
-module.exports = { sendXT, xtHandler, waitForResult, webSocket }
+module.exports = { sendXT, xtHandler, waitForResult, webSocket, events, botConfig }
 
-for (const [key,val] of Object.entries(workerData.plugins)) {
+for (const [key,val] of Object.entries(botConfig.plugins)) {
     if(!val.state)
         continue
     try {
-        require("./plugins/" + key)
+        require("./plugins/" + val.filename)
     }
     catch(e) {
         console.warn(e)
     }
 }
 
-let rollbackBuffer = []
-let rollbackBufferCount = 0
+let errorCount = 0
+let sentHits = 0
+
+xtHandler.on("cra", (obj,r) => r == 0 ? sentHits++ : void 0)
 
 webSocket.onmessage = async (e) => {
     let message = e.data.toString()
     if (message.charAt(0) == rawProtocolSeparator) {
         let params = message.substr(1, message.length - 2).split(rawProtocolSeparator)
         let data = params.splice(1, params.length - 1)
-
-        if(data[2] != 0)
-            console.warn(`Got result ${error[data[2]] ? error[data[2]] : data[2]} from ${data[0]}`)
-
-        rollbackBuffer[rollbackBufferCount] = [data[0], data[3], data[2]]
-
-        rollbackBufferCount = (rollbackBufferCount + 1) % 250
 
         switch(data[0]) {
             case "gbd":
@@ -120,6 +124,12 @@ webSocket.onmessage = async (e) => {
                 xtHandler.emit(data[0], data[3], Number(data[2]), "str");
                 break
             default: 
+                if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
+                    console.warn(`Got result ${error[data[2]] ? error[data[2]] : data[2]} from ${data[0]}`)
+                    errorCount++
+                }
+            case "core_pol":
+            case "rlu":
                 if(xtHandler.listenerCount(data[0]) == 0)
                     return
                 xtHandler.emit(data[0], data[3] ? JSON.parse(data[3]) : undefined, Number(data[2]), "str");
@@ -129,7 +139,7 @@ webSocket.onmessage = async (e) => {
     else if (message.charAt(0) == "<") {
         switch (message) {
             case "<msg t='sys'><body action='apiOK' r='0'></body></msg>":
-                webSocket.send(`<msg t="sys"><body action="login" r="0"><login z="${ggeConfig.gameServer}"><nick><![CDATA[]]></nick><pword><![CDATA[undefined%en%0]]></pword></login></body></msg>`)
+                webSocket.send(`<msg t="sys"><body action="login" r="0"><login z="${botConfig.gameServer}"><nick><![CDATA[]]></nick><pword><![CDATA[undefined%en%0]]></pword></login></body></msg>`)
                 break
             case "<msg t='sys'><body action='joinOK' r='1'><pid id='0'/><vars /><uLs r='1'></uLs></body></msg>":
                 webSocket.send('<msg t="sys"><body action="roundTrip" r="1"></body></msg>')
@@ -140,39 +150,93 @@ webSocket.onmessage = async (e) => {
         }
     }
 }
-webSocket.onerror = () => process.exit(0)
-webSocket.onclose = () => process.exit(0)
+webSocket.onerror = () => {events.emit("unload"); process.exit(0)}
+webSocket.onclose = () => {events.emit("unload"); process.exit(0)}
 
-const status = require("./plugins/status.js");
-parentPort.on("message", obj => {
+events.on("unload", () => {
+    console.log(`errorCount: ${errorCount}`)
+    console.log(`sentHits: ${sentHits}`)
+})
+
+let status = {}
+events.once("load", (_, r) => {
+    let parseGRC = obj => {
+        if (obj.KID != 4)
+            return
+
+        Object.assign(status, {
+            aquamarine: Math.floor(obj.A),
+            food: Math.floor(obj.F),
+            mead: Math.floor(obj.MEAD)
+        })
+        parentPort.postMessage([ActionType.StatusUser, status])
+    }
+    xtHandler.on("grc", (obj, r) => r == 0 ? parseGRC(obj) : void 0)
+    xtHandler.on("jaa", (obj, r) => r == 0 ? parseGRC(obj.grc) : void 0)
+    xtHandler.on("gcu", obj => {
+        Object.assign(status, {
+            coin: Math.floor(obj.C1),
+            rubies: Math.floor(obj.C2),
+        })
+        parentPort.postMessage([ActionType.StatusUser, status])
+    })
+})
+
+parentPort.on("message", async obj => {
     switch (obj[0]) {
-        case ActionType.GetLogs:
-            parentPort.postMessage([ActionType.GetLogs, [messageBuffer, messageBufferCount]])
+        case ActionType.SetPluginOptions:
+            function deepCopy(old_, new_) {
+                Object.keys(new_).forEach(key => {
+                    if (typeof new_[key] === 'object' && !Array.isArray(new_[key]) && new_[key] !== null)
+                        deepCopy(old_[key], new_[key])
+                    else
+                        old_[key] = new_[key];
+                });
+            }
+            deepCopy(botConfig,obj[1])
+            events.emit("configModified")
+            break
+            break
         case ActionType.StatusUser:
             parentPort.postMessage([ActionType.StatusUser, status])
             break
+        case ActionType.GetExternalEvent:
+            sendXT("sei", JSON.stringify({}))
+            let [sei, _] = await waitForResult("sei", 1000* 10)
+            if(sei.E.find(e => e.EID == 113))
+                sendXT("glt", JSON.stringify({GST:3}))
+            else
+                sendXT("glt", JSON.stringify({GST:2}))
+            let [glt, _2] = await waitForResult("glt", 1000* 10)
+            parentPort.postMessage([ActionType.GetExternalEvent, {sei: sei, glt: glt}])
+            break
+        
     }
 })
 
-let retry =async () => {
-    const RCT = await new Promise(resolve => {
-        const messageCallback = (obj) => {
-            if(obj[0] != ActionType.CAPTCHA)
-                return
-            parentPort.off('message', messageCallback)
-            resolve(obj[1])
-        }
-        parentPort.on('message', messageCallback)
-        parentPort.postMessage([ActionType.CAPTCHA])
-    })
-    if (workerData.lt) {
+let retry = async () => {
+    if(botConfig.externalEvent) {
+        sendXT("tlep", JSON.stringify({TLT: botConfig.tempServerData.glt.TLT}))
+        return
+    }
+    // const RCT = await new Promise(resolve => {
+    //     const messageCallback = (obj) => {
+    //         if(obj[0] != ActionType.CAPTCHA)
+    //             return
+    //         parentPort.off('message', messageCallback)
+    //         resolve(obj[1])
+    //     }
+    //     parentPort.on('message', messageCallback)
+    //     parentPort.postMessage([ActionType.CAPTCHA])
+    // })
+    if (botConfig.lt) {
         sendXT("lli", JSON.stringify({
             "CONM": 350,
             "RTM": 57,
             "ID": 0,
             "PL": 1,
-            "NOM": workerData.name,
-            "LT": workerData.lt,
+            "NOM": botConfig.name,
+            "LT": botConfig.lt,
             "LANG": "en",
             "DID": "0",
             "AID": "17254677223212351",
@@ -181,7 +245,7 @@ let retry =async () => {
             "GCI": "",
             "SID": 9,
             "PLFID": 1,
-            "RCT" : RCT
+            // "RCT" : 0
         }))
     }
     else {
@@ -190,8 +254,8 @@ let retry =async () => {
             RTM: 25,
             ID: 0,
             PL: 1,
-            NOM: workerData.name,
-            PW: workerData.pass,
+            NOM: botConfig.name,
+            PW: botConfig.pass,
             LT: null,
             LANG: "en",
             DID: "0",
@@ -201,7 +265,7 @@ let retry =async () => {
             GCI: "",
             SID: 9,
             PLFID: 1,
-            RCT : RCT
+            // RCT : 0
         }))
     }
 }
@@ -212,30 +276,34 @@ xtHandler.on("vck", async _ => {
 xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
 
 let loginAttempts = 0
-xtHandler.on("lli", (_,r) => {
+xtHandler.on("lli", async (_,r) => {
     if(r == 453)
     {
-	console.log(`Timed out for: ${_.CD}`)
+        console.log(`retrying login in ${_.CD} seconds`)
         setTimeout(() => retry(), _.CD * 1000)
+        return
     }
+
     if (r == 0) {
         parentPort.postMessage([ActionType.Started])
         console.log("Logged in")
+        events.emit("load")
+        setInterval(() => sendXT("pin", "<RoundHouseKick>"), 1000 * 60).unref()
         return
     }
-    //Really need to account for gge's new timeout
+    
     if (r == error["INVALID_LOGIN_TOKEN"]) {
         loginAttempts++
         if (loginAttempts < 30)
             return retry()
     }
-    if(workerData.internalWorker) 
+    if(botConfig.internalWorker) 
         process.exit(0)
 
     let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
     status.hasError = true
     parentPort.postMessage([ActionType.StatusUser, status])
-    userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, workerData.id], _ => {
+    userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
         userDatabase.close()
     })
 })

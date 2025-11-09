@@ -1,6 +1,6 @@
 
 
-const { workerData, isMainThread } = require('node:worker_threads')
+const { isMainThread } = require('node:worker_threads')
 const name = "Outgoing"
 if (isMainThread)
     return module.exports = {
@@ -8,20 +8,20 @@ if (isMainThread)
         description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID",
                 key: "channelID",
             }
         ]
     };
-    
-const { xtHandler } = require("../ggebot")
-const { client } = require('./discord')
-const AID = require("./allianceid.js")
-const pluginOptions = workerData.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+
+const { xtHandler, botConfig } = require("../../ggebot")
+const { clientReady } = require('./discord')
+const AID = require("../allianceid.js")
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 let movements = []
-client.then(async client => {
+clientReady.then(async client => {
     let channel = await client.channels.fetch(pluginOptions.channelID)
 
     xtHandler.addListener("gam", (obj) => {

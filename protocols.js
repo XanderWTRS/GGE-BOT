@@ -1,0 +1,920 @@
+const { waitForResult, sendXT, xtHandler } = require("./ggebot")
+const fs = require("fs/promises")
+const AreaType = Object.freeze({
+    barron: 2,
+    outpost: 4,
+    externalKingdom: 12,
+    mainCastle: 1,
+    nomadCamp : 27,
+    samCamp : 29,
+    beriCamp : 30,
+    watchTower : 17,
+
+    "1": "mainCastle",
+    "4": "outpost",
+    "2": "barron",
+    "12": "externalKingdom",
+    "27": "nomadCamp",
+    "30" : "beriCamp",
+    "29" : "samCamp",
+    "17": "watchTower",
+});
+const HighscoreType = Object.freeze({
+    "honour" : 5
+});
+const MinuteSkipType = Object.freeze({
+    "minute": "MS0",
+    "5minute": "MS1",
+    "10minute": "MS2",
+    "30minute": "MS3",
+    "1hour": "MS4",
+    "5hour": "MS5",
+    "24hour": "MS6",
+
+    MS0: 1,
+    MS1: 5,
+    MS2: 10,
+    MS3: 30,
+    MS4: 60,
+    MS5: 60 * 5,
+    MS6: 60 * 24,
+});
+
+const KingdomSkipType = Object.freeze({
+    sendResource: 2,
+    sendTroops: 1,
+
+    1: "sendTroops",
+    2: "sendResource"
+});
+const KingdomID = Object.freeze({
+    greatEmpire: 0,
+    burningSands: 1,
+    everWinterGlacier: 2,
+    firePeaks: 3,
+    stormIslands: 4,
+    berimond: 10,
+
+    0: "greatEmpire",
+    1: "burningSands",
+    2: "everWinterGlacier",
+    3: "firePeaks",
+    4: "stormIslands",
+    10: "berimond"
+});
+const OwnedCastlePositionList = o =>
+    ({ kingdomID: o[0], areaID: o[1], X: o[2], Y: o[3], areaType: o[4] })
+
+const Crest = o => ({
+    backgroundType: Number(o.BGT),
+    backgroundColor1: Number(o.BGC1),
+    backgroundColor2: Number(o.BGC2),
+    symbolPositionType: Number(o.SPT),
+    symbolType: Number(o.S1),
+    symbolColor1: Number(o.SC1),
+    symbolType: Number(o.S2),
+    symbolColor2: Number(o.SC2),
+    isSet: Boolean(o.IS)
+})
+const AllianceCrest = o => (o ? {
+    layoutID: Number(o.ACCA ? o.ACCA.ACLI : o.ACFB?.ACLI),
+    colorID: Array.from(o.ACCA ? o.ACCA.ACCS : o.ACFB?.ACCS).map(Number)
+} : undefined)
+const GAAAreaInfo = o => ({
+    type: Number(o[0]),
+    x: Number(o[1]),
+    y: Number(o[2]),
+    extraData: Array.from(o).toSpliced(0, 3)
+})
+const FactionData = o => (o ? {
+    mainCampID: Number(o.MC),
+    factionID: Number(o.FID),
+    factionTitleID: Number(o.TID),
+    remainingNoobTime: Number(o.NS),
+    protectionStatus: Number(o.PMS),
+    protectionTime: Number(o.PMT),
+    specialCampID: Number(o.SPC)
+} : undefined)
+
+const ServerUserAttackProtection = o => ({
+    kingdomID: Number(o.KID),
+    remainingNoobTime: Number(o.NS),
+    factionProtectionStatus: Number(o.PMS),
+    factionProtectionEndTime: Number(o.PMT)
+})
+
+const OwnerInfo = o => ({
+    ownerID: Number(o.OID),
+    isDummy: Boolean(o.DUM),
+    name: String(o.N),
+    crest: Crest(o.E),
+    level: Number(o.L),
+    legendaryLevel: Number(o.LL),
+    honour: Number(o.H),
+    achievementPoints: Number(o.AVP),
+    gloryPoints: Number(o.CF),
+    highestGloryPoints: Number(o.HF),
+    titlePrefix: Number(o.PRE), //grab items/CastleTitleData.json
+    titleSuffix: Number(o.SUF),
+    TOPX: Number(o.TOPX), //Unknown property
+    mightPoints: Number(o.MP),
+    isRuin: Boolean(o.R),
+    allianceID: Number(o.AID),
+    allianceRank: async () => {
+        const allianceRankInfo = JSON.parse(await fs.readFile("./items/allianceranks.json", { encoding: 'utf8' })).find(e => e.rankID == o.AR)
+        return String(allianceRankInfo.rankRightName ? allianceRankInfo.rankRightName.replace("RANK_", "") : "UNRANKED")
+    },
+    allianceName: String(o.AN),
+    allianceEmblem: AllianceCrest(o.aee),
+    remainingPeaceTime: Number(o.RPT),
+    castlePositionList: Array.from(o.AP).map(OwnedCastlePositionList),
+    villagePositionList: Array.from(o.VP).map(OwnedCastlePositionList),
+    isSearchingForAlliance: Boolean(o.SA),
+    hasPremiumFlag: Boolean(o.PF),
+    remainingRelocationTime: Number(o.RRD),
+    islandTitleID: Number(o.TI),//grab items/CastleTitleData.json?
+    remainingNoobTime: Number(o.RNP),
+    factionID: FactionData(o.FN),
+})
+
+/**
+ * This will give you at max a 100x100 chunk of the map
+*/
+const ServerGetAreaInfo = o => ({
+    kingdomID: Number(o.KID),
+    userAttackProtection: ServerUserAttackProtection(o.uap),
+    ownerInfo: Array.from(o.OI).map(OwnerInfo),
+    areaInfo: Array.from(o.AI).map(GAAAreaInfo),
+    result: Number(o.result)
+})
+
+/**
+ * This will give you at max a 100x100 chunk of the map
+*/
+const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
+    let a = areaInfoLock(() => {
+        sendXT("gaa", JSON.stringify({
+            KID: Number(kingdomID),
+            AX1: Number(fromX),
+            AY1: Number(fromY),
+            AX2: Number(toX),
+            AY2: Number(toY)
+        }))
+    })
+
+    return async () => {
+        await a
+        let [gaa, result] = await waitForResult("gaa", 1000 * 10, (obj, result) => {
+            if (result != 0)
+                return false
+
+            if (obj.KID != kingdomID)
+                return false
+
+            let ai = obj.AI[0]
+            if (ai == undefined)
+                return false
+
+            let x = ai[1]
+            let y = ai[2]
+
+            let startX = fromX < toX ? fromX : toX
+            let startY = fromY < toY ? fromY : toY
+            let endX = fromX >= toX ? fromX : toX
+            let endY = fromY >= toY ? fromY : toY
+
+            if(x < startX || x > endX ||
+               y < startY || y > endY)
+               return false
+
+            return true
+        })
+        gaa.result = result
+        return ServerGetAreaInfo(gaa)
+    }
+}
+
+const clientGetAllianceInfluence = (allianceID) => {
+    sendXT("gabgap", JSON.stringify({ AID: allianceID }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("gabgap", 1000 * 10, (obj, result) => {
+            if (result != 0)
+                return false
+            if (obj.AID != allianceID)
+                false
+            return true
+        })
+
+        return { ammount: Number(obj.AMT), result: result }
+    }
+}
+const clientGetPlayerInfluence = (playerID, influence) => {
+    let command = "gabgpp" 
+    if(influence)
+        command = "tpc"
+    sendXT(command, JSON.stringify({ PID: playerID }))
+
+    return async () => {
+        let [obj, result] = await waitForResult(command, 1000 * 10, (obj, result) => {
+            if (result != 0)
+                return false
+            if (obj.PID != playerID)
+                false
+            return true
+        })
+
+        return { ammount: influence? Number(obj.CCA) : Number(obj.AMT), result: result }
+    }
+}
+
+const clientGetPlayerEventPoints = (playerID) => {
+    sendXT("pcc", JSON.stringify({ PID: playerID }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("pcc", 1000 * 10, (obj, result) => {
+            if (result != 0)
+                return false
+            if (obj.PID != playerID)
+                false
+            
+            return true
+        })
+
+        return { ammount: Number(obj.CCA), result: result }
+    }
+}
+const StormInfo = e => ({
+    currentAllianceStormRank: Number(e.AR),
+    isStormKing: Boolean(e.KA),
+    allianceEnteredStorm: Boolean(e.AE),
+    currentPlayerStormRank: Number(e.IR),
+    playerAquaPoints: Number(e.AP),
+    result: Number(e.result)
+})
+const clientGetStormIslandInfo = () => {
+    sendXT("ssi", JSON.stringify({}))
+    return async () => {
+        let [obj, result] = await waitForResult("ssi", 1000 * 10)
+
+        return StormInfo({ ...obj, result: result })
+    }
+}
+const AquaPlayerScores = e => ({
+    playerID: Number(e[0]),
+    playerName: String(e[1]),
+    level: Number(e[2]),
+    inStorm: Boolean(e[3]),
+    allianceRank: async () => {
+        const allianceRankInfo = JSON.parse(await fs.readFile("./items/allianceranks.json", { encoding: 'utf8' })).find(a => a.rankID == e[4])
+        return String(allianceRankInfo.rankRightName ? allianceRankInfo.rankRightName.replace("RANK_", "") : "UNRANKED")
+    }
+})
+const AlliancePointsList = e => ({
+    alliancePlayerScores: Array.from(APH).map(AquaPlayerScores),
+    result: Number(e.result)
+})
+//TODO: Probs best to add a lock or check if one of the users is within the alliance designated
+const clientGetAllianceMemberAquaPoints = AID => {
+    sendXT("ama", { AID })
+    return async () => {
+        let [obj, result] = await waitForResult("ama", 1000 * 10)
+
+        return AlliancePointsList({ ...obj, result: result })
+    }
+}
+
+const GetProductionData = e => ({
+    FoodConsumptionRate: Number(e.DFC) / 10,
+    MeadConsumptionRate: Number(e.DMEADC) / 10,
+    BeefConsumptionRate: Number(e.DBEEFC) / 10,
+    deltaWood: Number(e.DW / 10),
+    deltaStone: Number(e.DS / 10),
+    deltaFood: Number(e.DF / 10),
+    deltaCoal: Number(e.DC / 10),
+    deltaOil: Number(e.DO / 10),
+    deltaGlass: Number(e.DG / 10),
+    deltaAqua: Number(e.DA / 10),
+    deltaIron: Number(e.DI / 10),
+    deltaHoney: Number(e.DHONEY / 10),
+    deltaMead: Number(e.DMEAD / 10),
+    deltaBeef: Number(e.DBEEF / 10),
+
+    sickness: Number(e.S), //Old burnt building alternative? Might be connected to riot
+
+    boostWood: Number(e.WM / 100),
+    boostStone: Number(e.SM / 100),
+    boostFood: Number(e.FM / 100),
+    boostCoal: Number(e.CM / 100),
+    boostoil: Number(e.OM / 100),
+    boostGlass: Number(e.GM / 100),
+    boostAqua: Number(e.AM / 100),
+    boostIron: Number(e.IM / 100),
+    boostHoney: Number(e.HONEYM / 100),
+    boostMead: Number(e.MEADM / 100),
+    boostBeef: Number(e.BEEFM / 100),
+
+    metroBoost: Number(e.MP ? e.MP : 0),
+
+    foodConsumptionReductionPercentage: Number(e.FCR / 100),
+    meadConsumptionReductionPercentage: Number(e.MEADCR / 100),
+    beefConsumptionReductionPercentage: Number(e.BEEFCR / 100),
+
+    maxAmmountFood: Number(e.MRF),
+    maxAmmountStone: Number(e.MRS),
+    maxAmmountWood: Number(e.MRF),
+    maxAmmountCoal: Number(e.MRC),
+    maxAmmountIron: Number(e.MRI),
+    maxAmmountOil: Number(e.MRO),
+    maxAmmountGlass: Number(e.MRG),
+    maxAmmountMead: Number(e.MRMEAD),
+    maxAmmountHoney: Number(e.MRHONEY),
+    maxAmmountBeef: Number(e.MRBEEF),
+    maxAmmountAqua: Number(e.MRA),
+
+    safeFood: Number(e.SAFE_F),
+    safeStone: Number(e.SAFE_S),
+    safeWood: Number(e.SAFE_F),
+    safeCoal: Number(e.SAFE_C),
+    safeIron: Number(e.SAFE_I),
+    safeOil: Number(e.SAFE_O),
+    safeGlass: Number(e.SAFE_G),
+    safeMead: Number(e.SAFE_MEAD),
+    safeHoney: Number(e.SAFE_HONEY),
+    safeBeef: Number(e.SAFE_BEEF),
+    safeAqua: Number(e.SAFE_A),
+
+    population: Number(e.P),
+    decorationPoints: Number(e.NDP),
+    decorationPointsReduction: Number(e.R),
+    guardCount: Number(e.GRD),
+    soldierProductionSpeed: Number(e.RS1),
+    offensiveToolProductionSpeed: Number(e.RS2),
+    defensiveToolProductionSpeed: Number(e.RS3),
+    hospitalProductionSpeed: Number(e.RSH),
+    buildSpeedBoost: Number(e.BDB),
+    //Beri or other sea event
+    maxUnitStorage: Number(e.US),
+    hasRoyalCaptialBuff: Boolean(e.RCP),
+    maxAuxilariesStorage: Number(e.AUS),
+    morality: Number(e.M),
+    factionBuff: Number(e.RFPPA)
+})
+
+const Unit = e => ({
+    unitID: Number(e[0]),
+    ammount: Number(e[1])
+})
+
+const UnitInventory = e => ({
+    unitInventory: Array.from(e.I).map(Unit),
+    strongHoldInventory: Array.from(e.SHI).map(Unit),
+    hospitalInventory: Array.from(e.HI).map(Unit)
+})
+const DCLAreaInfo = e => ({
+    areaID: Number(e.AID),
+    wood: Number(e.W),
+    stone: Number(e.S),
+    food: Number(e.F),
+    coal: Number(e.C),
+    oil: Number(e.O),
+    glass: Number(e.G),
+    iron: Number(e.I),
+    honey: Number(e.HONEY),
+    mead: Number(e.MEAD),
+    aqua: Number(e.A),
+    defence: Number(e.D),
+    getProductionData: GetProductionData(e.gpa),
+    unitInventory: Array.from(e.AC).map(Unit),
+    strongHoldInventory: Array.from(e.SHI).map(Unit),
+    hospitalInventory: Array.from(e.HI).map(Unit),
+    travelingUnits: Array.from(e.TU).map(Unit), //TODO: check that this is valid
+    marketCarriagesCount: Number(e.MC),
+    hasBarracks: Boolean(e.B),
+    hasSiegeWorkshop: Boolean(e.WS),
+    hasDefenseWorkshop: Boolean(e.DW),
+    hasHospital: Boolean(e.H),
+    openGateTime: Number(e.OGT)
+})
+
+// const allianceHelpRequest = e => ({
+//     confirmed: Boolean(e.AC),
+//     listID: Integer(e.LID),
+//     playerName: String(e.PN),
+//     progress: Integer(e.P),
+//     playerID: Integer(e.PID),
+//     requestTypeId: Integer(e.TID),
+//     optionalParamsID: Integer(e.OP),
+//     remainingTime: Integer(e.RT)
+// })
+
+const DclCastleList = e => ({
+    kingdomID: Number(e.KID),
+    areaInfo: Array.from(e.AI).map(DCLAreaInfo)
+})
+const DetailedCastleList = e => ({
+    playerID: Number(e.PID),
+    castles: Array.from(e.C).map(DclCastleList),
+    result: Number(e.result)
+})
+const clientGetDetailedCastleList = () => {
+    sendXT("dcl", JSON.stringify({ CD: 1 }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("dcl", 1000 * 10)
+
+        return DetailedCastleList({ ...obj, result: result })
+    }
+}
+
+const clientGetUnitInventory = () => {
+    sendXT("gui", JSON.stringify({}))
+
+    return async () => {
+        let [obj, result] = await waitForResult("gui", 1000 * 10)
+
+        return UnitInventory({ ...obj, result: result })
+    }
+}
+const UnlockInfo = e => ({
+    kingdomID: Number(e.KID),
+    isUnlocked: Boolean(e.U),
+    hasContor: Boolean(e.C),
+    slumLevel: Number(e.SL),
+    kingdomResource: Number(e.KRS), //Probs relating to storm
+    eventRewardsEndID: Number(e.CRS), //Probs relating to storm rewards
+})
+const ResourceTransferResource = e => ({
+    type: String(e[0]),
+    count: Number(e[1])
+})
+const ResourceTransfer = e => ({
+    kingdomID: Number(e.KID),
+    resources: Array.from(e.G).map(ResourceTransferResource),
+    remainingTime: Number(e.RS)
+})
+const KingdomInfo = e => ({ //KPI
+    unlockInfo: Array.from(e.UL).map(UnlockInfo), //undefined is not iterable (cannot read property Symbol(Symbol.iterator)) why?
+    resourceTransferList: Array.from(e.RT ??= []).map(ResourceTransfer),
+    result: Number(0)
+})
+//TODO: May Conflict with other clientGetKingdomInfo
+const clientGetKingdomInfo = (sourceAreaID, sourceKingdomID, targetKingdomID, resources) => {
+    sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("kgt", 1000 * 10)
+
+        return KingdomInfo({ ...obj.kpi, result: result })
+    }
+}
+const SubActiveQuests = e => ({
+    playerID: Number(e.PID),
+    playerName: String(e.PN),
+    questID: Number(e.QID),
+    questList: Array.from(e.QL),
+    timeLeft : Number(e.RS)
+})
+
+const ActiveQuests = e => ({ 
+    activeParticipants : Number(e.APC),
+    activeQuests : Array.from(e.AQS).map(SubActiveQuests),
+    result : Number(e.result)
+})
+
+const clientActiveQuestList = () => {
+    sendXT("aqs", JSON.stringify({}))
+
+    return async () => {
+        let [obj, result] = await waitForResult("aqs", 1000 * 10)
+
+        return ActiveQuests({ ...obj, result: result })
+    }
+}
+
+//TODO: May conflict with other clientGetMinuteSkipKingdom
+const clientGetMinuteSkipKingdom = (skipType, kingdomID, kingdomSkipType) => {
+    sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("kpi", 1000 * 10)
+
+        return KingdomInfo({ ...obj, result: result })
+    }
+}
+const GCLAreaInfo = e => ({
+    ...GAAAreaInfo(e.AI),
+    abandonOutpostTime: Number(e.AOT),
+    abandonOutpostTimeCooldown: Number(e.TA)
+})
+const GCLCastles = e => ({
+    kingdomID: Number(e.KID),
+    areaInfo: Array.from(e.AI).map(GCLAreaInfo)
+})
+const ResourceCastleList = e => ({
+    playerID: Number(e.PID),
+    castles: Array.from(e.C).map(GCLCastles),
+    result: Number(e.result)
+})
+let _resourceCastleList
+const getResourceCastleList = async () => { //Never got
+    if (_resourceCastleList)
+        return ResourceCastleList(_resourceCastleList)
+
+    let [obj, result] = await waitForResult("gcl", 1000 * 10) //why?!?!?!
+
+    return ResourceCastleList({ ...obj, result: result })
+}
+xtHandler.on("gcl", (obj, result) => {
+    _resourceCastleList = { ...obj, result }
+})
+
+let _kingdomInfoList
+const getKingdomInfoList = async () => {
+    if (_kingdomInfoList)
+        return KingdomInfo(_kingdomInfoList)
+
+    let [obj, result] = await waitForResult("kpi", 1000 * 10) //why?!?!?!
+
+    return KingdomInfo({ ...obj, result: result })
+}
+xtHandler.on("kpi", (obj, result) => {
+    _kingdomInfoList = { ...obj, result: result }
+})
+const Feast = e => ({
+    type: Number(e.T),
+    deltaTime: Number(e.RT),
+    result: Number(e.result)
+})
+const clientStartFeast = (type, areaID, kingdomID) => {
+    sendXT("bfs", JSON.stringify({ T: type, CID: areaID, KID: kingdomID, PO: -1, PWR: 0 }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("bfs", 1000 * 10)
+
+        return Feast({ ...obj, result: result })
+    }
+}
+const HighscoreList = e => ({
+    score: Number(e[0]),
+    ammount : Number(e[1]),
+    playerData : OwnerInfo(e[2])
+})
+const Highscore = e => ({
+   eventType : Number(e.LT),
+   lootID : Number(e.LID),
+   list : Array.from(e.L).map(HighscoreList),
+   lootRanking : Number(e.LR),
+   searchVariable : String(e.SV),
+   rank : Number(e.FR),
+   IGH : Number(e.IGH), //TODO: figure this bitch out
+   result: Number(e.result)
+})
+
+
+const clientGetHighscore = (LT, LID, SV) => {
+    sendXT("hgh", JSON.stringify({ LT, LID, SV : `${SV}` }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("hgh", 1000 * 10, (obj,result) => {
+            if(obj.LT != LT)
+                return false
+            if(obj.SV != SV)
+                return false
+            if(obj.LID != LID)
+                return false
+            return true
+        })
+
+        return Highscore({ ...obj, result: result })
+    }
+}
+const PlayerAlliance = e=> ({
+    allianceID : Number(e.AID),
+    //??? : Number(e.R),
+    allianceName : String(e.N),
+    //??? : Number(e.ACF),
+    //??? : Number(e.SA)
+})
+const Alliance = e => ({
+    members : Array.from(e.M).map(OwnerInfo),
+    allianceID: Number(e.AID),
+    //??? : e.CF,
+    mightPoints : Number(e.MP),
+    description : String(e.D),
+    language : String(e.ALL),
+    //??? : Number(e.HP),
+    //??? : Number(e.IS),
+    //??? : Number(e.IA),
+    //??? : Number(e.KA),
+    allianceCrest : AllianceCrest(e.aee),
+    //??? : Number(e.ACLS)
+    //??? : Number(e.ML)
+    announcement : String(e.A)
+    //??? : Number(e.FR),
+    //??? : Number(e.SP),
+    //??? : Number(e.AP),
+    //??? : Number(e.AW),
+    //??? : Number(e.HAMP),
+    //??? : Number(e.HF),
+    //??? : Number(e.AA),
+    //??? : Number(e.RT),
+    //??? : Array.from(e.ADL).map(),
+    //??? : Array.from(e.ABL).map(),
+    //??? : AllianceStorage(e.STO),
+    //??? : Object(e.AMI),
+    //??? : Object(e.ACA),
+    //??? : Object(e.ATC),
+    //??? : Object(e.AKT),
+    //??? : Object(e.AMO),
+    //??? : Array.from(e.ALA).map(),
+    //??? : Number(e.MF),
+    //??? : Number(e.IF),
+    //??? : Number(e.SRFU),
+    //??? : Number(e.HRFU),
+    
+})
+const JoinOpenAlliance = e => ({
+    alliance : Alliance(e.A),
+    playerAlliance : PlayerAlliance(e.gal)
+})
+
+const clientJoinOpenAlliance = (AID) => {
+    sendXT("joa", JSON.stringify({ AID }))
+
+    return async () => {
+        let [obj, result] = await waitForResult("joa", 1000 * 10, (obj,result) => {
+            if(obj.gal.AID != AID)
+                return false
+            
+            return true
+        })
+
+        return JoinOpenAlliance({ ...obj, result: result })
+    }
+}
+const CastleArea = e => ({
+    ownerInfo : OwnerInfo(e.O),
+    ///??? : Number(e.RAF),
+    ///??? : Number(e.RAW),
+    ///??? : Number(e.RAS),
+    ///??? : Number(e.RAB),
+    ///??? : Array.from(e.BG).map(),
+    ///??? : Array.from(e.BD).map(),
+    ///??? : Array.from(e.T).map(),
+    ///??? : Array.from(e.G).map(),
+    ///??? : Array.from(e.D).map(),
+    ///??? : Array.from(e.CI).map(),
+    areaInfo : GAAAreaInfo(e.A)
+})
+const JoinArea = e => ({
+    kingdomID : Number(e.KID),
+    type : Number(e.type),
+    getCastleArea : Array.from(e.gca).map(CastleArea),
+    userAttackProtection : ServerUserAttackProtection(e.uap),
+    ///??? : csl : {///??? : Number(e.SL)}
+})
+
+const clientJoinArea = (x,y,kingdomID) => {
+    sendXT("joa", JSON.stringify({PX:x,PY:y,KID:kingdomID}))
+
+    return async () => {
+        let [obj, result] = await waitForResult("jaa", 1000 * 10, (obj,result) => {
+            if(obj.KID != kingdomID)
+                return false
+            if(obj.gca.A[1] != x)
+                return false
+            if(obj.gca.A[2] != y)
+                return false
+            
+            return true
+        })
+
+        return JoinArea({ ...obj, result: result })
+    }
+}
+
+const SearchPlayerName = e => ({
+    x : Number(e.X),
+    y : Number(e.Y),
+    ...ServerGetAreaInfo(e.gaa),
+    result : Number(e.result)
+})
+const clientSearchPlayerName = (playerName) => {
+    sendXT("wsp", JSON.stringify({PN:playerName}))
+
+    return async () => {
+        try {
+            let [obj, result] = await waitForResult("wsp", 1000 * 10, (obj, result) => {
+                if (obj.gaa.OI[0].N != playerName)
+                    return false
+
+                return true
+            })
+
+            return SearchPlayerName({ ...obj, result: result })
+        }
+        catch(e) {
+            console.warn(e)
+            return { result : -1 }
+        }
+    }
+}
+const AllianceQuestPlayerScore = e => ({
+    playerID : Number(e.PID),
+    playerName : String(e.PN),
+    level : Number(e.L),
+    points : Number(e.OP),
+    allianceRank : Number(e.R),
+})
+const AllianceQuestPointCount = e => ({
+    list : Array.from(e.AQPC).map(AllianceQuestPlayerScore),
+    result : Number(e.result)
+})
+const clientAllianceQuestPointCount = () => {
+    sendXT("aqpc", JSON.stringify({}))
+
+    return async () => {
+        try {
+            let [obj, result] = await waitForResult("aqpc", 1000 * 10)
+
+            return AllianceQuestPointCount({ ...obj, result: result })
+        }
+        catch(e) {
+            console.warn(e)
+            return { result : -1 }
+        }
+    }
+}
+//loop:
+//Process all GAA requests
+//Check for castle requests
+//if !castleRequests.length exit
+//Process Castle requests
+//Check for GAA requests
+//if !gaa.length exit
+
+let areaInfoCallbacks = []
+let kingdomLockCallbacks = []
+let kingdomLockInUse = false
+
+let areaInfoLock = callback => new Promise(async (resolve, reject) => {
+    if (callback)
+        areaInfoCallbacks.push(async () => {
+            try {
+                resolve(await callback())
+            }
+            catch (e) {
+                console.warn(e)
+                reject(e)
+            }
+        })
+    if(kingdomLockInUse)
+        return
+
+    kingdomLockInUse = true
+    //Fuck you darren
+    for (let i = areaInfoCallbacks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [areaInfoCallbacks[i], areaInfoCallbacks[j]] = [areaInfoCallbacks[j], areaInfoCallbacks[i]];
+    }
+    let data = []
+    do {
+        data.push(areaInfoCallbacks.shift()())
+    }
+    while(areaInfoCallbacks.length > 0);
+
+    await Promise.all(data)
+    
+    kingdomLockInUse = false
+    
+    if(kingdomLockCallbacks.length <= 0)
+        return
+
+    kingdomLock()
+})
+
+let kingdomLock = callback => new Promise(async (resolve, reject) => {
+    if (callback)
+        kingdomLockCallbacks.push(async () => {
+            try {
+                resolve(await callback())
+            }
+            catch (e) {
+                reject(e)
+            }
+        })
+    
+    if(kingdomLockInUse)
+        return
+
+    kingdomLockInUse = true
+
+    do {
+        //Fuck you darren
+        for (let i = kingdomLockCallbacks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [kingdomLockCallbacks[i], kingdomLockCallbacks[j]] = [kingdomLockCallbacks[j], kingdomLockCallbacks[i]];
+        }
+        try {
+            await (kingdomLockCallbacks.shift())()
+        }
+        catch(e)
+        {
+            console.warn(e)
+        }
+    }
+    while(kingdomLockCallbacks.length > 0);
+    
+    kingdomLockInUse = false
+    
+    if(areaInfoCallbacks.length <= 0)
+        return
+
+    areaInfoLock()
+})
+//Some calls that are dependant on
+
+const ActualMovement = e => ({
+    movementId : Number(e.MID),
+    deltaTime : Number(e.PT * 1000 + new Date().getTime()),
+    totalTime : Number(e.TT * 1000),
+    //??? : Number(e.D),
+    targetID : Number(e.TID),
+    type : Number(e.T),
+    //??? : Number(e.HBW),
+    kingdomID : Number(e.KID),
+    targetAttack: GAAAreaInfo(e.TA),
+    sourceID : Number(e.SID),
+    //??? : Number(e.OID),
+    
+    sourceAttack: GAAAreaInfo(e.TA),
+})
+//TODO: Name
+// const L = e=> ({
+//     //??? : Number(e.DLID),
+//     //??? : Number(e.GID),
+//     //??? : Array.from(e.GEM),
+//     //??? : Array.from(e.GASAIDS),
+//     //??? : Array.from(e.SIDS),
+//     //??? : Array.from(e.AE),
+
+// })
+// const UM = e => ({
+//     //??? : Number(e.PWD),
+//     //??? : Number(e.TWD),
+//     //??? : L(e.L),
+// })
+const ArmyUnitInfo = e => ({type : Number(e[0]), ammount: Number(e[1])})
+const Army = e => ({
+    left : Array.from(e.L).map(ArmyUnitInfo),
+    middle: Array.from(e.M).map(ArmyUnitInfo),
+    right: Array.from(e.R).map(ArmyUnitInfo),
+    courtyard: Array.from(e.RW).map(ArmyUnitInfo),
+})
+const Movement = e => ({
+    movement : ActualMovement(e.M),
+    //??? : Object(e.UM),
+    getArmy : e.GA ? Army(e.GA) : undefined,
+    getStation : e.A ? Array.from(e.A).map(Unit) : undefined,
+    //??? : Array.from(e.AST),
+    //??? : Number(e.ATT),
+})
+const GetAllMovements = e => ({
+    movements : Array.from(e.M).map(Movement),
+    ownerInfo : Array.from(e.O).map(OwnerInfo)
+})
+
+module.exports = {
+    ClientCommands: {
+        getHighScore: clientGetHighscore,
+        getAreaInfo: clientGetAreaInfo,
+        startFeast: clientStartFeast,
+        getAllianceInfluence: clientGetAllianceInfluence,
+        getPlayerInfluence: clientGetPlayerInfluence,
+        getStormIslandInfo: clientGetStormIslandInfo,
+        getAllianceMemberAquaPoints: clientGetAllianceMemberAquaPoints,
+        getDetailedCastleList: clientGetDetailedCastleList,
+        getUnitInventory: clientGetUnitInventory,
+        getKingdomInfo: clientGetKingdomInfo,
+        getMinuteSkipKingdom: clientGetMinuteSkipKingdom,
+        activeQuestList : clientActiveQuestList,
+        getPlayerEventPoints: clientGetPlayerEventPoints,
+        joinArea: clientJoinArea,
+        searchPlayerName: clientSearchPlayerName,
+        allianceQuestPointCount : clientAllianceQuestPointCount
+    },
+    kingdomLock,
+    areaInfoLock,
+    KingdomID,
+    AreaType,
+    MinuteSkipType,
+    KingdomSkipType,
+    getResourceCastleList,
+    getKingdomInfoList,
+    HighscoreType,
+    Types: {
+        OwnerInfo,
+        GetAllMovements
+    }
+}

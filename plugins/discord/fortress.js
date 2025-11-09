@@ -1,29 +1,26 @@
 //message main thread to add id to list
-const { isMainThread, workerData, parentPort, threadId } = require('node:worker_threads');
+const { isMainThread, parentPort, threadId } = require('node:worker_threads');
 const name = "Fortress"
 
 if (isMainThread)
     return module.exports = {
         name: name,
-        force: true,
         pluginOptions: [
             {
-                type: "Text",
+                type: "Channel",
                 label: "Channel ID",
                 key: "channelID",
             }
         ]
     };
 
-if (!workerData.internalWorker)
-    return
-
-const { xtHandler, sendXT, waitForResult } = require("../ggebot")
-const { client } = require('./discord')
+const { events, botConfig } = require("../../ggebot")
+const { clientReady } = require('./discord')
 const pretty = require('pretty-time');
-const { TargetType, mapObjects, addToWhiteList } = require("./getregions.js");
-const getUser = require('./getUser.js');
+const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
+const getUser = require('../getUser.js');
 
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 addToWhiteList(11)
 let towers = []
 let needSort = false
@@ -40,9 +37,9 @@ mapObjects[2][11].event.addListener("update", updateTower)
 mapObjects[3][11].event.addListener("update", updateTower)
 
 const maxMapObjects = 36
-xtHandler.on("lli", (_,r) => {
-        if(r != 0)
-        return
+events.once("load", () => {
+    if(!pluginOptions.channelID)
+        return console.warn("Missing channel")
     setInterval(async () => {
         let currentDate = new Date().getTime()
 
@@ -114,15 +111,12 @@ xtHandler.on("lli", (_,r) => {
 
         msg += "```"
 
-        let channelIDs = (await getUser()).map(user => user.state ? user.plugins?.fortress?.channelID : undefined).filter(channelID => channelID)
-        
-        channelIDs.every(async channelID => {
             try {
-                const channel = await (await client).channels.fetch(channelID)
+                const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
 
                 let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                if (!message || message.author.id != (await client).user.id)
-                    message = await channel.send({ content: "``` ```", flags: [4096] })
+                if (!message || message.author.id != (await clientReady).user.id)
+                    message = await channel.send({ content: "```Loading...```", flags: [4096] })
 
                 if (message.content == msg)
                     return false
@@ -133,6 +127,6 @@ xtHandler.on("lli", (_,r) => {
                 console.warn(e)
                 return true
             }
-        });
+
     }, 6 * 1000).unref()
 })
