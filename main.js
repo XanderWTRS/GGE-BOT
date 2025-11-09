@@ -238,7 +238,7 @@ async function start() {
   "uuid" TEXT UNIQUE,
 	"privilege"	INTEGER,
   "discordUserId"	TEXT,
-  "discordGuildId" TEXT,
+  "discordGuildId" TEXT
 );
 `)
   userDatabase.exec(
@@ -249,7 +249,7 @@ async function start() {
 	"plugins"	TEXT,
 	"state"	INTEGER,
   "externalEvent" INTEGER,
-	"server"	INTEGER,
+	"server"	INTEGER
 );
 `)
 
