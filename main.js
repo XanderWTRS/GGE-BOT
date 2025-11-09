@@ -232,13 +232,15 @@ async function start() {
   let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
   userDatabase.exec(
     `CREATE TABLE IF NOT EXISTS "Users" (
+  "id"	INTEGER,
 	"username"	TEXT NOT NULL UNIQUE,
 	"passwordHash" BLOB NOT NULL,
   "passwordSalt" INTEGER NOT NULL,
   "uuid" TEXT UNIQUE,
 	"privilege"	INTEGER,
   "discordUserId"	TEXT,
-  "discordGuildId" TEXT
+  "discordGuildId" TEXT,
+  PRIMARY KEY("id" AUTOINCREMENT)
 );
 `)
   userDatabase.exec(
