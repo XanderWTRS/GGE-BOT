@@ -100,7 +100,7 @@ async function start() {
       str2 = (await fs.readFile("./ItemsVersion.properties")).toString()
     }
     catch (e) {
-      console.warn(e)
+      // console.warn(e)
     }
     let needItems = needLang = str != str2
     try {
@@ -108,7 +108,7 @@ async function start() {
     }
     catch (e) {
       needItems = true
-      console.warn(e)
+      // console.warn(e)
       await fs.mkdir("./items")
     }
     if (needItems) {
@@ -117,7 +117,7 @@ async function start() {
       const response = await fetch(`https://empire-html5.goodgamestudios.com/default/items/items_v${str.match(new RegExp(/(?!.*=).*/))[0]}.json`);
       for (const [key, value] of Object.entries(await response.json())) {
         if (!/^[A-Za-z\_]+$/.test(key)) {
-          console.warn(`${key}: is not suitable for a filename`)
+          // console.warn(`${key}: is not suitable for a filename`)
           continue
         }
 
