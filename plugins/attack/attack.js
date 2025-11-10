@@ -67,7 +67,7 @@ function getLevel(e, t, id) {
         return 44
     }
     if (id == 11 && t == 2) {
-        return 21
+        return 20
     }
 
     var n = getKingdomOffset(t);
