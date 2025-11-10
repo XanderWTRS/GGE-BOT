@@ -17,6 +17,18 @@ if (isMainThread) {
                 label: "Com White List",
                 key: "commanderWhiteList"
             },
+            {
+                type: "Text",
+                label: "Attack Delay (Seconds)",
+                key: "attackDelay",
+                default: "4.8"
+            },
+            {
+                type: "Text",
+                label: "Attack Delay Randomization (Seconds)",
+                key: "attackDelayRand",
+                default: "3"
+            },
         ]
     }
     return
@@ -1160,8 +1172,8 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             if (troopCount <= 2)
                 throw "NO_MORE_TROOPS"
             
-            const rndInt = randomIntFromInterval(1, 3);
-            limiter.tokenBucket.interval = 4500 + rndInt * 300
+            const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand) ?? 3) * 1000;
+            limiter.tokenBucket.interval = (Number(pluginOptions.attackDelay * 1000) ?? 4800) + rndInt
             await limiter.removeTokens(1)
             const command2 = options?.cam ?  "cam" : "cra"
             await areaInfoLock(() => sendXT(command2, JSON.stringify(attackTarget)))
