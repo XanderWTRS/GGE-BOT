@@ -13,12 +13,6 @@ if (isMainThread) {
                 default: false
             },
             {
-                type: "Checkbox",
-                label: "Max Hit (Experimental)",
-                key: "maxHit",
-                default: false
-            },
-            {
                 type: "Text",
                 label: "Com White List",
                 key: "commanderWhiteList"
@@ -566,10 +560,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             attackTarget.A.forEach((wave, i) => {
                 let maxTroopAmmountMiddle = getAmountSoldiersMiddle(lvl)
                 let maxTroopAmmountFlank = getAmountSoldiersFlank(lvl)
-                if (pluginOptions.maxHit) {
-                    maxTroopAmmountMiddle *= (1 + commanderStats.front / 100) //TODO: + commanderStats.frontHero
-                    maxTroopAmmountFlank *= (1 + (commanderStats.flank + commanderStats.flankHero) / 100)
-                }
+                
                 let setupFlank = units => {
                     let isMelee = (i != 0 && ai[0] != 11) || (ai[0] == 11 && attackerMeleeTroops[0] && attackerMeleeTroops[0][0].wodID == 277)
                     let attackerTroop = isMelee ? attackerMeleeTroops[0] : attackerRangeTroops[0];
@@ -627,10 +618,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                 wave.L.U.forEach(setupFlank)
                 maxTroopAmmountFlank = getAmountSoldiersFlank(lvl)
 
-                if (options?.maxHit ? options?.maxHit : pluginOptions.maxHit) {
-                    maxTroopAmmountFlank *= (1 + (commanderStats.flank + commanderStats.flankHero) / 100)
-                }
-
+                
                 if ((!hasShieldMadiens || ai[0] != 11) && !options?.oneFlank)
                     wave.R.U.forEach(setupFlank)
                 if (ai[0] != 11 && !options?.oneFlank)
