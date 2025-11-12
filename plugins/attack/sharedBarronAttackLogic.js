@@ -80,7 +80,7 @@ let commonAttack = async (name, type, kid, options) => {
             Math.sqrt(Math.pow(castle.x - b.x, 2) + Math.pow(castle.y - b.y, 2)))
 
     while (!quit) {
-        let timer = new Date().getTime() + 1000 * 60 * 60 * 3 + 60
+        let timer = new Date().getTime() + 1000 * 60 * 60 * 3 + 60 * 1000
 
         for (let i = 0; options.singleTarget ? i < 1 : i < areaInfo.length; i++) {
             try {
