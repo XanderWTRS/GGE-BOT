@@ -84,7 +84,7 @@ let commonAttack = async (name, type, kid, options) => {
 
         for (let i = 0; options.singleTarget ? i < 1 : i < areaInfo.length; i++) {
             try {
-                if((timer - new Date().getTime()) < 0)
+                if((new Date().getTime() - timer) < 0)
                     break;
                 
                 let ai = (await ClientCommands.getAreaInfo(
