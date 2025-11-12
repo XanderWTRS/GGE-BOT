@@ -36,7 +36,7 @@ if (isMainThread) {
 
 const { botConfig, xtHandler, sendXT, waitForResult } = require("../../ggebot")
 const fs = require("fs/promises")
-const { RateLimiter } = require("limiter")
+
 const EventEmitter = require("events")
 
 const commander = require("../commander")
@@ -175,17 +175,15 @@ xtHandler.on("cra", async (obj, r) => {
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
-const limiter = new RateLimiter({
-    tokensPerInterval: 1,
-    interval: 4500
-});
-
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
+let attacks = []
+let alreadyRunning = false
 const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
     let eventEmitter = new EventEmitter();
-    setImmediate(async () => {
+    
+    attacks.push(async () => {
         let rangeArray = undefined
         if (pluginOptions.commanderWhiteList && pluginOptions.commanderWhiteList != "") {
             const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
@@ -273,9 +271,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             let commanders = undefined
             if (!options.ai) {
                 console.warn("Legacy tech used")
-                await areaInfoLock(() => {
-                    sendXT(command, JSON.stringify({ "SX": SX, "SY": SY, "TX": TX, "TY": TY, "KID": kid }))
-                })
+                    await areaInfoLock(() => sendXT(command, JSON.stringify({ "SX": SX, "SY": SY, "TX": TX, "TY": TY, "KID": kid })))
                 var [obj, _] = await waitForResult(command, 7000, (obj, result) => {
                     if (result != 0)
                         return false
@@ -1172,51 +1168,70 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             if (troopCount <= 2)
                 throw "NO_MORE_TROOPS"
             
-            const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand) ?? 3) * 1000;
-            limiter.tokenBucket.interval = (Number(pluginOptions.attackDelay * 1000) ?? 4800) + rndInt
-            await limiter.removeTokens(1)
             const command2 = options?.cam ?  "cam" : "cra"
             await areaInfoLock(() => sendXT(command2, JSON.stringify(attackTarget)))
 
-                var [obj, _] = await waitForResult(command2, 6000, (obj, result) => {
-                    if (result != 0)
-                        return false
+            var [obj, _] = await waitForResult(command2, 6000, (obj, result) => {
+                if (result != 0)
+                    return false
 
-                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != TX || obj.AAM.M.TA[2] != TY)
-                        return false
-                    return true
-                })
+                if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != TX || obj.AAM.M.TA[2] != TY)
+                    return false
+                return true
+            })
 
             eventEmitter.emit("sent", obj)
 
-            let func = async (obj, result) => {
-                if (result != 0) {
-                    xtHandler.removeListener("cat", func)
-                }
+            // let func = async (obj, result) => {
+            //     if (result != 0) {
+            //         xtHandler.removeListener("cat", func)
+            //     }
 
-                if (obj.A.M.TA[4] != await playerid && LID != obj.A.UM.L.ID)
-                    return
+            //     if (obj.A.M.TA[4] != await playerid && LID != obj.A.UM.L.ID)
+            //         return
 
-                xtHandler.removeListener("cat", func)
-                eventEmitter.emit("returning")
+            //     xtHandler.removeListener("cat", func)
+            //     eventEmitter.emit("returning")
 
-                setTimeout(() => {
-                    eventEmitter.emit("returned")
-                }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
-            }
-            xtHandler.addListener("cat", func)
+            //     setTimeout(() => {
+            //         eventEmitter.emit("returned")
+            //     }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
+            // }
+            // xtHandler.addListener("cat", func)
         }
         catch (e) {
-            if (e != "NO_MORE_TROOPS")
-                console.error(JSON.stringify(attackTarget))
-            await commander.freeCommander(LID)
-            if (e == "LORD_IS_USED")
-                await commander.useCommander(LID)
+            switch(e) {
+                case "LORD_IS_USED":
+                    await commander.useCommander(LID)
+                    break
+                default:
+                    await commander.freeCommander(LID)
+            }
 
             eventEmitter.emit("error", e)
         }
     })
-
+    if (!alreadyRunning) {
+        alreadyRunning = true
+        setImmediate(async () => {
+            try {
+                do {
+                    const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000;
+                    
+                    let timeout = () => new Promise(r => setTimeout(r, Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt).unref());
+                    await timeout()
+                    await (attacks.shift()())
+                }
+                while (attacks.length > 0);
+            }
+            catch (e) {
+                console.error(e)
+            }
+            finally {
+                alreadyRunning = false
+            }
+        })
+    }
 
     return eventEmitter
 }

@@ -92,7 +92,14 @@ events.once("load", async () => {
             const o = obj.M[i];
             if (o.M.SA[4] != await playerid)
                 continue
-            useCommander(o?.UM?.L?.ID)
+
+            let lordID = o?.UM?.L?.ID
+            if(lordID == undefined)
+                continue
+
+            if(usedCommanders.includes(lordID))
+                continue
+            useCommander(lordID)
         }
         for (let i = 0; i < obj.M.length; i++) {
             const o = obj.M[i];
@@ -100,9 +107,15 @@ events.once("load", async () => {
                 continue
             if (o.M.T != 2)
                 continue
+            let lordID = o?.UM?.L?.ID
+            if(lordID == undefined)
+                continue
 
-            useCommander(o?.UM?.L?.ID)
-            setTimeout(() => freeCommander(o.UM?.L?.ID),
+            if(usedCommanders.includes(lordID))
+                continue
+
+            useCommander(lordID)
+            setTimeout(() => freeCommander(lordID),
                 (o.M.TT - o.M.PT + 1) * 1000).unref()
 
         }
