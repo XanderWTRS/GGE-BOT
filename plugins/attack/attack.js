@@ -34,7 +34,7 @@ if (isMainThread) {
     return
 }
 
-const { botConfig, xtHandler, sendXT, waitForResult } = require("../../ggebot")
+const { botConfig, xtHandler, sendXT, waitForResult, events } = require("../../ggebot")
 const fs = require("fs/promises")
 
 const EventEmitter = require("events")
@@ -150,6 +150,8 @@ function randomIntFromInterval(min, max) {
 }
 let attacks = []
 let alreadyRunning = false
+let timeTillTimeout = undefined
+
 const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
     let eventEmitter = new EventEmitter();
     
@@ -1184,13 +1186,25 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
     if (!alreadyRunning) {
         alreadyRunning = true
         setImmediate(async () => {
+            const napTime = 1000 * 60 * 60 * 2
+            if(timeTillTimeout == undefined)
+                timeTillTimeout = new Date().getTime() + napTime
             try {
                 do {
                     const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000;
+                    let timeout = ms => new Promise(r => setTimeout(r, ms).unref());
                     
-                    let timeout = () => new Promise(r => setTimeout(r, Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt).unref());
-                    await timeout()
+                    if(timeTillTimeout - new Date().getTime() <= 0)
+                    {
+                        console.log(`[${name}] Having a 20 minute nap to prevent ban`)
+                        await timeout(1000 * 60 * 20)
+                        timeTillTimeout = new Date().getTime() + napTime
+                    }
+                    else
+                        await timeout(Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt)
+
                     await (attacks.shift()())
+                    
                 }
                 while (attacks.length > 0);
             }
