@@ -14,7 +14,7 @@ const ggeConfig = require("../../ggeConfig.json")
 let clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
 let client = new Client(clientOptions)
 
-client.on(Events.ClientReady, () => client.user.setActivity('Their chances of success against us are 742 to one.'))
+client.on(Events.ClientReady, () => client.user.setActivity(`https://github.com/darrenthebozz/GGE-BOT`))
 client.login(ggeConfig.discordToken);
 
 /** @type {Promise<Client>} */
