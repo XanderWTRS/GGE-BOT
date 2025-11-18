@@ -1,23 +1,26 @@
+const cookieParser = require("cookie-parser")
+const express = require("express")
+const process = require("process")
+
+const { WebSocketServer } = require("ws")
+const { Worker } = require('node:worker_threads')
+const { Client, Events, GatewayIntentBits, Collection, REST, Routes, PermissionFlagsBits } = require('discord.js')
+
+const ActionType = require("./actions.json")
+const ErrorType = require("./errors.json")
+const bodyParser = require('body-parser')
+const sqlite3 = require("sqlite3")
+const undici = require('undici')
+const path = require('path')
+
 const https = require('node:https')
 const http = require('node:http')
 const fs = require('fs/promises')
-const express = require("express")
-const bodyParser = require('body-parser');
-const cookieParser = require("cookie-parser")
-const sqlite3 = require("sqlite3")
-const { WebSocketServer } = require("ws")
-const crypto = require('crypto');
-const process = require("process")
-const { Worker } = require('node:worker_threads')
-const ActionType = require("./actions.json")
-const ErrorType = require("./errors.json")
-const { chromium } = require("playwright-core");
-const undici = require('undici');
-const { Client, Events, GatewayIntentBits, Collection, REST, Routes, PermissionFlagsBits } = require('discord.js');
-const path = require('path')
+const crypto = require('crypto')
+const jsdom = require("jsdom")
+
 let clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
 let client = new Client(clientOptions)
-const jsdom = require("jsdom");
 
 const ggeConfigExample = `{
     "fontPath" : "",
@@ -155,30 +158,6 @@ async function start() {
       await fs.writeFile("./1.xml", str)
     }
   }
-
-  let frame = undefined
-  const startPage = async () => {
-    // const browser = await firefox.launch({
-    //   headless: true, firefoxUserPrefs:
-    //     { "general.useragent.override": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" }
-    // })
-    const browser = await chromium.launch({headless : true})
-    /*
-    { "security.ssl.enable_ocsp_stapling": false, "security.enterprise_roots.enabled": false, "general.useragent.override": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" }, args: [
-          "-no-remote", "-wait-for-browser", "-foreground", "-juggler-pipe", "-silent", "-headless", ggeConfig.recaptchaTrick ? ("-profile", ggeConfig.firefoxProfile) : "",
-          "disable-infobars", "--disable-extensions", "--no-sandbox", "--disable-application-cache", "--disable-gpu", "--disable-dev-shm-usage"]
-    */
-    const page = await browser.newPage();
-    await page.goto(!ggeConfig.recaptchaTrick ? "https://empire.goodgamestudios.com" : "https://empire.goodgamestudios.com/RECAPCHA.html");
-
-    frame = !ggeConfig.recaptchaTrick ? page.frame("game") : page
-
-    await frame.waitForFunction(() => globalThis.window.grecaptcha != undefined)
-
-    await frame.evaluate(() => new Promise(r =>
-      globalThis.window.grecaptcha.ready(r)))
-  }
-
   await Promise.all([getItemsJSON()])
   await getLangJSON()
   await getServerXML()
@@ -218,16 +197,6 @@ async function start() {
       return a.force - b.force
     })
     
-  let captchaToken = () => {
-    return frame.evaluate(() => new Promise(resolve => {
-      let e = "6Lc7w34oAAAAAFKhfmln41m96VQm4MNqEdpCYm-k";
-      globalThis.window.grecaptcha.execute(e, {
-        action: "submit"
-      }).then(function (givingToken) {
-        resolve(givingToken)
-      })
-    }))
-  }
 
   let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
   userDatabase.exec(
@@ -405,9 +374,6 @@ async function start() {
                   o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
               });
               break;
-            case ActionType.CAPTCHA:
-              worker.postMessage([ActionType.CAPTCHA, await captchaToken()])
-              break
           }
         })
         let data3 = await getExternalEvent(worker)
@@ -484,9 +450,6 @@ async function start() {
           break
         case ActionType.SetUser:
           userDatabase.run(`UPDATE SubUsers SET pass = ? WHERE uuid = ? AND id = ?`, [obj[1], uuid, user.id], _ => { })
-          break
-        case ActionType.CAPTCHA:
-          worker.postMessage([ActionType.CAPTCHA, await captchaToken()])
           break
       }
     })
