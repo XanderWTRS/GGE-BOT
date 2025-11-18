@@ -542,7 +542,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             attackerRangeTroops.find(e => Number.isSafeInteger(e[1]) ? allTroopCount += e[1] : void 0)
             attackerMeleeTroops.find(e => Number.isSafeInteger(e[1]) ? allTroopCount += e[1] : void 0)
             
-            if(botConfig.plugins["bth"].state && allTroopCount < 100)
+            if(botConfig.plugins["bth"]?.state && allTroopCount < 100)
             {
                 await commander.freeCommander(LID)
                 return require("../bth").recruitTroops(eventEmitter, SX, SY, TX, TY, kid, tools, waves, options)
