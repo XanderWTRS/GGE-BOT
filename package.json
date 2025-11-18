@@ -8,6 +8,7 @@
     "express": "^4.21.1",
     "jsdom": "^27.1.0",
     "limiter": "^2.1.0",
+    "node-cache": "^5.1.2",
     "playwright-core": "^1.52.0",
     "pretty-time": "^1.1.0",
     "pureimage": "^0.4.18",
