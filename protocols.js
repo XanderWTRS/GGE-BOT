@@ -23,14 +23,6 @@ const HighscoreType = Object.freeze({
     "honour" : 5
 });
 const MinuteSkipType = Object.freeze({
-    "minute": "MS0",
-    "5minute": "MS1",
-    "10minute": "MS2",
-    "30minute": "MS3",
-    "1hour": "MS4",
-    "5hour": "MS5",
-    "24hour": "MS6",
-
     MS0: 1,
     MS1: 5,
     MS2: 10,
@@ -39,6 +31,55 @@ const MinuteSkipType = Object.freeze({
     MS5: 60 * 5,
     MS6: 60 * 24,
 });
+
+const skips = {
+    MS0: 0,
+    MS1: 0,
+    MS2: 0,
+    MS3: 0,
+    MS4: 0,
+    MS5: 0,
+    MS6: 0,
+};
+
+xtHandler.on("sce", (obj) => {
+    obj.forEach(e => {
+        let type = e[0]
+        let ammount = e[1]
+        if(skips[type] == undefined)
+            return
+
+        skips[type] = ammount
+    })
+})
+
+const spendSkip = (time) => {
+    let skip = Object.entries(skips)
+        .filter(e => e[1] > 0)
+        .filter(e => MinuteSkipType[e[0]] * 2 <= time)
+        .sort((a,b) => MinuteSkipType[b[0]] - MinuteSkipType[a[0]] )
+        .sort((a,b) => {
+            if(a[1] >= 999 && b[1] >= 999)
+                return 0
+            if(MinuteSkipType[a[0]] > time || MinuteSkipType[b[0]] > time)
+                return 0
+
+            if(a[1] >= 999)
+                return -1
+            if(b[1] >= 999)
+                return 1
+    })
+
+    if(skip[0] == undefined) {
+        console.warn(`[Protocols] Failed to find skip`)
+        console.warn(JSON.stringify(skips))
+        return undefined
+    }
+
+    console.log(`Spending 1 ${skip[0]}`)
+
+    return skip[0][0]
+}
 
 const KingdomSkipType = Object.freeze({
     sendResource: 2,
@@ -165,8 +206,8 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
     return async () => {
         await a
         let [gaa, result] = await waitForResult("gaa", 1000 * 10, (obj, result) => {
-            if (result != 0)
-                return false
+            if (Number(result) != 0)
+                return true
 
             if (obj.KID != kingdomID)
                 return false
@@ -190,7 +231,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             return true
         })
         gaa.result = result
-        return ServerGetAreaInfo(gaa)
+        return Number(result) == 0 ? ServerGetAreaInfo(gaa) : {result}
     }
 }
 
@@ -454,8 +495,8 @@ const ResourceTransfer = e => ({
     remainingTime: Number(e.RS)
 })
 const KingdomInfo = e => ({ //KPI
-    unlockInfo: Array.from(e.UL).map(UnlockInfo), //undefined is not iterable (cannot read property Symbol(Symbol.iterator)) why?
-    resourceTransferList: Array.from(e.RT ??= []).map(ResourceTransfer),
+    unlockInfo: Array.from(e.UL ?? []).map(UnlockInfo),
+    resourceTransferList: Array.from(e.RT ?? []).map(ResourceTransfer),
     result: Number(0)
 })
 //TODO: May Conflict with other clientGetKingdomInfo
@@ -757,11 +798,13 @@ const clientAllianceQuestPointCount = () => {
 let areaInfoCallbacks = []
 let kingdomLockCallbacks = []
 let kingdomLockInUse = false
+let currentKingdom = { AID : undefined }
 
 let areaInfoLock = callback => new Promise(async (resolve, reject) => {
     if (callback)
         areaInfoCallbacks.push(async () => {
             try {
+                currentKingdom.AID = undefined
                 resolve(await callback())
             }
             catch (e) {
@@ -872,9 +915,31 @@ const Army = e => ({
     right: Array.from(e.R).map(ArmyUnitInfo),
     courtyard: Array.from(e.RW).map(ArmyUnitInfo),
 })
+const Lord = e => ({
+    lordID : e.ID,
+    //??? : Number(e.WID)
+    lordPosition : e.VIS,
+    name : e.N,
+    generalID : e.GID,
+    generalLevel : e.L,
+    //??? : Number(e.ST)
+    //??? : Number(e.W)
+    //??? : Number(e.D)
+    //??? : Number(e.SPR)
+    //??? : Array.from(e.EQ)
+    //??? : Array.from(e.GASAIDS)
+    //??? : Array.from(e.SIDS)
+    //??? : Array.from(e.AE)
+
+})
+const LordMovement = e => ({
+    // e.PWD
+    // e.TWD
+    lord : Lord(e.L)
+})
 const Movement = e => ({
     movement : ActualMovement(e.M),
-    //??? : Object(e.UM),
+    lordMovement : e.UM ? LordMovement(e.UM) : undefined,
     getArmy : e.GA ? Army(e.GA) : undefined,
     getStation : e.A ? Array.from(e.A).map(Unit) : undefined,
     //??? : Array.from(e.AST),
@@ -910,11 +975,13 @@ module.exports = {
     AreaType,
     MinuteSkipType,
     KingdomSkipType,
+    spendSkip,
     getResourceCastleList,
     getKingdomInfoList,
     HighscoreType,
     Types: {
         OwnerInfo,
         GetAllMovements
-    }
+    },
+    currentKingdom
 }
