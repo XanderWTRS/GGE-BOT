@@ -9,17 +9,22 @@ if (isMainThread)
 
 const pretty = require('pretty-time')
 const attack = require("./attack.js")
-const err = require("../../err.json")
 const { xtHandler, sendXT, waitForResult, events } = require("../../ggebot.js")
-const { ClientCommands, getResourceCastleList, AreaType } = require('../../protocols.js')
+const { ClientCommands, getResourceCastleList, AreaType, spendSkip } = require('../../protocols.js');
+const getAreaCached = require('../../getmap.js');
 
 let commonAttack = async (name, type, kid, options) => {
     let skipTarget = async (kid, x, y, ai) => {
-        for (let i = 0; i < ai[5] / 60 * (options["5minuteSkips"] ? 5 : 30); i++) {
-            sendXT("msd", JSON.stringify({ "X": x, "Y": y, "MID": -1, "NID": -1, "MST": (options["5minuteSkips"] ? "MS2" : "MS4"), "KID": `${kid}` }))
+        while(ai[5] > 0) {
+            let skip = spendSkip(ai[5])
+            
+            if(skip == undefined)
+                throw new Error("Couldn't find skip")
+
+            sendXT("msd", JSON.stringify({ X: x, Y: y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
             let [obj2, result2] = await waitForResult("msd", 7000, (obj, result) => {
                 if (result != 0)
-                    return false
+                    return true
                 let ckid = 0
                 switch(type) {
                     case AreaType.barron:
@@ -39,10 +44,11 @@ let commonAttack = async (name, type, kid, options) => {
                     return false
                 return true
             })
-            if (result2 == err["NOT_COOLING_DOWN"])
+            
+            if (Number(result2) != 0)
                 break
-            if (obj2.AI[5] <= 0)
-                break
+            
+            Object.assign(ai, obj2.AI)
         }
     }
 
@@ -72,8 +78,8 @@ let commonAttack = async (name, type, kid, options) => {
     let castle = resourceCastleList.castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => [AreaType.mainCastle,AreaType.externalKingdom].includes(e.type))
 
-    let gaa = await ClientCommands.getAreaInfo(kid, castle.x - 50, castle.y - 50,
-        castle.x + 50, castle.y + 50)()
+    let gaa = await getAreaCached(kid, castle.x - 50, castle.y - 50,
+        castle.x + 50, castle.y + 50)
 
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
         .sort((a, b) => Math.sqrt(Math.pow(castle.x - a.x, 2) + Math.pow(castle.y - a.y, 2)) -
@@ -83,14 +89,15 @@ let commonAttack = async (name, type, kid, options) => {
         let timer = new Date().getTime() + 1000 * 60 * 60 * 3 + 60 * 1000
 
         for (let i = 0; options.singleTarget ? i < 1 : i < areaInfo.length; i++) {
+            const currentAreaInfo = areaInfo[i]
             try {
                 if((timer - new Date().getTime()) < 0)
                     break;
                 
                 let ai = (await ClientCommands.getAreaInfo(
                     kid,
-                    areaInfo[i].x, areaInfo[i].y,
-                    areaInfo[i].x, areaInfo[i].y)()).areaInfo[0]
+                    currentAreaInfo.x, currentAreaInfo.y,
+                    currentAreaInfo.x, currentAreaInfo.y)()).areaInfo[0]
 
                 if (ai.extraData[2] > 0 && !options.useTimeSkips) {
                     console.info(`[${name}] Skipping ${ai.x}:${ai.y} needs time`)
@@ -99,6 +106,7 @@ let commonAttack = async (name, type, kid, options) => {
 
                 await skipTarget(kid,ai.x, ai.y, [ai.type, ai.x, ai.y, ...ai.extraData])
                 let failCount = 0
+                newTarget:
                 while (!quit) {
                     let eventEmitter = attack(castle.x, castle.y, ai.x, ai.y, kid, undefined, undefined, {...options, ai: [ai.type, ai.x, ai.y, ...ai.extraData]})
                     try {
@@ -125,12 +133,13 @@ let commonAttack = async (name, type, kid, options) => {
                                 console.info(`[${name}] Waiting ${obj.A.M.TT - obj.A.M.PT + 1} seconds for more troops`)
                                 await timeout((obj.A.M.TT - obj.A.M.PT + 1) * 1000)
                             case "LORD_IS_USED":
-                            case "COOLING_DOWN": 
                             case "CANT_START_NEW_ARMIES":
                                 break
                             case "RECRUITED_MORE_TROOPS":
                                 if(failCount++ < 5)
                                     break
+                            case "COOLING_DOWN": 
+                                break newTarget
                             default:
                                 quit = true
                         }
@@ -142,6 +151,7 @@ let commonAttack = async (name, type, kid, options) => {
             }
             catch (e) {
                 console.warn(`[${name}] ${e}`)
+                break
             }
 
         }
