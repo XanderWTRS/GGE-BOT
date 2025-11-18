@@ -29,14 +29,19 @@ if (isMainThread) {
                 key: "attackDelayRand",
                 default: "3"
             },
+            {
+                type: "Checkbox",
+                label: "Max Hit (Experimental)",
+                key: "maxHit",
+                default: false
+            }
         ]
     }
     return
 }
 
-const { botConfig, xtHandler, sendXT, waitForResult, events } = require("../../ggebot")
+const { botConfig, xtHandler, sendXT, waitForResult } = require("../../ggebot")
 const fs = require("fs/promises")
-
 const EventEmitter = require("events")
 
 const commander = require("../commander")
@@ -94,6 +99,36 @@ function getTotalAmountToolsMiddle(e) {
 function getTotalAmountTools(e, t, n) {
     return 1 === e ? t < 11 ? 10 : t < 37 ? 20 : t < 50 ? 30 : t < 69 ? 40 : 50 : t < 37 ? 10 : t < 50 ? 20 : t < 69 ? 30 : 0 | Math.ceil(40 + n)
 }
+
+/*
+i.areaType == u.WorldConst.AREA_TYPE_CAPITAL ? 
+    : 
+    if(areaType == AREA_TYPE_CAPITAL)
+        this._waves.push(new o.CastleAttackWaveVO(e,p.CastleModel.landmark.capitalLandmark.minDefenseLevel,i)) 
+    else if(areaType == AREA_TYPE_CAPITAL)
+        this._waves.push(new o.CastleAttackWaveVO(e,p.CastleModel.landmark.metroLandmark.minDefenseLevel,i))
+    else if(areaType == AREA_TYPE_KINGS_TOWER)
+        this._waves.push(new o.CastleAttackWaveVO(e,l.OutpostConst.KINGS_TOWER_DEFAULT_LEVEL,i)) 
+    else if(areaType == AREA_TYPE_MONUMENT)
+        this._waves.push(new o.CastleAttackWaveVO(e,l.OutpostConst.MONUMENT_DEFAULT_LEVEL,i)) 
+    else if(areaType == AREA_TYPE_LABORATORY)
+        this._waves.push(new o.CastleAttackWaveVO(e,l.OutpostConst.LABORATORY_DEFAULT_LEVEL,i)) 
+    else
+        this._waves.push(new o.CastleAttackWaveVO(e,0,i))
+        const waveUnlockLevelList = [0, 13, 26, 51]
+        getMaxWaveCount = function(e) {
+            for (var n = 1, i = waveUnlockLevelList.length - 1; i >= 0; i--)
+                if (e >= waveUnlockLevelList[i]) {
+                    n = i + 1;
+                    break
+                }
+            return n
+        }
+        ,
+        CombatConst.getMaxWaveCountWithBonus = function(e, t, n) {
+            return CombatConst.getMaxWaveCount(e, t) + n
+        }
+*/
 
 function getMaxAttackers(targetLevel) {
     let t = 320;
@@ -154,14 +189,16 @@ let timeTillTimeout = undefined
 
 const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
     let eventEmitter = new EventEmitter();
-    
     attacks.push(async () => {
-        let rangeArray = undefined
+        let comList = undefined
         if (pluginOptions.commanderWhiteList && pluginOptions.commanderWhiteList != "") {
             const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
-            rangeArray = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         }
-        let comList = options?.commanderWhiteList ? options.commanderWhiteList : rangeArray
+        else if(options.commanderWhiteList && options.commanderWhiteList != "") {
+            const [start, end] = options.commanderWhiteList.split("-").map(Number).map(a => a - 1);
+            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
 
         let LID = undefined
 
@@ -243,7 +280,9 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             let commanders = undefined
             if (!options.ai) {
                 console.warn("Legacy tech used")
-                    await areaInfoLock(() => sendXT(command, JSON.stringify({ "SX": SX, "SY": SY, "TX": TX, "TY": TY, "KID": kid })))
+                await areaInfoLock(() => {
+                    sendXT(command, JSON.stringify({ "SX": SX, "SY": SY, "TX": TX, "TY": TY, "KID": kid }))
+                })
                 var [obj, _] = await waitForResult(command, 7000, (obj, result) => {
                     if (result != 0)
                         return false
@@ -500,9 +539,14 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
 
             let allTroopCount = 0
 
-            attackerRangeTroops.find(e => allTroopCount += e[1])
-            attackerMeleeTroops.find(e => allTroopCount += e[1])
+            attackerRangeTroops.find(e => Number.isSafeInteger(e[1]) ? allTroopCount += e[1] : void 0)
+            attackerMeleeTroops.find(e => Number.isSafeInteger(e[1]) ? allTroopCount += e[1] : void 0)
             
+            if(botConfig.plugins["bth"].state && allTroopCount < 100)
+            {
+                await commander.freeCommander(LID)
+                return require("../bth").recruitTroops(eventEmitter, SX, SY, TX, TY, kid, tools, waves, options)
+            }
 
             attackerSamuraiTools.sort((a, b) => Number(b[0].samuraiTokenBooster) - Number(a[0].samuraiTokenBooster))
             if (options?.lowValueChests) {
@@ -541,6 +585,11 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                 let maxTroopAmmountMiddle = getAmountSoldiersMiddle(lvl)
                 let maxTroopAmmountFlank = getAmountSoldiersFlank(lvl)
                 
+                if (options?.maxHit ? options?.maxHit : pluginOptions.maxHit) {
+                    maxTroopAmmountMiddle *= 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100
+                    maxTroopAmmountFlank *= 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
+                }
+
                 let setupFlank = units => {
                     let isMelee = (i != 0 && ai[0] != 11) || (ai[0] == 11 && attackerMeleeTroops[0] && attackerMeleeTroops[0][0].wodID == 277)
                     let attackerTroop = isMelee ? attackerMeleeTroops[0] : attackerRangeTroops[0];
@@ -554,7 +603,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                         return
 
                     let unitType = attackerTroop[0].wodID
-                    let unitAmmount = Math.min(attackerTroop[1], maxTroopAmmountFlank)
+                    let unitAmmount = Math.floor(Math.min(attackerTroop[1], maxTroopAmmountFlank))
 
                     maxTroopAmmountFlank -= unitAmmount
                     attackerTroop[1] -= unitAmmount
@@ -581,7 +630,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                         return
 
                     let unitType = attackerTroop[0].wodID
-                    let unitAmmount = Math.min(attackerTroop[1], maxTroopAmmountMiddle)
+                    let unitAmmount = Math.floor(Math.min(attackerTroop[1], maxTroopAmmountFlank))
 
                     maxTroopAmmountMiddle -= unitAmmount
                     attackerTroop[1] -= unitAmmount
@@ -598,11 +647,14 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                 wave.L.U.forEach(setupFlank)
                 maxTroopAmmountFlank = getAmountSoldiersFlank(lvl)
 
+                if (options?.maxHit ? options?.maxHit : pluginOptions.maxHit) {
+                    maxTroopAmmountFlank *= Math.floor(1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)
+                }
                 
-                if ((!hasShieldMadiens || ai[0] != 11) && !options?.oneFlank)
+                if ((!hasShieldMadiens || ai[0] != 11) || !options.oneFlank) {
                     wave.R.U.forEach(setupFlank)
-                if (ai[0] != 11 && !options?.oneFlank)
                     wave.M.U.forEach(setupMiddle)
+                }
                 if (i == 0) {
                     if (ai[0] == 27) {
                         let maxToolsLeftFlank = getTotalAmountToolsFlank(lvl, 0)
@@ -613,7 +665,7 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                                 throw i == 0 ? Error("Ran out of Wall tools") : Error("Ran out of Shield tools")
 
                             let unitType = attackerTroop[0].wodID
-                            let unitAmmount = Math.min(attackerTroop[1], Math.min(maxToolsLeftFlank, 10))
+                            let unitAmmount = Math.floor(Math.min(attackerTroop[1], Math.min(maxToolsLeftFlank, 10)))
                             maxToolsLeftFlank -= unitAmmount
                             attackerTroop[1] -= unitAmmount
                             if (attackerTroop[1] <= 0) {
@@ -1153,32 +1205,13 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
             })
 
             eventEmitter.emit("sent", obj)
-
-            // let func = async (obj, result) => {
-            //     if (result != 0) {
-            //         xtHandler.removeListener("cat", func)
-            //     }
-
-            //     if (obj.A.M.TA[4] != await playerid && LID != obj.A.UM.L.ID)
-            //         return
-
-            //     xtHandler.removeListener("cat", func)
-            //     eventEmitter.emit("returning")
-
-            //     setTimeout(() => {
-            //         eventEmitter.emit("returned")
-            //     }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
-            // }
-            // xtHandler.addListener("cat", func)
         }
         catch (e) {
-            switch(e) {
-                case "LORD_IS_USED":
-                    await commander.useCommander(LID)
-                    break
-                default:
-                    await commander.freeCommander(LID)
-            }
+            if (e != "NO_MORE_TROOPS")
+                console.error(JSON.stringify(attackTarget))
+            await commander.freeCommander(LID)
+            if (e == "LORD_IS_USED")
+                await commander.useCommander(LID)
 
             eventEmitter.emit("error", e)
         }
@@ -1196,8 +1229,8 @@ const attack = (SX, SY, TX, TY, kid, tools, waves, options) => {
                     
                     if(timeTillTimeout - new Date().getTime() <= 0)
                     {
-                        console.log(`[${name}] Having a 20 minute nap to prevent ban`)
-                        await timeout(1000 * 60 * 20)
+                        console.log(`[${name}] Having a 30 minute nap to prevent ban`)
+                        await timeout(1000 * 60 * 30)
                         timeTillTimeout = new Date().getTime() + napTime
                     }
                     else

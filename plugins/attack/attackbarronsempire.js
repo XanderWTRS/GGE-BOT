@@ -18,11 +18,6 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
-                label: "Use 5 TimeSkips",
-                key: "5minuteSkips",
-            },
-            {
-                type: "Checkbox",
                 label: "oneFlank",
                 key: "oneFlank",
                 default: false

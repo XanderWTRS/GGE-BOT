@@ -18,11 +18,6 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
-                label: "Use 5 TimeSkips",
-                key: "5minuteSkips",
-            },
-            {
-                type: "Checkbox",
                 label: "oneFlank",
                 key: "oneFlank",
                 default: false
@@ -35,4 +30,4 @@ const { KingdomID, AreaType } = require('../../protocols.js')
 const commonAttack = require('./sharedBarronAttackLogic.js')
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
-events.on("load", () => commonAttack(name,AreaType.barron,KingdomID.firePeaks, pluginOptions))
+events.on("load", () => commonAttack(name, AreaType.barron, KingdomID.firePeaks, pluginOptions))
