@@ -27,7 +27,8 @@ const ggeConfigExample = `{
     "privateKey" : "",
     "cert" : "",
     "signupToken" : "",
-    
+	
+    "discordPort" : "3000",
     "discordToken" : "",
     "discordClientId" : "",
     "discordClientSecret" : ""
