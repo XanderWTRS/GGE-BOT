@@ -679,6 +679,10 @@ async function start() {
                       if (err)
                         return console.error(err)
                     })
+
+                    loggedInUsers[uuid].forEach(o =>
+                      o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, undefined]]))
+                    )
                   }
                 }
                 catch (e) {
