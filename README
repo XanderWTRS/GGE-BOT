@@ -18,7 +18,6 @@ What you need to do to use (Other OS):
 4. goto the directory of the bot in and run in the terminal
 5. chmod 775 start.sh
 6. ./start.sh
-7. then you can configure ./ggeConfig.json or let it generate one for you.
 
 For Discord:
 1. https://discord.com/developers/applications to create a bot
