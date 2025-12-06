@@ -19,6 +19,9 @@ const ActionType = require("./actions.json")
 const ErrorType = require("./errors.json")
 
 const ggeConfigExample = `{
+    "webPort" : "3001",
+    "webSocketPort" : "3002",
+    
     "fontPath" : "",
     "privateKey" : "",
     "cert" : "",
@@ -26,7 +29,8 @@ const ggeConfigExample = `{
     
     "discordToken" : "",
     "discordClientId" : "",
-    "discordClientSecret" : ""
+    "discordClientSecret" : "",
+    "discordPort": "3003"
 }`
 /*
   {
@@ -35,7 +39,7 @@ const ggeConfigExample = `{
 */
 const loggedInUsers = {
 }
-/*value: Worker()*/
+
 const botMap = new Map()
 
 let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
@@ -168,6 +172,10 @@ async function start() {
     console.info("ggeConfig.json has been generated")
   }
   const ggeConfig = JSON.parse((await fs.readFile("./ggeConfig.json")).toString())
+
+  ggeConfig.webPort ??= "3001"
+  ggeConfig.webSocketPort ??= "3002"
+  ggeConfig.discordPort ??= "3003"
 
   if (ggeConfig.cert) {
     await fs.access(ggeConfig.cert)
@@ -371,16 +379,25 @@ async function start() {
       })
     }
   });
+  app.get("/serverInfo.json", (_, res) => { 
+    res.setHeader("Access-Control-Allow-Origin", "*"); 
+
+    res.send(JSON.stringify({
+        discordPort: ggeConfig.discordPort,
+        webSocketPort: ggeConfig.webSocketPort,
+      }))
+  })
+  
   app.use(express.static('website'))
   let options = {}
   if (certFound) {
     options.key = await fs.readFile(ggeConfig.privateKey, 'utf8'),
       options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
 
-    https.createServer(options, app).listen(443)
+    https.createServer(options, app).listen(ggeConfig.webPort)
   }
   else {
-    http.createServer(options, app).listen(80)
+    http.createServer(options, app).listen(ggeConfig.webPort)
   }
 
   async function createBot(uuid, user, messageBuffer, messageBufferCount) {
@@ -655,23 +672,17 @@ async function start() {
 
                       return undefined
                     }).filter((e) => e !== undefined)
-                    ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, channelData]]))
+                    ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
                   }
                   else {
                     userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [undefined, undefined, uuid], function (err) {
                       if (err)
                         return console.error(err)
                     })
-
-                    loggedInUsers[uuid].forEach(o =>
-                      o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
-                    )
                   }
                 }
                 catch (e) {
-                  console.error(e)
-                  ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
-                }
+                  console.error(e)}
               })
             }
           }
@@ -828,7 +839,7 @@ async function start() {
     const app = express()
 
     client.once(Events.ClientReady, async () => {
-      server.listen(8882)
+      server.listen(ggeConfig.webSocketPort)
       app.use(cookieParser())
       app.get('/', async (request, response) => {
         const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
@@ -883,7 +894,7 @@ async function start() {
             console.error(err)
         })
         loggedInUsers[uuid].forEach(o =>
-          o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, channelData]]))
+          o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
         )
         return response.send("Successful!")
       })
@@ -903,7 +914,7 @@ async function start() {
     client.login(ggeConfig.discordToken);
   }
   else
-    server.listen(8882)
+    server.listen(ggeConfig.webSocketPort)
 
   console.info("Started")
 }
