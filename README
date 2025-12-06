@@ -17,21 +17,21 @@ What this package comes with:
     /storm-top-players
 3. Plugins:
   Alerts:
-    ChannelID
-    ChannelIDAqua
+    Channel 
+    Channel Aqua
   Outgoings:
-    ChannelID
+    Channel 
   Chat:
-    ChannelID
+    Channel 
     Hide discord name
   Aqua Island listings / Alerts:
-    ChannelID
-    AlertChannelID
+    Channel 
+    AlertChannel 
   Aqua Tower listings / Alerts:
-    ChannelID
-    AlertChannelID
+    Channel 
+    AlertChannel 
   Fortress listings:
-    ChannelID
+    Channel 
 
   Shutdown Timer:
     Hours
@@ -63,33 +63,20 @@ What this package comes with:
 
 Some info on the plugins:
   Fortress plugins will only send 2 waves on both flanks though having a mead com can reduce that to one flank
-  Attack x plugins will use 30 minute skips except khan which will use one hour skips.
   Beri cooldown is bypassed.
   The incoming messages will come with a preview of the attack.
   Replace Mead Storm will only replace mead if it sees there is 2.1 hours left.
   Khan does NOT replace your defence at the current becareful when running for too long.
-ggeConfig example:
-{
-    "fontPath" : "",
-    "privateKey" : "",
-    "cert" : "",
-    "signupToken" : "EXAMPLE_TOKEN_VERY_LONG_DO_CHANGE",
 
-    "discordToken" : "",
-    "discordClientId" : "",
-    "discordClientSecret": ""
-}
 What you need to do to use (Windows):
   Goto release download the powershell file run it and it should be on your desktop
   Then go in there and press start.bat
-What you need to do to use (Other OS):=
+What you need to do to use (Other OS):
 1. grab the latest version of NodeJS
-2. open up powershell (Windows) or bash (Linux) and run these two commands in the same folder
-     npx playwright install
-4. goto the directory of the bot in powershell and run
-5. npm install
-6. then you can configure ./ggeConfig.json or let it generate one for you.
-7. navigate to https://127.0.0.1 or http://127.0.0.1 to get to the web portal
+4. goto the directory of the bot in and run in the terminal
+5. chmod 775 start.sh
+6. ./start.sh
+7. then you can configure ./ggeConfig.json or let it generate one for you.
 
 For Discord:
 1. https://discord.com/developers/applications to create a bot
