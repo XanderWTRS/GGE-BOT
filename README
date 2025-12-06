@@ -80,7 +80,14 @@ What you need to do to use (Other OS):
 
 For Discord:
 1. https://discord.com/developers/applications to create a bot
-2. Then goto bot catagory within your new created application
-3. Enable all privileged intents
-4. Goto OAuth2 catagory
-5. Setup the ggeConfig fields appropriately
+2. Within your application in Settings goto Bot from there you will find Presence Intent enable all of them from here you will
+also find Token goto the ggeConfig and place it under discordToken.
+
+3. Proceed to General Information and scroll down till you see Application ID place it under discordClientId.
+4. Next head to Oauth2 and take the Client Secret and within ggeconfig place it under discordClientSecret.
+5. In the same section you'll see redirects take the discordPort and add these links:
+  http://127.0.0.1:(discordPort here)
+  https://127.0.0.1:(discordPort here)
+Optionally
+  http/s://webaddress:(discordPort here)
+6. From here restart the bot and press the "Link Discord" 
