@@ -2,67 +2,10 @@ DISCLAIMER: Use this at your own risk.
 
 We are not affiliated with GoodGameStudios
 
-What this package comes with:
-1. A site where you can run multiple bots with select plugins.
-2. A discord bot:
-  Format of / commands : /loot alliance_name ; Gives the alliance loot rankings
-  Gives you these slash commands:
-    /loot
-    /battle-for-berimond
-    /nomads
-    /warofrealms
-    /samurai
-    /bloodcrows
-    /storm
-    /storm-top-players
-3. Plugins:
-  Alerts:
-    Channel 
-    Channel Aqua
-  Outgoings:
-    Channel 
-  Chat:
-    Channel 
-    Hide discord name
-  Aqua Island listings / Alerts:
-    Channel 
-    AlertChannel 
-  Aqua Tower listings / Alerts:
-    Channel 
-    AlertChannel 
-  Fortress listings:
-    Channel 
-
-  Shutdown Timer:
-    Hours
-  Attack Fortresses (Kingdom)
-  Attack Barrons (Fire)
-  Attack Aqua Forts:
-    Easy forts only
-    Add worser forts
-    Hard forts prioritized
-    Buy coins
-    Buy decos
-    Buy XP
-  Attack Khan:
-    Commander white list
-    Lowest banners/chests first
-    Waves till chests
-  Attack Nomads:
-    No chests
-    Uses only tools
-    Lowest chests first
-  Attack Samurai:
-    No chests
-    Uses only tools
-    Lowest chests first
-  Attack Beri (Invasion):
-    Uses only tools
-    Lowest chests first
-  Replace Mead Storm
+This is a botting service that lets you run cheat tools on multiple accounts at once.
+This also gives access to Discord features for those who want to setup an alliance Discord server.
 
 Some info on the plugins:
-  Fortress plugins will only send 2 waves on both flanks though having a mead com can reduce that to one flank
   Beri cooldown is bypassed.
   The incoming messages will come with a preview of the attack.
   Replace Mead Storm will only replace mead if it sees there is 2.1 hours left.
@@ -71,16 +14,22 @@ Some info on the plugins:
 What you need to do to use (Windows):
   Goto release download the powershell file run it and it should be on your desktop
   Then go in there and press start.bat
+
 What you need to do to use (Other OS):
 1. grab the latest version of NodeJS
 4. goto the directory of the bot in and run in the terminal
 5. chmod 775 start.sh
 6. ./start.sh
-7. then you can configure ./ggeConfig.json or let it generate one for you.
 
 For Discord:
 1. https://discord.com/developers/applications to create a bot
-2. Then goto bot catagory within your new created application
-3. Enable all privileged intents
-4. Goto OAuth2 catagory
-5. Setup the ggeConfig fields appropriately
+2. Within your application in Settings goto Bot from there you will find Presence Intent enable all of them from here you will
+also find Token goto the ggeConfig and place it under discordToken.
+3. Proceed to General Information and scroll down till you see Application ID place it under discordClientId.
+4. Next head to Oauth2 and take the Client Secret and within ggeconfig place it under discordClientSecret.
+5. In the same section you'll see redirects take the discordPort and add these links:
+  http://127.0.0.1:(discordPort here)
+  https://127.0.0.1:(discordPort here)
+Optionally if you are hosting for others:
+  http/s://webaddress:(discordPort here)
+6. From here restart the bot and press the "Link Discord"
