@@ -83,7 +83,8 @@ class User {
   }
 }
 const addUser = (uuid, user) => new Promise((resolve, reject) => {
-  userDatabase.run("INSERT INTO SubUsers (uuid, name, pass, plugins, state, externalEvent, server) VALUES(?,?,?,?,?,?,?)", [uuid, user.name, user.pass, JSON.stringify(user.plugins), 0, user.externalEvent, user.server], (err) => {
+  userDatabase.run("INSERT INTO SubUsers (uuid, name, pass, plugins, state, externalEvent, server) VALUES(?,?,?,?,?,?,?)", 
+    [uuid, user.name, user.pass, JSON.stringify(user.plugins), 0, user.externalEvent, user.server], (err) => {
     if (err)
       return reject(err)
 
