@@ -687,6 +687,7 @@ async function start() {
                   }
                 }
                 catch (e) {
+                  ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
                   console.error(e)}
               })
             }
