@@ -88,8 +88,15 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
 const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`);
 webSocket.onopen = _ => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
 
-module.exports = { sendXT, xtHandler, waitForResult, webSocket, events, botConfig }
+const playerInfo = {
+    playerLevel : NaN
+}
+xtHandler.on("gxp", obj => {
+    playerInfo.playerLevel = obj.LVL + obj.LL
+})
 
+module.exports = { sendXT, xtHandler, waitForResult, webSocket, events, botConfig, playerInfo }
+require("./protocols.js")
 for (const [key,val] of Object.entries(botConfig.plugins)) {
     if(!val.state)
         continue

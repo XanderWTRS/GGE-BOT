@@ -8,19 +8,8 @@ if (isMainThread)
         pluginOptions: [
             {
                 type: "Checkbox",
-                label: "Single Target",
-                key: "singleTarget",
-            },
-            {
-                type: "Checkbox",
                 label: "Use TimeSkips",
                 key: "useTimeSkips",
-            },
-            {
-                type: "Checkbox",
-                label: "oneFlank",
-                key: "oneFlank",
-                default: false
             },
         ]
     }

@@ -1,10 +1,12 @@
 const { isMainThread } = require('node:worker_threads')
 
-const name = "Attack Nomad Camps"
-    
+const name = "Attack Berimond Kingdom"
+
+
 if (isMainThread)
     return module.exports = {
         name: name,
+        description: "Hits khan camps (NOT RESPONSIBLE)",
         pluginOptions: [
             {
                 type: "Text",
@@ -16,43 +18,28 @@ if (isMainThread)
                 label: "Lowest value chests first",
                 key: "lowValueChests",
                 default: false
-            },
-            {
-                type: "Text",
-                label: "Waves till chest",
-                key: "wavesTillChests",
-                default: 4
-            },
-            {
-                type: "Checkbox",
-                label: "No chests",
-                key: "noChests",
-                default: false
             }
         ]
-
     }
 
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, getEventList, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
 const { getCommanderStats } = require("../../getEquipment")
-
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
     botConfig.plugins["attack"] ?? {})
 
-const kid = 0
-const type = AreaType.beriCamp
+const kid = KingdomID.berimond
+const type = AreaType.watchTower
+const level = 70
 
-const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 
-const minTroopCount = 100
-const eventID = 85
-
+const minTroopCount = 32
+const eventID = 3
 events.once("load", async () => {
     const sei = await getEventList()
     const eventInfo = sei.E.find(e => e.EID == eventID)
@@ -60,35 +47,6 @@ events.once("load", async () => {
     if (eventInfo == undefined)
         return console.warn(`${name} Event not running`)
 
-    const skipTarget = async (AI) => {
-        while (AI.extraData[2] > 0) {
-            let skip = spendSkip(AI.extraData[2])
-
-            if (skip == undefined)
-                throw new Error("Couldn't find skip")
-
-            sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
-            let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || 
-                    obj.AI.type == type)
-
-            if (Number(result) != 0)
-                break
-
-            Object.assign(AI, Types.GAAAreaInfo(obj.AI))
-        }
-    }
-
-    xtHandler.on("cat", (obj, result) => {
-        if (result != 0)
-            return
-
-        let attackSource = obj.A.M.SA
-
-        if (attackSource[0] != type)
-            return
-
-        skipTarget(attackSource)
-    })
     let quit = false
     while (!quit) {
         try {
@@ -101,29 +59,31 @@ events.once("load", async () => {
             const commander = await waitForCommanderAvailable(comList)
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-                    .areaInfo.find(e => AreaType.mainCastle == e.type);
+                    .areaInfo.find(e => e.type == AreaType.beriCastle);
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
-                let gaa = await getAreaCached(kid, sourceCastle.x - 50, sourceCastle.y - 50,
-                    sourceCastle.x + 50, sourceCastle.y + 50)
+                sendXT("fnm", JSON.stringify({ T: type, KID: kid, LMIN: -1, LMAX: -1, NID: -801 }))
 
-                let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-                    .sort((a, b) => Math.sqrt(Math.pow(sourceCastle.x - a.x, 2) + Math.pow(sourceCastle.y - a.y, 2)) -
-                        Math.sqrt(Math.pow(sourceCastle.x - b.x, 2) + Math.pow(sourceCastle.y - b.y, 2)))
-                    .sort((a, b) => a.extraData[2] > b.extraData[2])
+                const AI = (await waitForResult("fnm", 8500, (obj, result) => {
+                    if (result != 0)
+                        return false
 
-                const AI = areaInfo[0]
+                    if (obj.gaa.KID != kid)
+                        return false
 
-                await skipTarget(AI)
+                    if (obj.gaa.AI[0][0] != type)
+                        return false
 
-                const level = Number(eventAutoScalingCamps.find(obj => AI.extraData[6] == obj.eventAutoScalingCampID).camplevel)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
+                    return true
+                }))[0].gaa.AI[0];
+
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, Types.GAAAreaInfo(AI), commander, level)
 
                 if (pluginOptions.useCoin)
-                    attackInfo.HBW = 1007
+                    attackTarget.PTT = 0
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -138,7 +98,7 @@ events.once("load", async () => {
                     if (unitInfo == undefined)
                         continue
 
-                    else if (unitInfo.pointBonus) {
+                    else if (unitInfo.pointBonus != undefined) {
                         if (unitInfo.gateBonus)
                             attackerGateBerimondTools.push([unitInfo, unit.ammount])
                         else if (unitInfo.wallBonus)
@@ -174,6 +134,7 @@ events.once("load", async () => {
                     Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
 
                 if (pluginOptions.lowValueChests) {
+                    attackerBannerKhanTools.reverse()
                     attackerBerimondTools.reverse()
                     attackerGateBerimondTools.reverse()
                     attackerWallBerimondTools.reverse()
@@ -211,13 +172,6 @@ events.once("load", async () => {
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
-                                attackerMeleeTroops : attackerRangeTroops, maxTroops))
-                        maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
-                                attackerMeleeTroops : attackerRangeTroops, maxTroops))
                     }
                     else {
                         const selectTool = i => {
@@ -241,7 +195,6 @@ events.once("load", async () => {
                                         tools = attackerShieldBerimondTools
                                 }
                             }
-
                             return tools
                         }
 
@@ -253,35 +206,16 @@ events.once("load", async () => {
                         maxTools = maxToolsFront
                         wave.M.T.forEach((unitSlot, i) =>
                             maxTools -= assignUnit(unitSlot, selectTool(2), maxTools))
-
-                        let maxTroops = maxTroopFlank
-
-                        wave.L.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                        maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                        maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
-                                attackerMeleeTroops : attackerRangeTroops, maxTroops))
                     }
                 });
-                let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.playerLevel, level)
-                attackInfo.RW.forEach(unitSlot =>
-                    maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
-                        attackerMeleeTroops : attackerRangeTroops,
-                        maxTroops))
 
-                await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
+                await areaInfoLock(() => sendXT("aci", JSON.stringify(attackInfo)))
 
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                return (await waitForResult("aci", 6000, (obj, result) => {
                     if (result != 0)
                         return false
 
-                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI[1] || obj.AAM.M.TA[2] != AI[2])
                         return false
                     return true
                 }))[0]
