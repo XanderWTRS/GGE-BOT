@@ -18,6 +18,10 @@ const jsdom = require("jsdom");
 const ActionType = require("./actions.json")
 const ErrorType = require("./errors.json")
 
+console.log("Try out our test branch at https://github.com/darrenthebozz/GGE-BOT/tree/test")
+console.log("Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.")
+console.log("Thanks")
+
 const ggeConfigExample = `{
     "webPort" : "3001",
     "webSocketPort" : "3002",
