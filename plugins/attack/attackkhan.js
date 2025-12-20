@@ -371,8 +371,11 @@ events.once("load", async () => {
 
             if (!attackInfo)
                 return false
-            if(attackInfo.result != 0)
+            if(attackInfo.result != 0) {
+                if(err[attackInfo.result] == "LORD_IS_USED")
+                    commander.useCommander(commander.lordID)
                 throw err[attackInfo.result]
+            }
             
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
