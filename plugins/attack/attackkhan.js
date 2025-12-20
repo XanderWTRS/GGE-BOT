@@ -43,13 +43,20 @@ if (isMainThread)
                 label: "Waves till chest",
                 key: "wavesTillChests",
                 default: 4
+            },
+            {
+                type: "Checkbox",
+                label: "Use Coin",
+                key: "useCoin",
+                default: false
             }
         ]
 
     }
 
+const err = require("../../err.json")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack copy")
+const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
 const { getCommanderStats } = require("../../getEquipment")
@@ -71,7 +78,7 @@ xtHandler.on("cra", async (obj, r) => {
     if (r != 0)
         return false
 
-    if (obj.AAM.M.TA[0] != 35)
+    if (obj.AAM.M.TA[0] != type)
         return false
 
     campRageNeeded = eventAutoScalingCamps.find(obj2 => obj.AAM.M.TA[9] == obj2.eventAutoScalingCampID).playerRageCap
@@ -81,7 +88,7 @@ xtHandler.on("cat", async (obj, r) => {
     if (r != 0)
         return false
 
-    if (obj.A.M.SA[0] != 35)
+    if (obj.A.M.SA[0] != type)
         return false
 
     campRageNeeded = eventAutoScalingCamps.find(obj2 => obj.A.M.SA[9] == obj2.eventAutoScalingCampID).playerRageCap
@@ -90,6 +97,7 @@ xtHandler.on("cat", async (obj, r) => {
 xtHandler.on("rpr", obj => {
     if (obj.EID != 72)
         return
+    let rage = obj.PCRP
 
     if (obj.PCRP >= campRageNeeded) {
         if (rage > campRageNeeded)
@@ -110,24 +118,11 @@ events.once("load", async () => {
         return console.warn(`${name} Event not running`)
 
     if (eventInfo.EDID == -1) {
-        const selectedDifficulty = [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11
-        ][pluginOptions.eventDifficulty];
-        const eventDifficultyID = 
-            Number(eventsDifficulties.find(e => 
-                selectedDifficulty == e.difficultyTypeID && e.eventID == eventID
-                .difficultyID))
-                
+        const eventDifficultyID =
+            Number(eventsDifficulties.find(e =>
+                (pluginOptions.eventDifficulty + 1) == e.difficultyTypeID && e.eventID == eventID
+                    .difficultyID))
+
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
 
@@ -159,6 +154,9 @@ events.once("load", async () => {
 
         skipTarget(attackSource)
     })
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+        .areaInfo.find(e => AreaType.mainCastle == e.type);
+
     let quit = false
     while (!quit) {
         try {
@@ -170,9 +168,6 @@ events.once("load", async () => {
 
             const commander = await waitForCommanderAvailable(comList)
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-                    .areaInfo.find(e => AreaType.mainCastle == e.type);
-
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
@@ -363,17 +358,22 @@ events.once("load", async () => {
                         maxTroops))
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
-
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
-                        return false
+                        return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI[1] || obj.AAM.M.TA[2] != AI[2])
                         return false
                     return true
-                }))[0]
+                })
+                return { ...obj, result: r }
             })
 
+            if (!attackInfo)
+                return false
+            if(attackInfo.result != 0)
+                throw err[attackInfo.result]
+            
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
             switch (e) {

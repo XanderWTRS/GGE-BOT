@@ -8,11 +8,11 @@ if (isMainThread)
     };
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack copy")
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
-
+const err = require('../../err.json')
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 const { getCommanderStats } = require('../../getEquipment.js')
@@ -184,17 +184,21 @@ async function fortressHit(name, kid, type, level, options) {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] =await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
-                        return false
+                        return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
-                }))[0]
+                })
+                return {...obj, result: r}
             })
             if (!attackInfo)
                 return false
+            if(attackInfo.result != 0)
+                throw err[attackInfo.result]
+            
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {

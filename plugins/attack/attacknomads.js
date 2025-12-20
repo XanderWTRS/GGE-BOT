@@ -37,23 +37,24 @@ if (isMainThread)
                 default: false
             },
             {
-                type: "Text",
-                label: "Waves till chest",
-                key: "wavesTillChests",
-                default: 4
-            },
-            {
                 type: "Checkbox",
                 label: "No chests",
                 key: "noChests",
+                default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Use Coin",
+                key: "useCoin",
                 default: false
             }
         ]
 
     }
 
+const err = require("../../err.json")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack copy")
+const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
 const { getCommanderStats } = require("../../getEquipment")
@@ -68,6 +69,7 @@ const type = AreaType.nomadCamp
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
+const getAreaCached = require('../../getmap')
 
 const minTroopCount = 100
 const eventID = 72
@@ -80,23 +82,11 @@ events.once("load", async () => {
         return console.warn(`${name} Event not running`)
 
     if (eventInfo.EDID == -1) {
-        const selectedDifficulty = [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11
-        ][pluginOptions.eventDifficulty];
         const eventDifficultyID = 
             Number(eventsDifficulties.find(e => 
-                selectedDifficulty == e.difficultyTypeID && e.eventID == eventID
-                .difficultyID))
+                (pluginOptions.eventDifficulty + 1) == e.difficultyTypeID && 
+                e.eventID == eventID)
+                .difficultyID)
                 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
@@ -110,7 +100,7 @@ events.once("load", async () => {
 
             sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
             let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || 
-                    obj.AI.type == type)
+                    Types.GAAAreaInfo(obj.AI).type == type)
 
             if (Number(result) != 0)
                 break
@@ -128,8 +118,18 @@ events.once("load", async () => {
         if (attackSource[0] != type)
             return
 
-        skipTarget(attackSource)
+        skipTarget(Types.GAAAreaInfo(attackSource))
     })
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+        .areaInfo.find(e => AreaType.mainCastle == e.type);
+    let gaa = await getAreaCached(kid,
+        sourceCastleArea.x - 50, sourceCastleArea.y - 50,
+        sourceCastleArea.x + 50, sourceCastleArea.y + 50)
+
+    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
+        .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
+            Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+        .sort((a, b) => a.extraData[6] - b.extraData[6])
     let quit = false
     while (!quit) {
         try {
@@ -140,27 +140,21 @@ events.once("load", async () => {
             }
 
             const commander = await waitForCommanderAvailable(comList)
-            const attackInfo = await waitToAttack(async () => {
-                const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-                    .areaInfo.find(e => AreaType.mainCastle == e.type);
 
+            const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
-                let gaa = await getAreaCached(kid, sourceCastle.x - 50, sourceCastle.y - 50,
-                    sourceCastle.x + 50, sourceCastle.y + 50)
+                const AI = areaInfo.shift()
+                
+                areaInfo.push(AI)
 
-                let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-                    .sort((a, b) => Math.sqrt(Math.pow(sourceCastle.x - a.x, 2) + Math.pow(sourceCastle.y - a.y, 2)) -
-                        Math.sqrt(Math.pow(sourceCastle.x - b.x, 2) + Math.pow(sourceCastle.y - b.y, 2)))
-                    .sort((a, b) => a.extraData[2] > b.extraData[2])
-
-                const AI = areaInfo[0]
+                Object.assign(AI, (await ClientCommands.getAreaInfo(kid, AI.x, AI.y, AI.x, AI.y)()).areaInfo[0])
 
                 await skipTarget(AI)
 
-                const level = Number(eventAutoScalingCamps.find(obj => AI.extraData[6] == obj.eventAutoScalingCampID).camplevel)
+                const level = Number(eventAutoScalingCamps.find(obj => AI.extraData[5] == obj.eventAutoScalingCampID).camplevel)
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
 
                 if (pluginOptions.useCoin)
@@ -259,8 +253,10 @@ events.once("load", async () => {
                         wave.M.U.forEach((unitSlot, i) =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
+                        attackerMeleeTroops.sort((a, b) => Number(a[0].meleeAttack) - Number(b[0].meleeAttack))
+                        attackerRangeTroops.sort((a, b) => Number(a[0].rangeAttack) - Number(b[0].rangeAttack))
                     }
-                    else {
+                    else if(!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerNomadTools
                             if (tools.length == 0) {
@@ -318,15 +314,21 @@ events.once("load", async () => {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] =await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
-                        return false
+                        return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
-                }))[0]
+                })
+                return {...obj, result: r}
             })
+
+            if (!attackInfo)
+                return false
+            if(attackInfo.result != 0)
+                throw err[attackInfo.result]
 
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {

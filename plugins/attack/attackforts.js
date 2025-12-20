@@ -1,21 +1,26 @@
 const { isMainThread } = require('node:worker_threads')
-const name = "Fortress Hit"
+const name = "Attack Aqua Forts"
 
 if (isMainThread)
     return module.exports = {
         name: name,
-        hidden: true
+        pluginOptions: [
+            {
+                type: "Checkbox",
+                label: "Use Coin",
+                key: "useCoin",
+                default: false
+            }]
     };
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack copy")
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
+const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
 
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
-const { getCommanderStats } = require('../../getEquipment.js')
 
 const minTroopCount = 100
 
@@ -61,6 +66,15 @@ const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
+    let levels = [
+        9,
+        8,
+        7,
+        14,
+        13,
+        12,
+    ]
+
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
     const movements = []
@@ -94,8 +108,8 @@ events.once("load", async () => {
         movements.splice(index, 1)
     })
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-        .areaInfo.find(e => AreaType.externalKingdom == e.type);
-
+        .areaInfo.find(e => e.type == AreaType.externalKingdom);
+    //Gotta detect cooling down towers
     const sendHit = async () => {
         let comList = undefined
         if (![, ""].includes(pluginOptions.commanderWhiteList)) {
@@ -192,17 +206,22 @@ events.once("load", async () => {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] = await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
-                        return false
+                        return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
-                }))[0]
+                })
+                return {...obj, result: r}
             })
+            
             if (!attackInfo)
                 return false
+            if(attackInfo.result != 0)
+                throw err[attackInfo.result]
+
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {
@@ -272,7 +291,19 @@ events.once("load", async () => {
             towerTime.set(ai, timeSinceEpoch + ai.extraData[5] * 1000))
 
         sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
-        sortedAreaInfo.sort(a,b => a.extraData[2] < b.extraData[2])
+        sortedAreaInfo.sort((a, b) => {
+            if ((a.extraData[2] % 10) > (b.extraData[2] % 10)) 
+                return -1;
+            if ((a.extraData[2] % 10) < (b.extraData[2] % 10)) 
+                return 1;
+            //hits left
+            if (a.extraData[4] < b.extraData[4]) 
+                return -1
+            if (a.extraData[4] > b.extraData[4]) 
+                return 1
+
+            return 0;
+        })
         while (await sendHit());
     }
 

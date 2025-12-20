@@ -71,8 +71,6 @@ const spendSkip = (time) => {
         return undefined
     }
 
-    console.log(`Spending 1 ${skip[0]}`)
-
     return skip[0][0]
 }
 

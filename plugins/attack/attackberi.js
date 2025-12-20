@@ -1,11 +1,17 @@
 const { isMainThread } = require('node:worker_threads')
 
-const name = "Attack Nomad Camps"
+const name = "Attack Beri Camps"
     
 if (isMainThread)
     return module.exports = {
         name: name,
         pluginOptions: [
+            {
+                type: "Checkbox",
+                label: "Use Coin",
+                key: "useCoin",
+                default: false
+            },
             {
                 type: "Text",
                 label: "Com White List",
@@ -46,7 +52,6 @@ const pluginOptions = Object.assign(structuredClone(
 const kid = 0
 const type = AreaType.beriCamp
 
-const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 
@@ -69,7 +74,7 @@ events.once("load", async () => {
 
             sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
             let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || 
-                    obj.AI.type == type)
+                    Types.GAAAreaInfo(obj.AI).type == type)
 
             if (Number(result) != 0)
                 break
@@ -87,7 +92,7 @@ events.once("load", async () => {
         if (attackSource[0] != type)
             return
 
-        skipTarget(attackSource)
+        skipTarget(Types.GAAAreaInfo(attackSource))
     })
     let quit = false
     while (!quit) {
@@ -107,19 +112,19 @@ events.once("load", async () => {
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
-                let gaa = await getAreaCached(kid, sourceCastle.x - 50, sourceCastle.y - 50,
-                    sourceCastle.x + 50, sourceCastle.y + 50)
+                let gaa = await getAreaCached(kid, sourceCastleArea.x.x - 50, sourceCastleArea.x.y - 50,
+                    sourceCastleArea.x.x + 50, sourceCastleArea.x.y + 50)
 
                 let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-                    .sort((a, b) => Math.sqrt(Math.pow(sourceCastle.x - a.x, 2) + Math.pow(sourceCastle.y - a.y, 2)) -
-                        Math.sqrt(Math.pow(sourceCastle.x - b.x, 2) + Math.pow(sourceCastle.y - b.y, 2)))
+                    .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x.x - a.x, 2) + Math.pow(sourceCastleArea.x.y - a.y, 2)) -
+                        Math.sqrt(Math.pow(sourceCastleArea.x.x - b.x, 2) + Math.pow(sourceCastleArea.x.y - b.y, 2)))
                     .sort((a, b) => a.extraData[2] > b.extraData[2])
 
                 const AI = areaInfo[0]
 
                 await skipTarget(AI)
 
-                const level = Number(eventAutoScalingCamps.find(obj => AI.extraData[6] == obj.eventAutoScalingCampID).camplevel)
+                const level = 70
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
 
                 if (pluginOptions.useCoin)
@@ -218,8 +223,10 @@ events.once("load", async () => {
                         wave.M.U.forEach((unitSlot, i) =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
+                        attackerMeleeTroops.sort((a, b) => Number(a[0].meleeAttack) - Number(b[0].meleeAttack))
+                        attackerRangeTroops.sort((a, b) => Number(a[0].rangeAttack) - Number(b[0].rangeAttack))
                     }
-                    else {
+                    else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerBerimondTools
                             if (tools.length == 0) {
@@ -277,15 +284,21 @@ events.once("load", async () => {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] =await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
-                        return false
+                        return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
-                }))[0]
+                })
+                return {...obj, result: r}
             })
+
+            if (!attackInfo)
+                return false
+            if(attackInfo.result != 0)
+                throw err[attackInfo.result]
 
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {

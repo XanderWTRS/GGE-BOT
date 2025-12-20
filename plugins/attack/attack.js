@@ -7,12 +7,6 @@ if (isMainThread) {
         force: true,
         pluginOptions: [
             {
-                type: "Checkbox",
-                label: "Use Coin",
-                key: "useCoin",
-                default: false
-            },
-            {
                 type: "Text",
                 label: "Attack Delay (Seconds)",
                 key: "attackDelay",

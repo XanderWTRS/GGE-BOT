@@ -228,7 +228,7 @@ async function barronHit(name, type, kid, options) {
 
                 return (await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
-                        return false
+                        return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
@@ -237,6 +237,8 @@ async function barronHit(name, type, kid, options) {
             })
             if (!attackInfo)
                 return false
+            if(attackInfo.result != 0)
+                throw err[attackInfo.result]
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {

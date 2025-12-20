@@ -433,7 +433,7 @@ let genericAutoComplete = async (interaction) => {
     );
 };
 let getHonourRanking = async (interaction) => {
-    interaction.deferReply()
+    await interaction.deferReply()
     let getHonourList = async function*() {
         fullout:
         for (let j = 1; j + 1 <= 3000; j += 8) {
@@ -475,12 +475,12 @@ let getHonourRanking = async (interaction) => {
 }
 
 let getAllianceQuestPointCount = async (interaction) => {
-    interaction.deferReply()
+    await interaction.deferReply()
     let allianceQuestsScore = await ClientCommands.allianceQuestPointCount()()
     allianceQuestsScore.list.sort((a,b) => a.points - b.points)
     let msg = "```"
     
-    allianceQuestsScore.list.forEach(e => msg += `${e.name} ${e.points}`)
+    allianceQuestsScore.list.forEach((e, i) => msg += `${i + 1}. ${e.playerName} ${e.points}\n`)
 
     while (msg.length >= 2000 - 3)
         msg = msg.replace(/\n.*$/, '')
