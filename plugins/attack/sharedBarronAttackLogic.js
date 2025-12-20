@@ -9,7 +9,7 @@ if (isMainThread)
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID, spendSkip } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
-const { movementEvents, waitForCommanderAvailable, freeCommander } = require("../commander")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
 const err = require("../../err.json")
@@ -240,16 +240,13 @@ async function barronHit(name, type, kid, options) {
             
             if (!attackInfo)
                 return false
-            if(attackInfo.result != 0) {
-                if(err[attackInfo.result] == "LORD_IS_USED")
-                    commander.useCommander(commander.lordID)
+            if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
-            }
-
+            
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {
-            freeCommander(commander.lordID)
+            await freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(obj) {
@@ -264,6 +261,7 @@ async function barronHit(name, type, kid, options) {
                         resolve()
                     }))
                 case "LORD_IS_USED":
+                    await useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "CANT_START_NEW_ARMIES":
                     return true

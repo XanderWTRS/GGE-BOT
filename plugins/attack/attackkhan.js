@@ -57,7 +57,7 @@ if (isMainThread)
 const err = require("../../err.json")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
-const { movementEvents, waitForCommanderAvailable } = require("../commander")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
 const { getCommanderStats } = require("../../getEquipment")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
@@ -159,14 +159,14 @@ events.once("load", async () => {
 
     let quit = false
     while (!quit) {
-        try {
-            let comList = undefined
-            if (![, "", "0"].includes(pluginOptions.commanderWhiteList)) {
-                const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
-                comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-            }
+        let comList = undefined
+        if (![, "", "0"].includes(pluginOptions.commanderWhiteList)) {
+            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
+            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
 
-            const commander = await waitForCommanderAvailable(comList)
+        const commander = await waitForCommanderAvailable(comList)
+        try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
                     .castles.find(a => a.kingdomID == kid)
@@ -371,14 +371,12 @@ events.once("load", async () => {
 
             if (!attackInfo)
                 return false
-            if(attackInfo.result != 0) {
-                if(err[attackInfo.result] == "LORD_IS_USED")
-                    commander.useCommander(commander.lordID)
+            if(attackInfo.result != 0)
                 throw err[attackInfo.result]
-            }
             
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
+            await freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(obj) {
@@ -393,6 +391,7 @@ events.once("load", async () => {
                         resolve()
                     }))
                 case "LORD_IS_USED":
+                    useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "CANT_START_NEW_ARMIES":
                     break
