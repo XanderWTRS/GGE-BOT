@@ -8,6 +8,8 @@ if (require('node:worker_threads').isMainThread)
 
 const { xtHandler, sendXT, waitForResult, events } = require("../ggebot")
 const playerid = require("./playerid.js")
+const { Types } = require("../protocols.js")
+const EventEmitter = require('node:events')
 
 const event = new EventTarget()
 
@@ -36,26 +38,37 @@ async function useCommander(LID) {
         usedCommandersR.push(LID)
     return LID
 }
-const waitForCommanderAvailable = (arr, func) => new Promise(async resolve => {
+
+const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => { //THE FUCK IS WRONG WITH ME YOU ARE SATAN DARREN
     let usedCommandersR = await usedCommanders
+    /** @type {Array} */
     let commandersR = await commanders
+    let usableCommanders = commandersR.map(e => new Types.Lord(e))
+        .filter(e => ((!arr || arr.includes(e.lordPosition)) &&
+        !usedCommandersR.includes(e.lordID)))
 
-    let LID = commandersR.find(e => 
-        ((!arr || arr.includes(e.VIS)) && 
-        !usedCommandersR.includes(e.ID)) && (func == undefined || func(e.ID))
-    )?.ID
-    if (LID != undefined) {
-        return resolve(useCommander(LID))
-    }
+    if(sortCallback) 
+        usableCommanders.sort(sortCallback)
+    if(filterCallback)
+        usableCommanders.sort(filterCallback)
 
-    let checkForCommander = async (currentEvent) => {
-        currentEvent.stopPropagation()
-        event.removeEventListener("freedCommander", checkForCommander)
-        if(!arr || arr.includes(commandersR.find(e=> e.ID == currentEvent.detail).VIS))
-            return resolve(useCommander(currentEvent.detail))
-    }
-    event.addEventListener("freedCommander", checkForCommander)
-})
+    let LID = usableCommanders[0]?.lordID
+
+    LID ??= await new Promise(resolve => {
+        let checkForCommander = async currentEvent => {
+            currentEvent.stopPropagation()
+            event.removeEventListener("freedCommander", checkForCommander)
+            if (!arr || arr.includes(commandersR.find(e => e.ID == currentEvent.detail).VIS)
+                && filterCallback(new Types.Lord(e))) {
+                resolve(currentEvent.detail)
+            }
+        }
+        event.addEventListener("freedCommander", checkForCommander)
+    })
+
+    useCommander(LID)
+    return new Types.Lord(commandersR.find(e => e.ID == LID))
+}
 
 events.once("load", async () => {
     let parseGLI = (gli) => {
@@ -103,6 +116,7 @@ events.once("load", async () => {
         }
         for (let i = 0; i < obj.M.length; i++) {
             const o = obj.M[i];
+            try {
             if (o.M.TA[4] != await playerid)
                 continue
             if (o.M.T != 2)
@@ -117,7 +131,10 @@ events.once("load", async () => {
             useCommander(lordID)
             setTimeout(() => freeCommander(lordID),
                 (o.M.TT - o.M.PT + 1) * 1000).unref()
-
+            }
+            catch(e) {
+                
+            }
         }
 
         if (gamResolverHasResolved) {
@@ -133,8 +150,21 @@ events.once("load", async () => {
     sendXT("gli", JSON.stringify({}))
 })
 
+const movementEvents = new EventEmitter()
+
+xtHandler.on("cat", obj => {
+    const movementInfo = Types.ReturningAttack(obj)
+    
+    setTimeout(() => 
+        movementEvents.emit("return", movementInfo), 
+    
+    movementInfo.movement.movement.totalTime -
+    movementInfo.movement.movement.deltaTime -
+    new Date().getTime())
+})
 
 module.exports = {
+    movementEvents,
     waitForCommanderAvailable,
     useCommander,
     freeCommander,

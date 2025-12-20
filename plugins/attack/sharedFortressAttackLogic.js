@@ -1,26 +1,21 @@
 const { isMainThread } = require('node:worker_threads')
-const name = "Attack Aqua Forts"
+const name = "Fortress Hit"
 
 if (isMainThread)
     return module.exports = {
         name: name,
-        pluginOptions: [
-            {
-                type: "Checkbox",
-                label: "Use Coin",
-                key: "useCoin",
-                default: false
-            }]
+        hidden: true
     };
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggebot")
+const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
-const err = require("../../err.json")
+const err = require('../../err.json')
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
+const { getCommanderStats } = require('../../getEquipment.js')
 
 const minTroopCount = 100
 
@@ -57,24 +52,11 @@ function spiralCoordinates(n) {
 
     return { x, y };
 }
-
-const pluginOptions = Object.assign(structuredClone(
-    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
-    botConfig.plugins["attack"] ?? {})
-
-const kid = KingdomID.stormIslands
-const type = AreaType.stormTower
-
-events.once("load", async () => {
-    let levels = [
-        9,
-        8,
-        7,
-        14,
-        13,
-        12,
-    ]
-
+async function fortressHit(name, kid, type, level, options) {
+    let pluginOptions = {}
+    Object.assign(pluginOptions, options ?? {})
+    Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
+    
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
     const movements = []
@@ -108,8 +90,8 @@ events.once("load", async () => {
         movements.splice(index, 1)
     })
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom);
-    //Gotta detect cooling down towers
+        .areaInfo.find(e => AreaType.externalKingdom == e.type);
+
     const sendHit = async () => {
         let comList = undefined
         if (![, ""].includes(pluginOptions.commanderWhiteList)) {
@@ -117,7 +99,15 @@ events.once("load", async () => {
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         }
 
-        const commander = await waitForCommanderAvailable(comList)
+        const commander = await waitForCommanderAvailable(comList, commander => {
+            try {
+                return !commander.EQ[3][5].every(([id, _]) => id == 121 ? true : false)
+            }
+            catch {
+                return false
+            }
+        }, (a, b) => 
+            getCommanderStats(b).relicSpeedBonus - getCommanderStats(a).relicSpeedBonus)
 
         try {
             const attackInfo = await waitToAttack(async () => {
@@ -139,9 +129,8 @@ events.once("load", async () => {
                     const areaInfo = (await ClientCommands.getAreaInfo(kid, oldAreaInfo.x, oldAreaInfo.y, oldAreaInfo.x, oldAreaInfo.y)()).areaInfo[0]
 
                     Object.assign(oldAreaInfo, areaInfo)
-                    towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[5] * 1000)
-                    if(oldAreaInfo.extraData[3] > 0)
-                        continue
+                    towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[2] * 1000)
+
                     if (towerTime.get(oldAreaInfo) - new Date().getTime() > 0)
                         continue
 
@@ -153,22 +142,10 @@ events.once("load", async () => {
 
                 let AI = sortedAreaInfo.splice(index, 1)[0]
 
-                let toLevel = {
-                    7: 60,
-                    8: 70,
-                    9: 80,
-                    10: 40,
-                    11: 50,
-                    12: 60,
-                    13: 70,
-                    14: 80,
-                }
-                const level = toLevel[AI.extraData[2]]
-
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
 
                 if (pluginOptions.useCoin)
-                    attackInfo.HBW = 1030
+                    attackInfo.HBW = 1007
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -207,7 +184,7 @@ events.once("load", async () => {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                let [obj, r] = await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] =await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
                         return true
 
@@ -217,12 +194,11 @@ events.once("load", async () => {
                 })
                 return {...obj, result: r}
             })
-            
             if (!attackInfo)
                 return false
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
-
+            
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {
@@ -278,8 +254,7 @@ events.once("load", async () => {
         rect.h = rect.h > 1286 ? 1286 : rect.h
         let gaa = await getAreaCached(kid, rect.x, rect.y, rect.w, rect.h)
 
-        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-        .sort((a, b) => {
+        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => {
             let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))
             let d2 = Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2))
             if (d1 < d2)
@@ -289,22 +264,10 @@ events.once("load", async () => {
         })
         const timeSinceEpoch = new Date().getTime()
         areaInfo.forEach(ai =>
-            towerTime.set(ai, timeSinceEpoch + ai.extraData[5] * 1000))
+            towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
         sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
-        sortedAreaInfo.sort((a, b) => {
-            if ((a.extraData[2] % 10) > (b.extraData[2] % 10)) 
-                return -1;
-            if ((a.extraData[2] % 10) < (b.extraData[2] % 10)) 
-                return 1;
-            //hits left
-            if (a.extraData[4] < b.extraData[4]) 
-                return -1
-            if (a.extraData[4] > b.extraData[4]) 
-                return 1
-
-            return 0;
-        })
+        
         while (await sendHit());
     }
 
@@ -318,4 +281,6 @@ events.once("load", async () => {
         
         while (await sendHit());
     }
-})
+}
+
+module.exports = fortressHit
