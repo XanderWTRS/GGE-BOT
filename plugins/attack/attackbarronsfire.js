@@ -8,6 +8,12 @@ if (isMainThread)
         pluginOptions: [
             {
                 type: "Checkbox",
+                label: "Use Coin",
+                key: "useCoin",
+                default: false
+            },
+            {
+                type: "Checkbox",
                 label: "Use TimeSkips",
                 key: "useTimeSkips",
             }
