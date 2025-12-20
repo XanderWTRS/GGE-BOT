@@ -18,7 +18,7 @@ const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = requ
 const { movementEvents, waitForCommanderAvailable, freeCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
-
+const err = require("../../err.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 
@@ -140,7 +140,8 @@ events.once("load", async () => {
 
                     Object.assign(oldAreaInfo, areaInfo)
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[5] * 1000)
-
+                    if(oldAreaInfo.extraData[3] > 0)
+                        continue
                     if (towerTime.get(oldAreaInfo) - new Date().getTime() > 0)
                         continue
 
