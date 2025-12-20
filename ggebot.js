@@ -3,7 +3,7 @@ const { isMainThread, workerData, parentPort, BroadcastChannel } = require('node
 const EventEmitter = require('node:events')
 const WebSocket = require('ws')
 const ActionType = require("./actions.json")
-const error = require("./err.json")
+const err = require("./err.json")
 const sqlite3 = require("sqlite3")
 const events = new EventEmitter()
 if (isMainThread)
@@ -54,6 +54,8 @@ function sendXT(cmdName, paramObj) {
  * @param {function(object,number)} func 
  * @returns {Promise<[obj: object, result: Number]>}
  */
+
+let lordErrors = 0
 const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if (timeout == undefined) 
         reject(`waitForResult: No timeout specified`)
@@ -62,11 +64,25 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
 
     let timer;
     let result;
+    
+    if(err[result] == "LORD_IS_USED")
+        lordErrors++
+
+    if (lordErrors == 8) {
+        const sqlite3 = require("sqlite3")
+        let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
+        console.error("Closing forcefully due to LORD_IS_USED errors!")
+
+        userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
+            userDatabase.close()
+            setImmediate(() => webSocket.close())
+        })
+    }
 
     if(timeout > 0) {
         timer = setTimeout(() => {
             xtHandler.removeListener(key, helperFunction)
-            let msg = (result == undefined || result == 0) ? `Timed out waiting for ${key}` : !error[result] ? result : error[result]
+            let msg = (result == undefined || result == 0) ? `Timed out waiting for ${key}` : !err[result] ? result : err[result]
             reject(msg)
         }, timeout)
     }
@@ -132,7 +148,7 @@ webSocket.onmessage = async (e) => {
                 break
             default: 
                 if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
-                    console.warn(`Got result ${error[data[2]] ? error[data[2]] : data[2]} from ${data[0]}`)
+                    console.warn(`Got result ${err[data[2]] ? err[data[2]] : data[2]} from ${data[0]}`)
                     errorCount++
                 }
             case "core_pol":
@@ -299,7 +315,7 @@ xtHandler.on("lli", async (_,r) => {
         return
     }
     
-    if (r == error["INVALID_LOGIN_TOKEN"]) {
+    if (r == err["INVALID_LOGIN_TOKEN"]) {
         loginAttempts++
         if (loginAttempts < 30)
             return retry()
