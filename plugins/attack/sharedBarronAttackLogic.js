@@ -138,7 +138,7 @@ async function barronHit(name, type, kid, options) {
         skipTarget(sourceAttack)
     })
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-        .areaInfo.find(e => AreaType.externalKingdom == e.type);
+        .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
 
     const sendHit = async () => {
         let comList = undefined
