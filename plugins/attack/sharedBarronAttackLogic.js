@@ -12,6 +12,7 @@ const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = requ
 const { movementEvents, waitForCommanderAvailable, freeCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
+const err = require("../../err.json")
 
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -142,7 +143,7 @@ async function barronHit(name, type, kid, options) {
 
     const sendHit = async () => {
         let comList = undefined
-        if (![, ""].includes(pluginOptions.commanderWhiteList)) {
+        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
             const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         }
@@ -226,19 +227,22 @@ async function barronHit(name, type, kid, options) {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                return (await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] = await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
                         return true
 
                     if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
-                }))[0]
+                })
+                return { ...obj, result: r }
             })
+            
             if (!attackInfo)
                 return false
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
+
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {
