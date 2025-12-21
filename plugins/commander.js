@@ -72,12 +72,6 @@ events.once("load", () => {
         setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID), (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
     xtHandler.on("gam", async (obj) => {
-        let useCommander = (LID) => {
-            if (LID != undefined && !usedCommanders.includes(LID))
-                usedCommanders.push(LID)
-            return LID
-        }
-
         for (let i = 0; i < obj.M.length; i++) {
             const o = obj.M[i];
             if (o.M.SA[4] != await playerid)
@@ -89,6 +83,7 @@ events.once("load", () => {
 
             if (usedCommanders.includes(lordID))
                 continue
+            
             useCommander(lordID)
         }
         for (let i = 0; i < obj.M.length; i++) {
