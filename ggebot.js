@@ -299,7 +299,7 @@ xtHandler.on("vck", async _ => {
 xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
 
 let loginAttempts = 0
-xtHandler.once("sei", () => {
+xtHandler.once("sei", () => { //WARN: EXPLOIT USAGE CAN BREAK THIS
     console.log("Logged in")
     events.emit("load")
 })
