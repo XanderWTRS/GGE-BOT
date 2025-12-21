@@ -71,7 +71,6 @@ events.once("load", () => {
         useCommander(obj?.A?.UM?.L?.ID)
         setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID), (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
-    let usedCommanders = []
     xtHandler.on("gam", async (obj) => {
         let useCommander = (LID) => {
             if (LID != undefined && !usedCommanders.includes(LID))
