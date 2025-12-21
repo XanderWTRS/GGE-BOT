@@ -20,9 +20,9 @@ dir.forEach(file => {
         return    
 
     if(path.extname(file) != ".js")
-        throw Error(`None javascript file within path ${file}`)
+        return
 
-    plugins.push([file.slice(0, -3), require(path.join(__dirname, file))])
+    plugins.push([`plugins/${file.slice(0, -3)}`, require(path.join(__dirname, file))])
 })
 
 module.exports = plugins

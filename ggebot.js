@@ -117,7 +117,7 @@ for (const [key,val] of Object.entries(botConfig.plugins)) {
     if(!val.state)
         continue
     try {
-        require("./plugins/" + val.filename)
+        require(`./${val.filename}`)
     }
     catch(e) {
         console.warn(e)

@@ -134,7 +134,7 @@ events.once("load", async () => {
                 (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
             catch(e) {
-                
+                console.warn(e)
             }
         }
 

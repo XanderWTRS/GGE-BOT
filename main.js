@@ -320,8 +320,15 @@ async function start() {
   }
   servers = undefined
   _instances = undefined
+  let pluginData = require("./plugins")
 
-  const plugins = require("./plugins")
+  try {
+    pluginData = pluginData.concat(require("./plugins-extra"))
+  } catch (e) {
+
+  }
+
+  const plugins = pluginData
     .filter(e => !e[1].hidden)
     .map(e => new Object({ key: path.basename(e[0]), filename: e[0], name: e[1].name, description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions }))
     .sort((a, b) => {
