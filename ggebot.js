@@ -299,6 +299,10 @@ xtHandler.on("vck", async _ => {
 xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
 
 let loginAttempts = 0
+xtHandler.once("sei", () => {
+    console.log("Logged in")
+    events.emit("load")
+})
 xtHandler.on("lli", async (_,r) => {
     if(r == 453)
     {
@@ -309,8 +313,6 @@ xtHandler.on("lli", async (_,r) => {
 
     if (r == 0) {
         parentPort.postMessage([ActionType.Started])
-        console.log("Logged in")
-        events.emit("load")
         setInterval(() => sendXT("pin", "<RoundHouseKick>"), 1000 * 60).unref()
         return
     }
