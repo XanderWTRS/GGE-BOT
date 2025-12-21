@@ -1,0 +1,3 @@
+[submodule "plugins-extra"]
+	path = plugins-extra
+	url = https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git
