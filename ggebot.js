@@ -307,7 +307,7 @@ xtHandler.on("lli", async (_,r) => {
     if(r == 453)
     {
         console.log(`retrying login in ${_.CD} seconds`)
-        setTimeout(() => retry(), _.CD * 1000)
+        setTimeout(retry, _.CD * 1000)
         return
     }
 

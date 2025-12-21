@@ -42,14 +42,13 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     let LID = usableCommanders[0]?.lordID
 
     LID ??= await new Promise(resolve => {
-        let checkForCommander = async currentEvent => {
+        let checkForCommander = currentEvent => {
             currentEvent.stopPropagation()
             event.removeEventListener("freedCommander", checkForCommander)
             const com = commanders.find(e => e.ID == currentEvent.detail)
             if (!arr || arr.includes(com.VIS)
-                && (!filterCallback || filterCallback(new Types.Lord(com)))) {
+                && (!filterCallback || filterCallback(new Types.Lord(com))))
                 resolve(currentEvent.detail)
-            }
         }
         event.addEventListener("freedCommander", checkForCommander)
     })
@@ -115,7 +114,7 @@ events.once("load", () => {
                 console.warn(e)
             }
         }
-        usedCommanders.forEach(async LID => useCommander)
+        usedCommanders.forEach(useCommander)
     })
 
     sendXT("gli", JSON.stringify({}))
