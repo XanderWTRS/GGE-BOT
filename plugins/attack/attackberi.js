@@ -318,6 +318,7 @@ events.once("load", async () => {
                         movementEvents.off("return", self)
                         resolve()
                     }))
+                    return true
                 case "LORD_IS_USED":
                     await useCommander(commander.lordID)
                 case "COOLING_DOWN":

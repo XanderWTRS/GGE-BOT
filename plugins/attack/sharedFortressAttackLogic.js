@@ -216,6 +216,7 @@ async function fortressHit(name, kid, type, level, options) {
                         movementEvents.off("return", self)
                         resolve()
                     }))
+                    return true
                 case "LORD_IS_USED":
                     await useCommander(commander.lordID)
                 case "COOLING_DOWN":

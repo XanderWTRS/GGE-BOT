@@ -260,6 +260,7 @@ async function barronHit(name, type, kid, options) {
                         movementEvents.off("return", self)
                         resolve()
                     }))
+                    return true
                 case "LORD_IS_USED":
                     await useCommander(commander.lordID)
                 case "COOLING_DOWN":

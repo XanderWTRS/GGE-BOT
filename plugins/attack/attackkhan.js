@@ -390,8 +390,9 @@ events.once("load", async () => {
                         movementEvents.off("return", self)
                         resolve()
                     }))
+                    return true
                 case "LORD_IS_USED":
-                    useCommander(commander.lordID)
+                    await useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "CANT_START_NEW_ARMIES":
                     break
