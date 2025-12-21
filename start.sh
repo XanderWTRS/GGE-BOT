@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 URL="http://127.0.0.1:3001"
 
-git pull
+git pull --recurse-submodules
 npm i
  
 if which xdg-open > /dev/null
