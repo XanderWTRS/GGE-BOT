@@ -368,3 +368,11 @@ xtHandler.on("lli", async (_,r) => {
         userDatabase.close()
     })
 })
+
+xtHandler.on("sne", obj => {
+    obj.MSG.forEach(message => {
+        if(message[1] != 67)
+            return
+        sendXT("dms", JSON.stringify({MID:message[0]}))
+    });
+})
