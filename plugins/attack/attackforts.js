@@ -10,6 +10,24 @@ if (isMainThread)
                 label: "Use Coin",
                 key: "useCoin",
                 default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Buy Coins",
+                key: "buycoins",
+                default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Buy Deco",
+                key: "buydeco",
+                default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Buy XP",
+                key: "buyxp",
+                default: false
             }]
     };
 const { getCommanderStats } = require("../../getEquipment")
@@ -66,15 +84,41 @@ const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
-    let levels = [
-        9,
-        8,
-        7,
-        14,
-        13,
-        12,
-    ]
+    let aquamarine = 0
+    xtHandler.on("grc", (obj, r) => r == 0 ? aquamarine = obj.A : void 0)
+    if (pluginOptions["buycoins"]) {
+        xtHandler.addListener("jaa", (_, r) => {
+            if (r != 0)
+                return
 
+            if (aquamarine > 500000) { //might not work
+                sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+                console.info(`[${name}] Buying Coins`)
+            }
+        })
+    }
+    if (pluginOptions["buydeco"]) {
+        xtHandler.addListener("jaa", (_, r) => {
+            if (r != 0)
+                return
+
+            if (aquamarine > 500000) {
+                sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+                console.info(`[${name}] Buying Deco`)
+            }
+        })
+    }
+    if (pluginOptions["buyxp"]) {
+        xtHandler.addListener("jaa", (_, r) => {
+            if (r != 0)
+                return
+
+            for (let i = 0; i < Math.floor(aquamarine / 10000); i++) {
+                sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+                console.info(`[${name}] Got XP`)
+            }
+        })
+    }
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
     const movements = []
