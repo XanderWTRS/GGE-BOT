@@ -239,7 +239,7 @@ async function barronHit(name, type, kid, options) {
             })
             
             if (!attackInfo) {
-                freeCommander(commander)
+                freeCommander(commander.lordID)
                 return false
             }
             if(attackInfo.result != 0) 

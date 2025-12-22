@@ -325,7 +325,7 @@ events.once("load", async () => {
             })
 
             if (!attackInfo) {
-                freeCommander(commander)
+                freeCommander(commander.lordID)
                 return false
             }
             if(attackInfo.result != 0)
