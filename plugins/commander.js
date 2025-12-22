@@ -75,7 +75,6 @@ events.once("load", () => {
             if (!travel.get(o.M.MID))
                 return
             travel.delete(o.M.MID)
-            freeCommander(lordID)
             freeCommander(obj?.A?.UM?.L?.ID)
         }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
