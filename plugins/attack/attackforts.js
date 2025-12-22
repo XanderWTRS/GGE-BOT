@@ -12,7 +12,7 @@ if (isMainThread)
                 default: false
             }]
     };
-
+const { getCommanderStats } = require("../../getEquipment")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
@@ -198,9 +198,9 @@ events.once("load", async () => {
                 attackInfo.A.forEach((wave, i) => {
                     if(i > 4)
                         return
+                    const commanderStats = getCommanderStats(commander)
+                    const maxTroopFlank = getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
                     
-                    const maxTroopFlank = getAmountSoldiersFlank(level)
-
                     let maxTroops = maxTroopFlank
 
                     wave.L.U.forEach((unitSlot, i) =>

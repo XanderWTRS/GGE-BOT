@@ -6,7 +6,7 @@ if (isMainThread)
         name: name,
         hidden: true
     };
-
+const { getCommanderStats } = require("../../getEquipment")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID, spendSkip } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront } = require("./attack.js")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
@@ -216,7 +216,8 @@ async function barronHit(name, type, kid, options) {
                     throw "NO_MORE_TROOPS"
 
                 attackInfo.A.forEach(wave => {
-                    const maxTroopFlank = getAmountSoldiersFlank(level)
+                    const commanderStats = getCommanderStats(commander)
+                    const maxTroopFlank = getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
                     const maxTroopFront = getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100
                     
                     let maxTroops = maxTroopFlank
