@@ -324,8 +324,10 @@ events.once("load", async () => {
                 return {...obj, result: r}
             })
 
-            if (!attackInfo)
+            if (!attackInfo) {
+                freeCommander(commander)
                 return false
+            }
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
 
