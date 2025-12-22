@@ -71,6 +71,7 @@ events.once("load", () => {
         useCommander(obj?.A?.UM?.L?.ID)
         setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID), (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
+    const travel = new Map()
     xtHandler.on("gam", async (obj) => {
         for (let i = 0; i < obj.M.length; i++) {
             const o = obj.M[i];
@@ -101,8 +102,13 @@ events.once("load", () => {
                     continue
 
                 useCommander(lordID)
-                setTimeout(() => freeCommander(lordID),
-                    (o.M.TT - o.M.PT + 1) * 1000).unref()
+                travel.set(o.M.MID, true)
+                setTimeout(() => {
+                    if(!travel.get(o.M.MID))
+                        return
+                    travel.delete(o.M.MID)
+                    freeCommander(lordID)
+                }, (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
             catch (e) {
                 console.warn(e)

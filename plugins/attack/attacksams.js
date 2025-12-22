@@ -334,7 +334,7 @@ events.once("load", async () => {
             
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
-            await freeCommander(commander.lordID)
+            freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(obj) {
@@ -350,8 +350,9 @@ events.once("load", async () => {
                     }))
                     return true
                 case "LORD_IS_USED":
-                    await useCommander(commander.lordID)
+                    useCommander(commander.lordID)
                 case "COOLING_DOWN":
+                case "TIMED_OUT":
                 case "CANT_START_NEW_ARMIES":
                     break
                 default:

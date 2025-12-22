@@ -68,7 +68,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if(err[result] == "LORD_IS_USED")
         lordErrors++
 
-    if (lordErrors == 8) {
+    if (lordErrors == 5) {
         const sqlite3 = require("sqlite3")
         let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
         console.error("Closing forcefully due to LORD_IS_USED errors!")
@@ -77,12 +77,13 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             userDatabase.close()
             setImmediate(() => webSocket.close())
         })
+        return
     }
 
     if(timeout > 0) {
         timer = setTimeout(() => {
             xtHandler.removeListener(key, helperFunction)
-            let msg = (result == undefined || result == 0) ? `Timed out waiting for ${key}` : !err[result] ? result : err[result]
+            let msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
             reject(msg)
         }, timeout)
     }
