@@ -75,7 +75,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
 
             userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
                 userDatabase.close()
-                setImmediate(() => webSocket.close())
+                webSocket.pause()
             })
             return
         }
