@@ -101,10 +101,10 @@ async function fortressHit(name, kid, type, level, options) {
 
         const commander = await waitForCommanderAvailable(comList, 
             (a, b) =>
-                (a.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? true : false) ?? false - 
-                (b.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? true : false) ?? false, 
+                (b.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? true : false) ?? false - 
+                (a.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? true : false) ?? false,
             (a, b) => getCommanderStats(b).relicSpeedBonus - getCommanderStats(a).relicSpeedBonus)
-
+        console.debug(`Chose ${getCommanderStats(commander).relicSpeedBonus}`)
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
