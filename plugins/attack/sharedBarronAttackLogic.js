@@ -223,6 +223,15 @@ async function barronHit(name, type, kid, options) {
                     wave.L.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
+
+                    maxTroops = maxTroopFlank
+                    wave.R.U.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    maxTroops = maxTroopFront
+                    wave.M.U.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
                 });
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))

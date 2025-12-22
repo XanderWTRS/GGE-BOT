@@ -195,7 +195,10 @@ events.once("load", async () => {
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
 
-                attackInfo.A.forEach(wave => {
+                attackInfo.A.forEach((wave, i) => {
+                    if(i > 4)
+                        return
+                    
                     const maxTroopFlank = getAmountSoldiersFlank(level)
 
                     let maxTroops = maxTroopFlank
@@ -203,6 +206,11 @@ events.once("load", async () => {
                     wave.L.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    maxTroops = maxTroopFlank
+                    wave.R.U.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    maxTroops = maxTroopFront
                 });
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
