@@ -210,7 +210,6 @@ events.once("load", async () => {
                     wave.R.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    maxTroops = maxTroopFront
                 });
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))

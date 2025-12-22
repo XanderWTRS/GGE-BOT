@@ -217,7 +217,8 @@ async function barronHit(name, type, kid, options) {
 
                 attackInfo.A.forEach(wave => {
                     const maxTroopFlank = getAmountSoldiersFlank(level)
-
+                    const maxTroopFront = getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100
+                    
                     let maxTroops = maxTroopFlank
 
                     wave.L.U.forEach((unitSlot, i) =>
