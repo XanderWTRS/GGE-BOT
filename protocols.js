@@ -609,12 +609,12 @@ const getKingdomInfoList = async () => {
 
     let [obj, result] = await waitForResult("kpi", 1000 * 10) //why?!?!?!
 
-    Object.assign(_kingdomInfoList, KingdomInfo({ ...obj, result }))
+    Object.assign(_kingdomInfoList, { ...obj, result })
 
-    return _kingdomInfoList
+    return KingdomInfo(_kingdomInfoList)
 }
 xtHandler.on("kpi", (obj, result) =>
-    Object.assign(_kingdomInfoList, KingdomInfo({ ...obj, result })))
+    Object.assign(_kingdomInfoList, { ...obj, result }))
 
 const Feast = e => ({
     type: Number(e.T),
