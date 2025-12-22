@@ -64,14 +64,21 @@ events.once("load", () => {
     xtHandler.on("adi", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
     xtHandler.on("gli", (obj, r) => !r ? parseGLI(obj.C) : void 0)
 
+    const travel = new Map()
     xtHandler.on("cat", async (obj) => {
         if (obj.A.M.TA[4] != await playerid)
             return
 
         useCommander(obj?.A?.UM?.L?.ID)
-        setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID), (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
+        travel.set(o.M.MID, true)
+        setTimeout(() => {
+            if (!travel.get(o.M.MID))
+                return
+            travel.delete(o.M.MID)
+            freeCommander(lordID)
+            freeCommander(obj?.A?.UM?.L?.ID)
+        }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
-    const travel = new Map()
     xtHandler.on("gam", async (obj) => {
         for (let i = 0; i < obj.M.length; i++) {
             const o = obj.M[i];
