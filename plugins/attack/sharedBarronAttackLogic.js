@@ -8,7 +8,7 @@ if (isMainThread)
     };
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID, spendSkip } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront } = require("./attack.js")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
