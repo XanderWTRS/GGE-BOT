@@ -74,9 +74,6 @@ events.once("load", () => {
         if (obj.A.M.TA[4] != playerInfo.playerID)
             return
 
-        if (usedCommanders.includes(obj?.A?.UM?.L?.ID))
-            return
-
         useCommander(obj?.A?.UM?.L?.ID)
 
         setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID),
