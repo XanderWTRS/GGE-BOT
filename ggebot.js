@@ -33,6 +33,7 @@ if (!botConfig.internalWorker) {
     console.info = msg => mngLog(msg, 0)
     console.warn = msg => mngLog(msg, 1)
     console.error = msg => mngLog(msg, 2)
+    console.debug = _console.debug
 }
 
 events.on("configModified", () => {
@@ -108,10 +109,42 @@ const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`);
 webSocket.onopen = _ => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
 
 const playerInfo = {
-    playerLevel : NaN
+    level : NaN,
+    userID : NaN,
+    playerID: NaN,
+    email : String(),
+    acceptedTOS: Boolean(),
+    verifiedEmail: Boolean(),
+    isCheater: Boolean(),
+    name: String(),
+    alliance : {
+        id : Number(),
+        rank : Number(),
+        name : String(),
+        fame : Number(),
+        searchingForPlayers : Boolean()
+    }
 }
+
+xtHandler.on("gal", obj => {
+    playerInfo.alliance.id = Number(obj.AID)
+    playerInfo.alliance.rank = Number(obj.R)
+    playerInfo.alliance.name = String(obj.N)
+    playerInfo.alliance.fame = Number(obj.ACF)
+    playerInfo.alliance.searchingForPlayers = Boolean(obj.SA)
+})
+
 xtHandler.on("gxp", obj => {
-    playerInfo.playerLevel = obj.LVL + obj.LL
+    playerInfo.level = obj.LVL + obj.LL
+})
+xtHandler.on("gpi", obj => {
+    playerInfo.userID = Number(obj.UID)
+    playerInfo.playerID = Number(obj.PID)
+    playerInfo.name = String(obj.PN)
+    playerInfo.email = String(obj.E)
+    playerInfo.verifiedEmail = Boolean(obj.V)
+    playerInfo.acceptedTOS = Boolean(obj.CTAC)
+    playerInfo.isCheater = Boolean(obj.CL)
 })
 
 module.exports = { sendXT, xtHandler, waitForResult, webSocket, events, botConfig, playerInfo }

@@ -19,9 +19,8 @@ if (isMainThread)
 
 const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
 
-const { xtHandler, botConfig } = require("../../ggebot")
+const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const { clientReady } = require('./discord')
-const AID = require("../allianceid.js")
 const { createLayout } = require("../../imageGen.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
@@ -67,7 +66,7 @@ clientReady.then(async client => {
             let attacker = obj.O.find((e) => e.OID == movement.M.SA[4]);
             let victim = obj.O.find((e) => e.OID == movement.M.TA[4]);
     
-            if (attacker.AID == await AID)
+            if (attacker.AID == playerInfo.alliance.id)
                 return;
 
             if (e) {

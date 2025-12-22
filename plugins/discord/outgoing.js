@@ -15,9 +15,8 @@ if (isMainThread)
         ]
     };
 
-const { xtHandler, botConfig } = require("../../ggebot")
+const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const { clientReady } = require('./discord')
-const AID = require("../allianceid.js")
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 let movements = []
@@ -43,7 +42,7 @@ clientReady.then(async client => {
             let attacker = obj.O.find((e) => e.OID == movement.M.SA[4]);
             let victim = obj.O.find((e) => e.OID == movement.M.TA[4]);
     
-            if (attacker.AID != await AID) //if victim is outside of our alliance then ignore it for alerts
+            if (attacker.AID != playerInfo.alliance.id) //if victim is outside of our alliance then ignore it for alerts
                 return;
     
             let attackerName = attacker.N;

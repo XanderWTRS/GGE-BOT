@@ -4,10 +4,10 @@ if (require('node:worker_threads').isMainThread)
 
 const { Events, SlashCommandBuilder, Interaction, Collection, REST, Routes } = require('discord.js');
 const { client, clientReady } = require('./discord')
-const { xtHandler, sendXT, waitForResult, events, botConfig } = require("../../ggebot")
+const { xtHandler, sendXT, waitForResult, events, botConfig, player } = require("../../ggebot")
 const { ClientCommands, HighscoreType, Types, AreaType } = require('../../protocols.js');
 const ggeConfig = require("../../ggeConfig.json");
-const allianceID = require('../allianceid.js');
+
 let commands = new Collection()
 async function refreshCommands() {
     await clientReady
@@ -198,7 +198,7 @@ async function getAllianceEventRank(interaction, LT) {
     })
     await interaction.deferReply()
     let allianceName = interaction.options.getString('name')
-    let AID = await allianceID
+    let AID = playerInfo.alliance.id
     try {
         if(allianceName)
             AID = await getAllianceByName(allianceName)
