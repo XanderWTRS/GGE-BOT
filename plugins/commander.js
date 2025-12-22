@@ -69,12 +69,12 @@ events.once("load", () => {
         if (obj.A.M.TA[4] != await playerid)
             return
 
-        useCommander(obj?.A?.UM?.L?.ID)
-        travel.set(o.M.MID, true)
+    useCommander(obj?.A?.UM?.L?.ID)
+        travel.set(obj.A.M.MID, true)
         setTimeout(() => {
-            if (!travel.get(o.M.MID))
+            if (!travel.get(obj.A.M.MID))
                 return
-            travel.delete(o.M.MID)
+            travel.delete(obj.A.M.MID)
             freeCommander(obj?.A?.UM?.L?.ID)
         }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
