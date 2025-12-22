@@ -30,7 +30,7 @@ events.once("load", async () => {
     let resourceCastleList = await getResourceCastleList()
 
     if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-        return console.warn(`[${name}] refusing to run without ${KingdomID[targetKingdomID]} unlocked`)
+        return console.warn(`[${name}] refusing to run without Storm Islands unlocked`)
 
     let checkMead = async () => {
         let dcl = await ClientCommands.getDetailedCastleList()()
