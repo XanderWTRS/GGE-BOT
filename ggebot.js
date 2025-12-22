@@ -64,20 +64,21 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
 
     let timer;
     let result;
-    
-    if(err[result] == "LORD_IS_USED")
-        lordErrors++
+    const checkForLordIssues = () => {
+        if (err[result] == "LORD_IS_USED")
+            lordErrors++
 
-    if (lordErrors == 5) {
-        const sqlite3 = require("sqlite3")
-        let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
-        console.error("Closing forcefully due to LORD_IS_USED errors!")
+        if (lordErrors == 5) {
+            const sqlite3 = require("sqlite3")
+            let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
+            console.error("Closing forcefully due to LORD_IS_USED errors!")
 
-        userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
-            userDatabase.close()
-            setImmediate(() => webSocket.close())
-        })
-        return
+            userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
+                userDatabase.close()
+                setImmediate(() => webSocket.close())
+            })
+            return
+        }
     }
 
     if(timeout > 0) {
@@ -91,6 +92,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     let helperFunction = (data, _result) => {
         if (result != 0)
             result = _result
+        checkForLordIssues()
         if (!func(Object(data), Number(_result)))
             return
 

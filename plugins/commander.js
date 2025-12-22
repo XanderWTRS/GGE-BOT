@@ -64,17 +64,18 @@ events.once("load", () => {
     xtHandler.on("adi", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
     xtHandler.on("gli", (obj, r) => !r ? parseGLI(obj.C) : void 0)
 
-    const travel = new Map()
     xtHandler.on("cat", async (obj) => {
         if (obj.A.M.TA[4] != await playerid)
             return
 
-    useCommander(obj?.A?.UM?.L?.ID)
-        travel.set(obj.A.M.MID, true)
+        if (usedCommanders.includes(obj?.A?.UM?.L?.ID))
+            return
+
+        useCommander(obj?.A?.UM?.L?.ID)
+
         setTimeout(() => {
-            if (!travel.get(obj.A.M.MID))
+            if (!usedCommanders.includes(obj?.A?.UM?.L?.ID))
                 return
-            travel.delete(obj.A.M.MID)
             freeCommander(obj?.A?.UM?.L?.ID)
         }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
     })
@@ -108,11 +109,10 @@ events.once("load", () => {
                     continue
 
                 useCommander(lordID)
-                travel.set(o.M.MID, true)
+                
                 setTimeout(() => {
-                    if(!travel.get(o.M.MID))
+                    if (!usedCommanders.includes(lordID))
                         return
-                    travel.delete(o.M.MID)
                     freeCommander(lordID)
                 }, (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
@@ -120,7 +120,6 @@ events.once("load", () => {
                 console.warn(e)
             }
         }
-        usedCommanders.forEach(useCommander)
     })
 
     sendXT("gli", JSON.stringify({}))
