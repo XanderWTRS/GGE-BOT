@@ -161,7 +161,8 @@ events.once("load", async () => {
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         }
 
-        const commander = await waitForCommanderAvailable(comList)
+        const commander = await waitForCommanderAvailable(comList, undefined, 
+            (a, b) => getCommanderStats(b).relicLootBonus - getCommanderStats(a).relicLootBonus)
 
         try {
             const attackInfo = await waitToAttack(async () => {
