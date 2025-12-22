@@ -34,6 +34,7 @@ if (!botConfig.internalWorker) {
     console.warn = msg => mngLog(msg, 1)
     console.error = msg => mngLog(msg, 2)
     console.debug = _console.debug
+    console.trace = _console.trace
 }
 
 events.on("configModified", () => {

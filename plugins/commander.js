@@ -43,8 +43,12 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     let LID = usableCommanders[0]?.lordID
 
     LID ??= await new Promise(resolve => {
-        let checkForCommander = currentEvent => {
-            currentEvent.stopPropagation()
+        const checkForCommander = currentEvent => {
+            currentEvent.stopImmediatePropagation()
+            if(usedCommanders.find(e => e == currentEvent.detail)) {
+                debugger
+                return
+            }
             event.removeEventListener("freedCommander", checkForCommander)
             const com = commanders.find(e => e.ID == currentEvent.detail)
             if (!arr || arr.includes(com.VIS)
@@ -128,8 +132,8 @@ xtHandler.on("cat", obj => {
         movementEvents.emit("return", movementInfo),
 
         movementInfo.movement.movement.totalTime -
-        movementInfo.movement.movement.deltaTime -
-        new Date().getTime())
+        (movementInfo.movement.movement.deltaTime -
+        new Date().getTime()))
 })
 
 module.exports = {
