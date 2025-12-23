@@ -972,7 +972,7 @@ const LordMovement = e => ({
     // e.TWD
     lord: new Lord(e.L)
 })
-const Movement = e => ({
+const Movement = e => e == undefined ? undefined : ({
     movement: ActualMovement(e.M),
     lordMovement: e.UM ? LordMovement(e.UM) : undefined,
     getArmy: e.GA ? Army(e.GA) : undefined,
