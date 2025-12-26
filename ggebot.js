@@ -340,11 +340,17 @@ xtHandler.once("sei", () => { //WARN: EXPLOIT USAGE CAN BREAK THIS
     console.log("Logged in")
     events.emit("load")
 })
-xtHandler.on("lli", async (_,r) => {
+xtHandler.on("lli", async (obj,r) => {
     if(r == 453)
     {
-        console.log(`retrying login in ${_.CD} seconds`)
-        setTimeout(retry, _.CD * 1000)
+        console.log(`retrying login in ${obj.CD} seconds`)
+        setTimeout(retry, obj.CD * 1000)
+        return
+    }
+
+    if(err[r] == "IS_BANNED") {
+        console.log(`retrying login in ${Math.round(obj.RS / 60 / 60)} hours`)
+        setTimeout(retry, obj.RS * 1000)
         return
     }
 
