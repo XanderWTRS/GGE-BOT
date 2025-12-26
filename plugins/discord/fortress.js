@@ -18,7 +18,6 @@ const { events, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
 const pretty = require('pretty-time');
 const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
-const getUser = require('../getUser.js');
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 addToWhiteList(11)

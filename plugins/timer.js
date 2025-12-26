@@ -17,20 +17,21 @@ if (isMainThread) {
     return
 }
 
-const { botConfig } = require("../ggebot")
+const { botConfig, events } = require("../ggebot")
 const sqlite3 = require("sqlite3")
-const {webSocket} = require("../ggebot")
+const { webSocket } = require("../ggebot")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 const userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
 
-if(isNaN(Number(pluginOptions.hours)))
+if (isNaN(Number(pluginOptions.hours)))
     return console.log(`[${name}] hours is not a number!`)
-
-setTimeout(() => {
-    userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
-        userDatabase.close()
-        setImmediate(() => webSocket.close())
-    })
-}, Number(pluginOptions.hours) * 1000 * 60 * 60)
+events.once("load", () => {
+    setTimeout(() => {
+        userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
+            userDatabase.close()
+            setImmediate(() => webSocket.close())
+        })
+    }, Number(pluginOptions.hours) * 1000 * 60 * 60)
+})
