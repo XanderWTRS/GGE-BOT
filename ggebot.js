@@ -336,10 +336,6 @@ xtHandler.on("vck", async _ => {
 xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
 
 let loginAttempts = 0
-xtHandler.once("sei", () => { //WARN: EXPLOIT USAGE CAN BREAK THIS
-    console.log("Logged in")
-    events.emit("load")
-})
 xtHandler.on("lli", async (obj,r) => {
     if(r == 453)
     {
@@ -355,6 +351,18 @@ xtHandler.on("lli", async (obj,r) => {
     }
 
     if (r == 0) {
+        //Due to exploits that can break the client this is to give limited access again.
+        const timer = setTimeout(() => {
+            console.warn("Logged in (without event data)")
+            console.warn("Some features will not work.")
+            events.emit("load")
+        }, 25 * 1000)
+
+        xtHandler.once("sei", () => {
+            console.log("Logged in")
+            events.emit("load")
+            clearTimeout(timer)
+        })
         parentPort.postMessage([ActionType.Started])
         setInterval(() => sendXT("pin", "<RoundHouseKick>"), 1000 * 60).unref()
         return
