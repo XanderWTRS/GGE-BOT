@@ -388,65 +388,69 @@ async function start() {
   });
   
   if (hasDiscord) {
-      client.login(ggeConfig.discordToken);
-      await Promise(r => client.once(Events.ClientReady, r))
-      app.get('/discordAuth', async (request, response) => {
-        const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
-          method: 'POST',
-          body: new URLSearchParams({
-            client_id: ggeConfig.discordClientId,
-            client_secret: ggeConfig.discordClientSecret,
-            code: request.query.code,
-            grant_type: 'authorization_code',
-            redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
-            scope: 'identify',
-          }).toString(),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
+      await Promise(resolve => {
+        client.once(Events.ClientReady, () => {
+          app.get('/discordAuth', async (request, response) => {
+            const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
+              method: 'POST',
+              body: new URLSearchParams({
+                client_id: ggeConfig.discordClientId,
+                client_secret: ggeConfig.discordClientSecret,
+                code: request.query.code,
+                grant_type: 'authorization_code',
+                redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
+                scope: 'identify',
+              }).toString(),
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+            });
 
-        const oauthData = await tokenResponseData.body.json();
-        const userResult = await undici.request('https://discord.com/api/users/@me', {
-          headers: {
-            authorization: `${oauthData.token_type} ${oauthData.access_token}`,
-          },
-        });
-        let discordIdentifier = await userResult.body.json()
-        let guildId = request.query.guild_id
-        if (!discordIdentifier.id)
-          return response.send("Could not get discord id!")
-        if (!guildId)
-          return response.send("Could not get guild id!")
-        let userIsAdmin = client.guilds.cache.get(guildId)
-          .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
-        if (userIsAdmin == undefined)
-          return response.send("User isn't in guild")
-        if (!userIsAdmin)
-          return response.send("User is not admin!")
+            const oauthData = await tokenResponseData.body.json();
+            const userResult = await undici.request('https://discord.com/api/users/@me', {
+              headers: {
+                authorization: `${oauthData.token_type} ${oauthData.access_token}`,
+              },
+            });
+            let discordIdentifier = await userResult.body.json()
+            let guildId = request.query.guild_id
+            if (!discordIdentifier.id)
+              return response.send("Could not get discord id!")
+            if (!guildId)
+              return response.send("Could not get guild id!")
+            let userIsAdmin = client.guilds.cache.get(guildId)
+              .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
+            if (userIsAdmin == undefined)
+              return response.send("User isn't in guild")
+            if (!userIsAdmin)
+              return response.send("User is not admin!")
 
-        let guild = client.guilds.cache.get(guildId)
-        let channelData = guild.channels.cache.map(channel => {
-          if (guild.members.me.permissionsIn(channel)
-            .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
-            return { id: channel.id, name: channel.name }
+            let guild = client.guilds.cache.get(guildId)
+            let channelData = guild.channels.cache.map(channel => {
+              if (guild.members.me.permissionsIn(channel)
+                .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
+                return { id: channel.id, name: channel.name }
 
-          return undefined
-        }).filter((e) => e !== undefined)
-        let uuid = request.cookies?.uuid
-        let valid = await loginCheck(uuid)
-        if (!valid)
-          return response.send("uuid is not valid!")
+              return undefined
+            }).filter((e) => e !== undefined)
+            let uuid = request.cookies?.uuid
+            let valid = await loginCheck(uuid)
+            if (!valid)
+              return response.send("uuid is not valid!")
 
-        userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [discordIdentifier.id, guildId, uuid], function (err) {
-          if (err)
-            console.error(err)
+            userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [discordIdentifier.id, guildId, uuid], function (err) {
+              if (err)
+                console.error(err)
+            })
+            loggedInUsers[uuid].forEach(o =>
+              o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
+            )
+            return response.send("Successful!")
+          })
         })
-        loggedInUsers[uuid].forEach(o =>
-          o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-        )
-        return response.send("Successful!")
       })
+      client.login(ggeConfig.discordToken);
+      resolve()
   }
 
   app.use(express.static('website'))
