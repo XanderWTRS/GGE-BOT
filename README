@@ -29,8 +29,8 @@ also find Token goto the ggeConfig and place it under discordToken.
 3. Proceed to General Information and scroll down till you see Application ID place it under discordClientId.
 4. Next head to Oauth2 and take the Client Secret and within ggeconfig place it under discordClientSecret.
 5. In the same section you'll see redirects take the discordPort and add these links:
-  http://127.0.0.1:(discordPort here)
-  https://127.0.0.1:(discordPort here)
+  http://127.0.0.1:(webPort)/discordAuth
+  https://127.0.0.1:(webPort)/discordAuth
 Optionally if you are hosting for others:
-  http/s://webaddress:(discordPort here)
+  http/s://webaddress:(webPort)/discordAuth
 6. From here restart the bot and press the "Link Discord"
