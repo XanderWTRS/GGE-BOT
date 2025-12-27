@@ -16,7 +16,7 @@ What you need to do to use (Windows 11):
   Goto release download the powershell file run it and it should be on your desktop
   Then go in there and press start.bat
 
-What you need to do to use (Other OS):
+What you need to do to use (Other OS): (For updates please git clone!)
 1. grab the latest version of NodeJS
 4. goto the directory of the bot in and run in the terminal
 5. chmod 775 start.sh
