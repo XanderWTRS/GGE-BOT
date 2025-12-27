@@ -24,7 +24,6 @@ console.log("Thanks")
 
 const ggeConfigExample = `{
     "webPort" : "3001",
-    "webSocketPort" : "3002",
     
     "fontPath" : "",
     "privateKey" : "",
@@ -33,8 +32,7 @@ const ggeConfigExample = `{
     
     "discordToken" : "",
     "discordClientId" : "",
-    "discordClientSecret" : "",
-    "discordPort": "3003"
+    "discordClientSecret" : ""
 }`
 /*
   {
@@ -179,8 +177,6 @@ async function start() {
   const ggeConfig = JSON.parse((await fs.readFile("./ggeConfig.json")).toString())
 
   ggeConfig.webPort ??= "3001"
-  ggeConfig.webSocketPort ??= "3002"
-  ggeConfig.discordPort ??= "3003"
 
   if (ggeConfig.cert) {
     await fs.access(ggeConfig.cert)
@@ -206,8 +202,7 @@ async function start() {
       ggeConfig.fontPath = "C:\\Windows\\Fonts\\segoeui.ttf"
     }
     catch (e) {
-      console.warn(e)
-      console.warn("Could not setup discord")
+      console.warn(`${ggeConfig.fontPath} does not exist.`)
       hasDiscord = false
     }
   }
@@ -391,26 +386,84 @@ async function start() {
       })
     }
   });
-  app.get("/serverInfo.json", (_, res) => { 
-    res.setHeader("Access-Control-Allow-Origin", "*"); 
-
-    res.send(JSON.stringify({
-        discordPort: ggeConfig.discordPort,
-        webSocketPort: ggeConfig.webSocketPort,
-      }))
-  })
   
+  if (hasDiscord) {
+      client.login(ggeConfig.discordToken);
+      await Promise(r => client.once(Events.ClientReady, r))
+      app.get('/discordAuth', async (request, response) => {
+        const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
+          method: 'POST',
+          body: new URLSearchParams({
+            client_id: ggeConfig.discordClientId,
+            client_secret: ggeConfig.discordClientSecret,
+            code: request.query.code,
+            grant_type: 'authorization_code',
+            redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
+            scope: 'identify',
+          }).toString(),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        });
+
+        const oauthData = await tokenResponseData.body.json();
+        const userResult = await undici.request('https://discord.com/api/users/@me', {
+          headers: {
+            authorization: `${oauthData.token_type} ${oauthData.access_token}`,
+          },
+        });
+        let discordIdentifier = await userResult.body.json()
+        let guildId = request.query.guild_id
+        if (!discordIdentifier.id)
+          return response.send("Could not get discord id!")
+        if (!guildId)
+          return response.send("Could not get guild id!")
+        let userIsAdmin = client.guilds.cache.get(guildId)
+          .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
+        if (userIsAdmin == undefined)
+          return response.send("User isn't in guild")
+        if (!userIsAdmin)
+          return response.send("User is not admin!")
+
+        let guild = client.guilds.cache.get(guildId)
+        let channelData = guild.channels.cache.map(channel => {
+          if (guild.members.me.permissionsIn(channel)
+            .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
+            return { id: channel.id, name: channel.name }
+
+          return undefined
+        }).filter((e) => e !== undefined)
+        let uuid = request.cookies?.uuid
+        let valid = await loginCheck(uuid)
+        if (!valid)
+          return response.send("uuid is not valid!")
+
+        userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [discordIdentifier.id, guildId, uuid], function (err) {
+          if (err)
+            console.error(err)
+        })
+        loggedInUsers[uuid].forEach(o =>
+          o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
+        )
+        return response.send("Successful!")
+      })
+  }
+
   app.use(express.static('website'))
   let options = {}
   if (certFound) {
-    options.key = await fs.readFile(ggeConfig.privateKey, 'utf8'),
-      options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
+    options.key = await fs.readFile(ggeConfig.privateKey, 'utf8')
+    options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
+  }
 
-    https.createServer(options, app).listen(ggeConfig.webPort)
-  }
-  else {
-    http.createServer(options, app).listen(ggeConfig.webPort)
-  }
+  const socket = (certFound ? https : http)
+    .createServer(options, app).listen(ggeConfig.webPort)
+
+  socket.on("upgrade", (req, socket, head) => {
+    wss.handleUpgrade(req, socket, head, socket => {
+      wss.emit('connection', socket, req)
+    })
+  })
 
   async function createBot(uuid, user, messageBuffer, messageBufferCount) {
     messageBuffer ??= []
@@ -548,6 +601,22 @@ async function start() {
 
     worker.on("message", async (obj) => {
       switch (obj[0]) {
+        case ActionType.KillBot:
+          userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, user.id], _ => {
+            removeBot(user.id)
+          })
+          loggedInUsers[uuid]?.forEach(async obj => {
+            let ws = obj.ws
+            try {
+              let users = await getUser(uuid)
+              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
+            }
+            catch (e) {
+              console.error(e)
+              ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
+            }
+          })
+          break
         case ActionType.GetLogs:
           if (uuid) {
             worker.messageBuffer[worker.messageBufferCount] = obj[1]
@@ -611,9 +680,7 @@ async function start() {
     }
   })
 
-  let server = (certFound ? https : http).createServer(options)
-
-  let wss = new WebSocketServer({ server })
+  let wss = new WebSocketServer({ noServer: true })
 
   wss.addListener("connection", (ws) => {
     let uuid = ""
@@ -851,87 +918,6 @@ async function start() {
           throw "Could not remove a user that logged off"
     })
   })
-
-  if (hasDiscord) {
-    const app = express()
-
-    client.once(Events.ClientReady, async () => {
-      server.listen(ggeConfig.webSocketPort)
-      app.use(cookieParser())
-      app.get('/', async (request, response) => {
-        const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
-          method: 'POST',
-          body: new URLSearchParams({
-            client_id: ggeConfig.discordClientId,
-            client_secret: ggeConfig.discordClientSecret,
-            code: request.query.code,
-            grant_type: 'authorization_code',
-            redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
-            scope: 'identify',
-          }).toString(),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
-
-        const oauthData = await tokenResponseData.body.json();
-        const userResult = await undici.request('https://discord.com/api/users/@me', {
-          headers: {
-            authorization: `${oauthData.token_type} ${oauthData.access_token}`,
-          },
-        });
-        let discordIdentifier = await userResult.body.json()
-        let guildId = request.query.guild_id
-        if (!discordIdentifier.id)
-          return response.send("Could not get discord id!")
-        if (!guildId)
-          return response.send("Could not get guild id!")
-        let userIsAdmin = client.guilds.cache.get(guildId)
-          .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
-        if (userIsAdmin == undefined)
-          return response.send("User isn't in guild")
-        if (!userIsAdmin)
-          return response.send("User is not admin!")
-
-        let guild = client.guilds.cache.get(guildId)
-        let channelData = guild.channels.cache.map(channel => {
-          if (guild.members.me.permissionsIn(channel)
-            .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
-            return { id: channel.id, name: channel.name }
-
-          return undefined
-        }).filter((e) => e !== undefined)
-        let uuid = request.cookies?.uuid
-        let valid = await loginCheck(uuid)
-        if (!valid)
-          return response.send("uuid is not valid!")
-
-        userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [discordIdentifier.id, guildId, uuid], function (err) {
-          if (err)
-            console.error(err)
-        })
-        loggedInUsers[uuid].forEach(o =>
-          o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-        )
-        return response.send("Successful!")
-      })
-      
-      let options = {}
-      if (certFound) {
-        options.key = await fs.readFile(ggeConfig.privateKey, 'utf8')
-        options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
-
-        https.createServer(options, app).listen(ggeConfig.discordPort)
-      }
-      else {
-        http.createServer(options, app).listen(ggeConfig.discordPort)
-      }
-    })
-    
-    client.login(ggeConfig.discordToken);
-  }
-  else
-    server.listen(ggeConfig.webSocketPort)
 
   console.info("Started")
 }

@@ -17,5 +17,6 @@
     "CAPTCHA" : 15,
     "GetExternalEvent" : 16,
     "SetPluginOptions" : 17,
-    "GetChannels" : 18
+    "GetChannels" : 18,
+    "KillBot" : 19
 }

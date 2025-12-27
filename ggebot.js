@@ -71,14 +71,8 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             lordErrors++
 
         if (lordErrors == 5) {
-            const sqlite3 = require("sqlite3")
-            let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
             console.error("Closing forcefully due to LORD_IS_USED errors!")
-
-            userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
-                userDatabase.close()
-                webSocket.pause()
-            })
+            parentPort.postMessage([ActionType.KillBot])
             return
         }
     }
