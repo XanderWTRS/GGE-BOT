@@ -98,7 +98,7 @@ events.once("load", async () => {
     let quit = false
     while (!quit) {
         let comList = undefined
-        if (![, "", "0"].includes(pluginOptions.commanderWhiteList)) {
+        if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
             const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         }

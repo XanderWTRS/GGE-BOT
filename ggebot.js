@@ -80,12 +80,15 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if(timeout > 0) {
         timer = setTimeout(() => {
             xtHandler.removeListener(key, helperFunction)
-            let msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
+            const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
+            
+            console.warn(`${key} Timed out`)
+
             reject(msg)
         }, timeout)
     }
 
-    let helperFunction = (data, _result) => {
+    const helperFunction = (data, _result) => {
         if (result != 0)
             result = _result
         checkForLordIssues()
