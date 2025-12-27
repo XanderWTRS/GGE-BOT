@@ -388,7 +388,7 @@ async function start() {
   });
   
   if (hasDiscord) {
-      await Promise(resolve => {
+      await new Promise(resolve => {
         client.once(Events.ClientReady, () => {
           app.get('/discordAuth', async (request, response) => {
             const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
