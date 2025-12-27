@@ -2,8 +2,7 @@ const https = require('node:https')
 const http = require('node:http')
 const fs = require('fs/promises')
 const express = require("express")
-const bodyParser = require('body-parser');
-const cookieParser = require("cookie-parser")
+const bodyParser = require('body-parser')
 const sqlite3 = require("sqlite3")
 const { WebSocketServer } = require("ws")
 const crypto = require('crypto');
@@ -343,7 +342,6 @@ async function start() {
 
   const app = express()
   app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(cookieParser())
   app.get("/", (_, res) => res.redirect('/index.html'))
   app.get("/lang.json", (_, res) => { res.setHeader("Access-Control-Allow-Origin", "*"); res.sendFile("lang.json", { root: ".", }) })
   app.get("/1.xml", (_, res) => { res.setHeader("Access-Control-Allow-Origin", "*"); res.sendFile("1.xml", { root: ".", }) })
@@ -433,7 +431,8 @@ async function start() {
 
               return undefined
             }).filter((e) => e !== undefined)
-            let uuid = request.cookies?.uuid
+            let uuid = request.headers.cookie.split('; ').find(e => e.startsWith("uuid="))
+              .substring(5, Infinity)
             let valid = await loginCheck(uuid)
             if (!valid)
               return response.send("uuid is not valid!")
@@ -686,102 +685,93 @@ async function start() {
 
   let wss = new WebSocketServer({ noServer: true })
 
-  wss.addListener("connection", (ws) => {
-    let uuid = ""
+  wss.addListener("connection", async (ws, req) => {
+    const refreshUsers = async () => {
+      try {
+        let users = await getUser(uuid)
+
+        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
+      }
+      catch (e) {
+        console.error(e)
+        ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
+      }
+    }
+    let uuid = req.headers.cookie.split('; ').find(e => e.startsWith("uuid="))
+      .substring(5, Infinity)
+      
+    if (!await loginCheck(uuid)) {
+      ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
+      ws.close()
+      return
+    }
+    loggedInUsers[uuid] ??= []
+    loggedInUsers[uuid].push({ ws })
+
+    await refreshUsers()
+
+    let users = await getUser(uuid)
+    users.forEach(user => {
+      if (user.state != 1)
+        return
+
+      let worker = botMap.get(user.id)
+      if (worker == undefined)
+        return
+
+      worker.postMessage([ActionType.StatusUser])
+    })
+    if (hasDiscord) {
+      userDatabase.get('SELECT * FROM Users WHERE uuid = ?;', uuid, (err, row) => {
+        if (err || !row)
+          return console.error(err)
+
+        try {
+          if (!row.discordGuildId)
+            throw "no discordGuildId"
+          if (!row.discordUserId)
+            throw "no discordUserId"
+          let userIsAdmin = false
+          try {
+            userIsAdmin = client.guilds.cache.get(row.discordGuildId).members.cache.get(row.discordUserId)
+              .permissions.has("Administrator");
+          } catch (e) {
+            console.error(e)
+          }
+
+          if (userIsAdmin) {
+            let guild = client.guilds.cache.get(row.discordGuildId)
+            let channelData = guild.channels.cache.map(channel => {
+              if (guild.members.me.permissionsIn(channel)
+                .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
+                return { id: channel.id, name: channel.name }
+
+              return undefined
+            }).filter((e) => e !== undefined)
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
+          }
+          else {
+            userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [undefined, undefined, uuid], function (err) {
+              if (err)
+                return console.error(err)
+            })
+
+            loggedInUsers[uuid].forEach(o =>
+              o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, undefined]]))
+            )
+          }
+        }
+        catch (e) {
+          ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
+          console.error(e)
+        }
+      })
+    }
+
     ws.addListener("message", async (event) => {
       let [err, action, obj] = JSON.parse(event.toString())
       err = Number(err)
       action = Number(action)
-
-      let refreshUsers = async () => {
-        try {
-          let users = await getUser(uuid)
-
-          ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
-        }
-        catch (e) {
-          console.error(e)
-          ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
-        }
-      }
-
-      if (uuid === "") {
-        if (action == ActionType.GetUUID) {
-          if (await loginCheck(String(obj))) {
-            uuid = String(obj)
-
-            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUUID, {}]))
-
-            loggedInUsers[uuid] ??= []
-            loggedInUsers[uuid].push({ ws })
-
-            await refreshUsers()
-
-            let users = await getUser(uuid)
-            users.forEach(user => {
-              if (user.state != 1)
-                return
-
-              let worker = botMap.get(user.id)
-              if (worker == undefined)
-                return
-
-              worker.postMessage([ActionType.StatusUser])
-            })
-            if (hasDiscord) {
-              userDatabase.get('SELECT * FROM Users WHERE uuid = ?;', uuid, (err, row) => {
-                if (err || !row)
-                  return console.error(err)
-
-                try {
-                  if (!row.discordGuildId)
-                    throw "no discordGuildId"
-                  if (!row.discordUserId)
-                    throw "no discordUserId"
-                  let userIsAdmin = false
-                  try {
-                    userIsAdmin = client.guilds.cache.get(row.discordGuildId).members.cache.get(row.discordUserId)
-                      .permissions.has("Administrator");
-                  } catch (e) {
-                    console.error(e)
-                  }
-
-                  if (userIsAdmin) {
-                    let guild = client.guilds.cache.get(row.discordGuildId)
-                    let channelData = guild.channels.cache.map(channel => {
-                      if (guild.members.me.permissionsIn(channel)
-                        .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
-                        return { id: channel.id, name: channel.name }
-
-                      return undefined
-                    }).filter((e) => e !== undefined)
-                    ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-                  }
-                  else {
-                    userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [undefined, undefined, uuid], function (err) {
-                      if (err)
-                        return console.error(err)
-                    })
-
-                    loggedInUsers[uuid].forEach(o =>
-                      o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, undefined]]))
-                    )
-                  }
-                }
-                catch (e) {
-                  ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
-                  console.error(e)}
-              })
-            }
-          }
-          else
-            ws.send(JSON.stringify([ErrorType.Authentication, ActionType.GetUUID, {}]))
-        }
-        else
-          ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
-
-        return
-      }
 
       getUser(uuid)
 
