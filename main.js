@@ -448,9 +448,9 @@ async function start() {
             return response.send("Successful!")
           })
         })
+        resolve()
       })
       client.login(ggeConfig.discordToken);
-      resolve()
   }
 
   app.use(express.static('website'))
