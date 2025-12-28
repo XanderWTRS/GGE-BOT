@@ -34,6 +34,12 @@ if (isMainThread)
                 label: "No chests",
                 key: "noChests",
                 default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Reputation",
+                key: "reputation",
+                default: false
             }
         ]
 
@@ -54,7 +60,6 @@ const type = AreaType.beriCamp
 
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
-const commander = require('../commander')
 
 const minTroopCount = 100
 const eventID = 85
@@ -151,7 +156,10 @@ events.once("load", async () => {
                             attackerWallBerimondTools.push([unitInfo, unit.ammount])
                         else if (unitInfo.defRangeBonus)
                             attackerShieldBerimondTools.push([unitInfo, unit.ammount])
-                        else
+                        else if(!pluginOptions.reputation)
+                            attackerBerimondTools.push([unitInfo, unit.ammount])
+                    }
+                    else if(unitInfo.reputationBonus && pluginOptions.reputation) {
                             attackerBerimondTools.push([unitInfo, unit.ammount])
                     }
                     else if (unitInfo.fightType == 0) {
