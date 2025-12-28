@@ -1,7 +1,7 @@
 const { isMainThread } = require('node:worker_threads')
 
 const name = "Attack Beri Camps"
-    
+
 if (isMainThread)
     return module.exports = {
         name: name,
@@ -79,8 +79,8 @@ events.once("load", async () => {
                 throw new Error("Couldn't find skip")
 
             sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
-            let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || 
-                    Types.GAAAreaInfo(obj.AI).type == type)
+            let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
+                Types.GAAAreaInfo(obj.AI).type == type)
 
             if (Number(result) != 0)
                 break
@@ -156,11 +156,11 @@ events.once("load", async () => {
                             attackerWallBerimondTools.push([unitInfo, unit.ammount])
                         else if (unitInfo.defRangeBonus)
                             attackerShieldBerimondTools.push([unitInfo, unit.ammount])
-                        else if(!pluginOptions.reputation)
+                        else if (!pluginOptions.reputation)
                             attackerBerimondTools.push([unitInfo, unit.ammount])
                     }
-                    else if(unitInfo.reputationBonus && pluginOptions.reputation) {
-                            attackerBerimondTools.push([unitInfo, unit.ammount])
+                    else if (unitInfo.reputationBonus && pluginOptions.reputation) {
+                        attackerBerimondTools.push([unitInfo, unit.ammount])
                     }
                     else if (unitInfo.fightType == 0) {
                         if (unitInfo.role == "melee")
@@ -177,15 +177,20 @@ events.once("load", async () => {
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
-
-                attackerBerimondTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                if (pluginOptions.reputation) {
+                    attackerBerimondTools.sort((a, b) =>
+                        Number(b[0].reputationBonus) - Number(a[0].reputationBonus))
+                }
+                else {
+                    attackerBerimondTools.sort((a, b) =>
+                        Number(b[0].pointBonus) - Number(a[0].pointBonus))
+                }
                 attackerGateBerimondTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].pointBonus) - Number(a[0].pointBonus))
                 attackerWallBerimondTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].pointBonus) - Number(a[0].pointBonus))
                 attackerShieldBerimondTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].pointBonus) - Number(a[0].pointBonus))
 
                 if (pluginOptions.lowValueChests) {
                     attackerBerimondTools.reverse()
@@ -308,16 +313,16 @@ events.once("load", async () => {
                 freeCommander(commander.lordID)
                 return false
             }
-            if(attackInfo.result != 0) 
+            if (attackInfo.result != 0)
                 throw err[attackInfo.result]
-            
+
 
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                                        await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
+                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
                         if (movementInfo.movement.movement.kingdomID != kid)
                             return
                         if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])

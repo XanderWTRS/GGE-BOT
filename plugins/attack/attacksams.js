@@ -201,13 +201,13 @@ events.once("load", async () => {
                     throw "NO_MORE_TROOPS"
 
                 attackerSamuraiTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].samuraiTokenBooster) - Number(a[0].samuraiTokenBooster))
                 attackerGateSamuraiTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].samuraiTokenBooster) - Number(a[0].samuraiTokenBooster))
                 attackerWallSamuraiTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].samuraiTokenBooster) - Number(a[0].samuraiTokenBooster))
                 attackerShieldSamuraiTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b[0].samuraiTokenBooster) - Number(a[0].samuraiTokenBooster))
 
                 if (pluginOptions.lowValueChests) {
                     attackerSamuraiTools.reverse()
