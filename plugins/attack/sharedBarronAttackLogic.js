@@ -19,6 +19,8 @@ const pretty = require('pretty-time')
 
 const minTroopCount = 100
 
+const troopBlackList = [277, 34, 35]
+
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 };
 
@@ -200,6 +202,8 @@ async function barronHit(name, type, kid, options) {
                         continue
 
                     if (unitInfo.fightType == 0) {
+                        if(troopBlackList.includes(unitInfo.wodID))
+                            continue
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
                         else if (unitInfo.role == "ranged")
