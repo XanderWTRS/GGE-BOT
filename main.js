@@ -697,7 +697,7 @@ async function start() {
         ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
       }
     }
-    let uuid = req.headers.cookie.split('; ').find(e => e.startsWith("uuid="))
+    let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith("uuid="))
       .substring(5, Infinity)
       
     if (!await loginCheck(uuid)) {
