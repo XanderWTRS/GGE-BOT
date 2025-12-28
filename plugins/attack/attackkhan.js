@@ -49,6 +49,12 @@ if (isMainThread)
                 label: "Use Coin",
                 key: "useCoin",
                 default: false
+            },
+            {
+                type: "Checkbox",
+                label: "No chests",
+                key: "noChests",
+                default: false
             }
         ]
 
@@ -297,7 +303,7 @@ events.once("load", async () => {
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                     }
-                    else {
+                    else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerBannerKhanTools
                             if(pluginOptions.wavesTillChests >= index)
