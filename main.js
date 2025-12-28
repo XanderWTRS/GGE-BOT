@@ -702,7 +702,6 @@ async function start() {
       
     if (!await loginCheck(uuid)) {
       ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
-      ws.close()
       return
     }
     loggedInUsers[uuid] ??= []
