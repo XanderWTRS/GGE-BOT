@@ -873,6 +873,11 @@ async function start() {
           break;
         }
         case ActionType.GetLogs: {
+          if(!obj) {
+            let index = loggedInUsers[uuid].findIndex(obj => obj.ws == ws)
+            loggedInUsers[uuid][index].viewedUser = undefined
+            break
+          }
           let user = new User(obj)
           userDatabase.get(`Select id, name, pass, plugins, state, externalEvent, server From SubUsers Where uuid=? AND id = ?;`, [uuid, user.id], (err, _) => {
             if (err) {
