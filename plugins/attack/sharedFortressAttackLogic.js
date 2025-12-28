@@ -175,7 +175,12 @@ async function fortressHit(name, kid, type, level, options) {
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
 
-                attackInfo.A.forEach(wave => {
+                attackInfo.A.forEach((wave, i) => {
+                    if(i > 2 && kid != KingdomID.firePeaks)
+                        return
+                    if(i > 4 && kid == KingdomID.firePeaks)
+                        return
+                    
                     const maxTroopFlank = getAmountSoldiersFlank(level)
 
                     let maxTroops = maxTroopFlank
