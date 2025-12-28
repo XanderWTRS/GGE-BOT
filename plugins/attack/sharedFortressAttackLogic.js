@@ -153,12 +153,19 @@ async function fortressHit(name, kid, type, level, options) {
                         continue
 
                     if (unitInfo.fightType == 0) {
+                        if(kid == KingdomID.firePeaks && 
+                            unitInfo.wodID == 277)
+                            continue
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
                         else if (unitInfo.role == "ranged")
                             attackerRangeTroops.push([unitInfo, unit.ammount])
                     }
                 }
+
+                attackerMeleeTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
+                attackerRangeTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
+
 
                 let allTroopCount = 0
 
