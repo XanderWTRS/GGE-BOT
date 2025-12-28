@@ -3,7 +3,7 @@ const http = require('node:http')
 const fs = require('fs/promises')
 const express = require("express")
 const bodyParser = require('body-parser')
-const sqlite3 = require("sqlite3")
+const { DatabaseSync } = require('node:sqlite')
 const { WebSocketServer } = require("ws")
 const crypto = require('crypto');
 const { Worker } = require('node:worker_threads')
@@ -43,7 +43,7 @@ const loggedInUsers = {
 
 const botMap = new Map()
 
-let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
+const userDatabase = new DatabaseSync('./user.db')
 userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "Users" (
 	"username"	TEXT NOT NULL UNIQUE,
@@ -83,87 +83,58 @@ class User {
     this.externalEvent = Boolean(obj?.externalEvent)
   }
 }
-const addUser = (uuid, user) => new Promise((resolve, reject) => {
-  userDatabase.run("INSERT INTO SubUsers (uuid, name, pass, plugins, state, externalEvent, server) VALUES(?,?,?,?,?,?,?)", 
-    [uuid, user.name, user.pass, JSON.stringify(user.plugins), 0, user.externalEvent, user.server], (err) => {
-    if (err)
-      return reject(err)
+const addUser = (uuid, user) => {
+  userDatabase.prepare("INSERT INTO SubUsers (uuid, name, pass, plugins, state, externalEvent, server) VALUES(?,?,?,?,?,?,?)")
+    .run(uuid, user.name, user.pass, JSON.stringify(user.plugins), 0, Number(user.externalEvent), user.server)
+}
+const getSpecificUser = (uuid, user) => {
+  const row = userDatabase.prepare("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;")
+    .get(uuid, user.id)
 
-    resolve()
-  })
-})
-const getSpecificUser = (uuid, user) => new Promise((resolve, reject) => {
-  userDatabase.get("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;", [uuid, user.id], (err, row) => {
-    if (err)
-      return reject(err)
-    row.plugins = JSON.parse(row.plugins ?? "{}")
-    let user = new User(row)
-    resolve(user)
-  })
-})
-const changeUser = (uuid, user) => new Promise((resolve, reject) => {
+  row.plugins = JSON.parse(row.plugins ?? "{}")
+
+  return new User(row)
+}
+const changeUser = (uuid, user) => {
   if (user.pass == undefined || user.pass === "" || user.pass == "null") {
-    userDatabase.serialize(function () {
-      userDatabase.run(`UPDATE SubUsers SET name = ?, state = ?, plugins = ?, externalEvent = ?, server = ? WHERE uuid = ? AND id = ?`, [user.name, user.state, JSON.stringify(user.plugins), user.externalEvent, user.server, uuid, user.id], function (err) {
-        if (err)
-          return reject(err)
-      })
-      userDatabase.get("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;", [uuid, user.id], (err, row) => {
-        if (err)
-          return reject(err)
-        row.plugins = JSON.parse(row.plugins)
-        let user = new User(row)
-        resolve(user)
-      })
-    })
-    return
+    userDatabase.prepare('UPDATE SubUsers SET name = ?, state = ?, plugins = ?, externalEvent = ?, server = ? WHERE uuid = ? AND id = ?')
+      .run(user.name, user.state, JSON.stringify(user.plugins), Number(user.externalEvent), user.server, uuid, user.id)
+
+    const row = userDatabase.prepare('Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;')
+      .get(uuid, user.id)
+
+    row.plugins = JSON.parse(row.plugins ?? '{}')
+
+    return new User(row)
   }
-  userDatabase.serialize(function () {
-    userDatabase.run(`UPDATE SubUsers SET name = ?, pass = ?, state = ?, plugins = ?, externalEvent = ?, server = ? WHERE uuid = ? AND id = ?`, [user.name, user.pass, user.state, JSON.stringify(user.plugins), user.externalEvent, user.server, uuid, user.id], function (err) {
-      if (err)
-        return reject(err)
-    })
-    userDatabase.get("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;", [uuid, user.id], (err, row) => {
-      if (err)
-        return reject(err)
-      row.plugins ??= {}
-      row.plugins = JSON.parse(row.plugins)
-      let user = new User(row)
-      resolve(user)
-    })
-  })
-})
-const removeUser = (uuid, user) => new Promise((resolve, reject) => {
+  userDatabase.prepare(`UPDATE SubUsers SET name = ?, pass = ?, state = ?, plugins = ?, externalEvent = ?, server = ? WHERE uuid = ? AND id = ?`)
+    .run(user.name, user.pass, user.state, JSON.stringify(user.plugins), Number(user.externalEvent), user.server, uuid, user.id)
+
+  const row = userDatabase.prepare("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;")
+    .get(uuid, user.id)
+  row.plugins = JSON.parse(row.plugins ?? '{}')
+
+  return new User(row)
+
+}
+const removeUser = (uuid, user) => {
   if (uuid === undefined || user.id === undefined)
     return
 
-  userDatabase.run(`DELETE FROM SubUsers WHERE uuid = ? AND id = ?`, [uuid, user.id], (err) => {
-    if (err)
-      return reject(ErrorType.DBError, err)
-
-    try {
-      removeBot(user.id)
-    }
-    catch {
-      reject(ErrorType.Generic)
-    }
-
-    resolve()
-  })
-})
-const getUser = (uuid) => new Promise((resolve, reject) => {
+  userDatabase.prepare(`DELETE FROM SubUsers WHERE uuid = ? AND id = ?`)
+  .run(uuid, user.id)
+}
+const getUser = uuid => {
   let str = uuid === undefined ? "" : "Where uuid=?;"
 
-  userDatabase.all(`Select id, uuid, name, plugins, pass, state, externalEvent, server From SubUsers ${str}`, [uuid], async (err, rows) => {
-    if (err)
-      return reject(err)
-    return resolve(
-      rows?.map(e => {
-        e.plugins = JSON.parse(e.plugins)
-        return new User(e)
-      }))
+  const prep = userDatabase.prepare(`Select id, uuid, name, plugins, pass, state, externalEvent, server From SubUsers ${str}`)
+  const rows = uuid ? prep.all(uuid) : prep.all()
+
+  return rows?.map(e => {
+    e.plugins = JSON.parse(e.plugins)
+    return new User(e)
   })
-})
+}
 
 async function start() {
   try {
@@ -331,14 +302,8 @@ async function start() {
       return a.force - b.force
     })
 
-  let loginCheck = (uuid) => new Promise(resolve => {
-    userDatabase.get('SELECT * FROM Users WHERE uuid = ?;', uuid, (err, row) => {
-      if (err || !row)
-        return resolve(false);
-
-      return resolve(true);
-    })
-  })
+  let loginCheck = uuid => 
+    !!userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid ?? "")
 
   const app = express()
   app.use(bodyParser.urlencoded({ extended: true }))
@@ -350,123 +315,102 @@ async function start() {
 
     res.setHeader('Content-Type', 'application/json');
     if (json.id == 0) {
-      userDatabase.get("Select * FROM Users WHERE username = ?", [json.email_name], (err, row) => {
-        if (err)
-          throw err
-        if (row == undefined) {
-          res.send(JSON.stringify({ id: 0, r: 1, error: "Invalid login details." }))
-          return
-        }
-
-        if (row.passwordHash.compare(crypto.pbkdf2Sync(json.password, row.passwordSalt, 600000, 64, "sha256")) == 0) {
-          res.send(JSON.stringify({ id: 0, r: 0, uuid: row.uuid }))
-        }
-        else
-          res.send(JSON.stringify({ id: 0, r: 1, error: "Invalid login details." }))
-
-      })
+      const row = userDatabase.prepare('Select * FROM Users WHERE username = ?')
+        .get(json.email_name)
+      if (!row)
+        return res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.' }))
+      
+      if (crypto.pbkdf2Sync(json.password, row.passwordSalt, 600000, 64, 'sha256').compare(row.passwordHash) == 0)
+        res.send(JSON.stringify({ id: 0, r: 0, uuid: row.uuid }))
+      else
+        res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.'}))
     }
     else if (json.id == 1) {
       if (json.token != ggeConfig.signupToken)
         return res.send(JSON.stringify({ id: 0, r: 1, error: "Invalid Sign up details." }))
 
-      var salt = crypto.randomBytes(256)
-      var passwordHash = crypto.pbkdf2Sync(json.password, salt, 600000, 64, "sha256")
-      var uuid = crypto.randomUUID()
-
-      userDatabase.run("INSERT INTO Users (username, passwordHash, passwordSalt, uuid) VALUES(?,?,?,?)", [json.username, passwordHash, salt, uuid], (err) => {
-        if (err) {
+      const salt = crypto.randomBytes(256)
+      const passwordHash = crypto.pbkdf2Sync(json.password, salt, 600000, 64, "sha256")
+      const uuid = crypto.randomUUID()
+      try {
+      userDatabase.prepare("INSERT INTO Users (username, passwordHash, passwordSalt, uuid) VALUES(?,?,?,?)")
+         .run(json.username, passwordHash, salt, uuid)
+          res.send(JSON.stringify({ r: 0, uuid: uuid }))
+      }
+      catch(e) {
           res.send(JSON.stringify({ r: 1 }))
           console.error(err)
-        }
-        else
-          res.send(JSON.stringify({ r: 0, uuid: uuid }))
-      })
+      }
     }
-  });
-  
+  })
+
   if (hasDiscord) {
-      await new Promise(resolve => {
-        client.once(Events.ClientReady, () => {
-          app.get('/discordAuth', async (request, response) => {
-            const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
-              method: 'POST',
-              body: new URLSearchParams({
-                client_id: ggeConfig.discordClientId,
-                client_secret: ggeConfig.discordClientSecret,
-                code: request.query.code,
-                grant_type: 'authorization_code',
-                redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
-                scope: 'identify',
-              }).toString(),
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-            });
+    await new Promise(resolve => {
+      client.once(Events.ClientReady, () => {
+        app.get('/discordAuth', async (request, response) => {
+          const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
+            method: 'POST',
+            body: new URLSearchParams({
+              client_id: ggeConfig.discordClientId,
+              client_secret: ggeConfig.discordClientSecret,
+              code: request.query.code,
+              grant_type: 'authorization_code',
+              redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
+              scope: 'identify',
+            }).toString(),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          });
 
-            const oauthData = await tokenResponseData.body.json();
-            const userResult = await undici.request('https://discord.com/api/users/@me', {
-              headers: {
-                authorization: `${oauthData.token_type} ${oauthData.access_token}`,
-              },
-            });
-            let discordIdentifier = await userResult.body.json()
-            let guildId = request.query.guild_id
-            if (!discordIdentifier.id)
-              return response.send("Could not get discord id!")
-            if (!guildId)
-              return response.send("Could not get guild id!")
-            let userIsAdmin = client.guilds.cache.get(guildId)
-              .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
-            if (userIsAdmin == undefined)
-              return response.send("User isn't in guild")
-            if (!userIsAdmin)
-              return response.send("User is not admin!")
+          const oauthData = await tokenResponseData.body.json();
+          const userResult = await undici.request('https://discord.com/api/users/@me', {
+            headers: {
+              authorization: `${oauthData.token_type} ${oauthData.access_token}`,
+            },
+          });
+          let discordIdentifier = await userResult.body.json()
+          let guildId = request.query.guild_id
+          if (!discordIdentifier.id)
+            return response.send("Could not get discord id!")
+          if (!guildId)
+            return response.send("Could not get guild id!")
+          let userIsAdmin = client.guilds.cache.get(guildId)
+            .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
+          if (userIsAdmin == undefined)
+            return response.send("User isn't in guild")
+          if (!userIsAdmin)
+            return response.send("User is not admin!")
 
-            let guild = client.guilds.cache.get(guildId)
-            let channelData = guild.channels.cache.map(channel => {
-              if (guild.members.me.permissionsIn(channel)
-                .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
-                return { id: channel.id, name: channel.name }
+          let guild = client.guilds.cache.get(guildId)
+          let channelData = guild.channels.cache.map(channel => {
+            if (guild.members.me.permissionsIn(channel)
+              .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
+              return { id: channel.id, name: channel.name }
 
-              return undefined
-            }).filter((e) => e !== undefined)
-            let uuid = request.headers.cookie.split('; ').find(e => e.startsWith("uuid="))
-              .substring(5, Infinity)
-            let valid = await loginCheck(uuid)
-            if (!valid)
-              return response.send("uuid is not valid!")
+            return undefined
+          }).filter((e) => e !== undefined)
+          let uuid = request.headers.cookie.split('; ').find(e => e.startsWith("uuid="))
+            .substring(5, Infinity)
+          let valid = loginCheck(uuid)
+          if (!valid)
+            return response.send("uuid is not valid!")
 
-            userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [discordIdentifier.id, guildId, uuid], function (err) {
-              if (err)
-                console.error(err)
-            })
-            loggedInUsers[uuid].forEach(o =>
-              o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-            )
-            return response.send("Successful!")
-          })
+          userDatabase.prepare(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`)
+              .run(discordIdentifier.id, guildId, uuid)
+          
+          loggedInUsers[uuid].forEach(o =>
+            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
+          )
+          return response.send("Successful!")
         })
-        resolve()
       })
-      client.login(ggeConfig.discordToken);
+      resolve()
+    })
+    client.login(ggeConfig.discordToken);
   }
 
   app.use(express.static('website'))
-  let options = {}
-  if (certFound) {
-    options.key = await fs.readFile(ggeConfig.privateKey, 'utf8')
-    options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
-  }
-
-  const socket = (certFound ? https : http)
-    .createServer(options, app).listen(ggeConfig.webPort)
-
-  socket.on("upgrade", (req, socket, head) => {
-    wss.handleUpgrade(req, socket, head, socket => {
-      wss.emit('connection', socket, req)
-    })
-  })
 
   async function createBot(uuid, user, messageBuffer, messageBufferCount) {
     messageBuffer ??= []
@@ -476,22 +420,18 @@ async function start() {
 
     let data = structuredClone(user)
 
-    let discordCreds = (uuid) => new Promise(resolve => {
-      userDatabase.get('SELECT * FROM Users WHERE uuid = ?;', uuid, (err, row) => {
-        if (err || !row)
-          return resolve(undefined);
-
-        return resolve({ discordGuildId: row.discordGuildId, discordUserId: row.discordUserId });
-      })
-    })
-    let discordData = await discordCreds(uuid)
+    let discordCreds = uuid => {
+      const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?;').get(uuid)
+      return row ? { discordGuildId: row.discordGuildId, discordUserId: row.discordUserId } : undefined
+    }
+    const discordData = discordCreds(uuid)
     plugins.forEach(plugin =>
       plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : void 0
     )
     plugins.forEach(plugin => data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : void 0)
 
     if (user.externalEvent == true) {
-      let users = await getUser(uuid)
+      let users = getUser(uuid)
       let bot = users.find(e => user.name == e.id && user.id != e.id && e.state)
       let getExternalEvent = (worker, alreadyStarted) => new Promise((resolve) => { //TODO add timed reject method
         let func = (obj) => {
@@ -593,8 +533,8 @@ async function start() {
     if (user.id)
       botMap.set(user.id, worker)
 
-    const onTerminate = async () => {
-      user = await getSpecificUser(uuid, user)
+    const onTerminate = () => {
+      user = getSpecificUser(uuid, user)
       if (botMap.get(user.id) == worker) {
         botMap.set(user.id, undefined)
         if (user.state == true)
@@ -602,23 +542,14 @@ async function start() {
       }
     }
 
-    worker.on("message", async (obj) => {
+    worker.on("message", obj => {
       switch (obj[0]) {
         case ActionType.KillBot:
-          userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, user.id], _ => {
-            removeBot(user.id)
-          })
-          loggedInUsers[uuid]?.forEach(async obj => {
-            let ws = obj.ws
-            try {
-              let users = await getUser(uuid)
-              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
-            }
-            catch (e) {
-              console.error(e)
-              ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
-            }
-          })
+          userDatabase.prepare(`UPDATE SubUsers SET state = ? WHERE id = ?`).run(0, user.id)
+          removeBot(user.id)
+          
+          loggedInUsers[uuid]?.forEach(({ws}) => 
+              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
           break
         case ActionType.GetLogs:
           if (uuid) {
@@ -627,7 +558,7 @@ async function start() {
             loggedInUsers[uuid]?.forEach(o => {
               if (o.viewedUser == user.id)
                 o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
-            });
+            })
           }
           break;
         case ActionType.StatusUser:
@@ -641,14 +572,15 @@ async function start() {
           removeUser(uuid, user)
           break
         case ActionType.SetUser:
-          userDatabase.run(`UPDATE SubUsers SET pass = ? WHERE uuid = ? AND id = ?`, [obj[1], uuid, user.id], _ => { })
+          userDatabase.prepare(`UPDATE SubUsers SET pass = ? WHERE uuid = ? AND id = ?`)
+            .run(obj[1], uuid, user.id)
           break
       }
     })
 
     worker.on("exit", onTerminate)
 
-    await new Promise((resolve) => {
+    await new Promise(resolve => {
       let func = async (obj) => {
         if (obj[0] != ActionType.Started)
           return
@@ -673,22 +605,36 @@ async function start() {
     worker.terminate()
   }
 
-  getUser().then(async users => {
-    for (let i = 0; i < users.length; i++) {
-      const user = users[i];
+  const users = getUser()
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
 
-      if (user.state == 0)
-        continue
-      await createBot(user.uuid, user)
-    }
-  })
+    if (user.state == 0)
+      continue
+    createBot(user.uuid, user)
+  }
 
   let wss = new WebSocketServer({ noServer: true })
 
-  wss.addListener("connection", async (ws, req) => {
-    const refreshUsers = async () => {
+  let options = {}
+  if (certFound) {
+    options.key = await fs.readFile(ggeConfig.privateKey, 'utf8')
+    options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
+  }
+
+  const socket = (certFound ? https : http)
+    .createServer(options, app).listen(ggeConfig.webPort)
+
+  socket.on("upgrade", (req, socket, head) => {
+    wss.handleUpgrade(req, socket, head, socket => {
+      wss.emit('connection', socket, req)
+    })
+  })
+
+  wss.addListener("connection", (ws, req) => {
+    const refreshUsers = () => {
       try {
-        let users = await getUser(uuid)
+        let users = getUser(uuid)
 
         ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
       }
@@ -699,17 +645,17 @@ async function start() {
     }
     let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith("uuid="))
       .substring(5, Infinity)
-      
-    if (!await loginCheck(uuid)) {
+
+    if (!loginCheck(uuid)) {
       ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
       return
     }
     loggedInUsers[uuid] ??= []
     loggedInUsers[uuid].push({ ws })
 
-    await refreshUsers()
+    refreshUsers()
 
-    let users = await getUser(uuid)
+    let users = getUser(uuid)
     users.forEach(user => {
       if (user.state != 1)
         return
@@ -721,53 +667,46 @@ async function start() {
       worker.postMessage([ActionType.StatusUser])
     })
     if (hasDiscord) {
-      userDatabase.get('SELECT * FROM Users WHERE uuid = ?;', uuid, (err, row) => {
-        if (err || !row)
-          return console.error(err)
-
+      const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?;').get(uuid)
+      try {
+        if (!row.discordGuildId)
+          throw "no discordGuildId"
+        if (!row.discordUserId)
+          throw "no discordUserId"
+        let userIsAdmin = false
         try {
-          if (!row.discordGuildId)
-            throw "no discordGuildId"
-          if (!row.discordUserId)
-            throw "no discordUserId"
-          let userIsAdmin = false
-          try {
-            userIsAdmin = client.guilds.cache.get(row.discordGuildId).members.cache.get(row.discordUserId)
-              .permissions.has("Administrator");
-          } catch (e) {
-            console.error(e)
-          }
-
-          if (userIsAdmin) {
-            let guild = client.guilds.cache.get(row.discordGuildId)
-            let channelData = guild.channels.cache.map(channel => {
-              if (guild.members.me.permissionsIn(channel)
-                .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
-                return { id: channel.id, name: channel.name }
-
-              return undefined
-            }).filter((e) => e !== undefined)
-            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-          }
-          else {
-            userDatabase.run(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`, [undefined, undefined, uuid], function (err) {
-              if (err)
-                return console.error(err)
-            })
-
-            loggedInUsers[uuid].forEach(o =>
-              o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, undefined]]))
-            )
-          }
-        }
-        catch (e) {
-          ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
+          userIsAdmin = client.guilds.cache.get(row.discordGuildId).members.cache.get(row.discordUserId)
+            .permissions.has("Administrator");
+        } catch (e) {
           console.error(e)
         }
-      })
+
+        if (userIsAdmin) {
+          let guild = client.guilds.cache.get(row.discordGuildId)
+          let channelData = guild.channels.cache.map(channel => {
+            if (guild.members.me.permissionsIn(channel)
+              .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
+              return { id: channel.id, name: channel.name }
+
+            return undefined
+          }).filter((e) => e !== undefined)
+          ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
+        }
+        else {
+          userDatabase.prepare(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`) 
+            .run(undefined, undefined, uuid)
+
+          loggedInUsers[uuid].forEach(({ws}) =>
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, undefined]])))
+        }
+      }
+      catch (e) {
+        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
+        console.error(e)
+      }
     }
 
-    ws.addListener("message", async (event) => {
+    ws.addListener("message", async event => {
       let [err, action, obj] = JSON.parse(event.toString())
       err = Number(err)
       action = Number(action)
@@ -784,7 +723,7 @@ async function start() {
         case ActionType.AddUser: {
           let user = new User(obj)
           try {
-            await addUser(uuid, user)
+            addUser(uuid, user)
           }
           catch (e) {
             console.error(e)
@@ -800,7 +739,7 @@ async function start() {
           for (let i = 0; i < obj.length; i++) {
             const user = obj[i];
             try {
-              await removeUser(uuid, user)
+              removeUser(uuid, user)
             }
             catch (e) {
               lastError = e
@@ -818,8 +757,8 @@ async function start() {
           let user = new User(obj)
 
           try {
-            let oldUser = await getSpecificUser(uuid, user)
-            user = await changeUser(uuid, user)
+            let oldUser = getSpecificUser(uuid, user)
+            user = changeUser(uuid, user)
             if (user.state == 0) {
               try {
                 removeBot(user.id)
@@ -857,44 +796,28 @@ async function start() {
             ws.send(JSON.stringify([ErrorType.Generic, ActionType.SetUser, {}]))
           }
           finally {
-            loggedInUsers[uuid]?.forEach(async obj => {
-              let ws = obj.ws
-              try {
-                let users = await getUser(uuid)
-                ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
-              }
-              catch (e) {
-                console.error(e)
-                ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
-              }
-            })
+            loggedInUsers[uuid]?.forEach(({ws}) => 
+                ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
           }
           break;
         }
         case ActionType.GetLogs: {
-          if(!obj) {
-            let index = loggedInUsers[uuid].findIndex(obj => obj.ws == ws)
-            loggedInUsers[uuid][index].viewedUser = undefined
+          if (!obj) {
+            let i = loggedInUsers[uuid].findIndex(o => o.ws == ws)
+            loggedInUsers[uuid][i].viewedUser = undefined
             break
           }
-          let user = new User(obj)
-          userDatabase.get(`Select id, name, pass, plugins, state, externalEvent, server From SubUsers Where uuid=? AND id = ?;`, [uuid, user.id], (err, _) => {
-            if (err) {
-              console.warn(err)
-              ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetLogs, {}]))
-              return
-            }
-            let worker = botMap.get(user.id)
+          const user = new User(obj)
+          const worker = botMap.get(user.id)
 
-            if (worker == undefined) {
-              console.warn("Invalid bot")
-              ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetLogs, {}]))
-              return
-            }
-            let index = loggedInUsers[uuid].findIndex((obj) => obj.ws == ws)
-            loggedInUsers[uuid][index].viewedUser = user.id
-            loggedInUsers[uuid][index].ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
-          })
+          if (worker == undefined) {
+            console.warn("Invalid bot")
+            ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetLogs, {}]))
+            return
+          }
+          let i = loggedInUsers[uuid].findIndex(obj => obj.ws == ws)
+          loggedInUsers[uuid][i].viewedUser = user.id
+          loggedInUsers[uuid][i].ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
           break;
         }
         default: {

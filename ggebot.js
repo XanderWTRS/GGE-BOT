@@ -4,7 +4,7 @@ const EventEmitter = require('node:events')
 const WebSocket = require('ws')
 const ActionType = require("./actions.json")
 const err = require("./err.json")
-const sqlite3 = require("sqlite3")
+const {DatabaseSync} = require('node:sqlite')
 const events = new EventEmitter()
 if (isMainThread)
     return
@@ -372,13 +372,13 @@ xtHandler.on("lli", async (obj,r) => {
     }
     if(botConfig.internalWorker) 
         process.exit(0)
-
-    let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE)
+    
     status.hasError = true
     parentPort.postMessage([ActionType.StatusUser, status])
-    userDatabase.run(`UPDATE SubUsers SET state = ? WHERE id = ?`, [0, botConfig.id], _ => {
-        userDatabase.close()
-    })
+    const userDatabase = new DatabaseSync('./user.db')
+    userDatabase.prepare(`UPDATE SubUsers SET state = ? WHERE id = ?`)
+        .run(0, botConfig.id)
+    userDatabase.close()
 })
 
 xtHandler.on("sne", obj => {
