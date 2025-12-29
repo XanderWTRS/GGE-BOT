@@ -4,7 +4,7 @@ if (require('node:worker_threads').isMainThread)
 
 const { Events, SlashCommandBuilder, Interaction, Collection, REST, Routes } = require('discord.js');
 const { client, clientReady } = require('./discord')
-const { xtHandler, sendXT, waitForResult, events, botConfig, player } = require("../../ggebot")
+const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggebot")
 const { ClientCommands, HighscoreType, Types, AreaType } = require('../../protocols.js');
 const ggeConfig = require("../../ggeConfig.json");
 
