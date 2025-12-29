@@ -16,11 +16,11 @@ What you need to do to use (Windows 11):
   Goto release download the powershell file run it and it should be on your desktop
   Then go in there and press start.bat
 
-What you need to do to use (Other OS): (For updates please git clone!)
-1. grab the latest version of NodeJS
-4. goto the directory of the bot in and run in the terminal
-5. chmod 775 start.sh
-6. ./start.sh
+What you need to do to use (Other OS):
+1. Install Git
+1. Grab the latest version of NodeJS
+4. Goto the directory of the bot in and run in the terminal
+5. ./start.sh
 
 For Discord:
 1. https://discord.com/developers/applications to create a bot
