@@ -187,10 +187,7 @@ async function barronHit(name, type, kid, options) {
 
                 const level = getLevel(AI.extraData[1], kid)
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
-
-                if (pluginOptions.useCoin)
-                    attackInfo.HBW = 1007
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, pluginOptions.useCoin)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []

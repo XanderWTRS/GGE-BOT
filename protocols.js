@@ -598,6 +598,22 @@ const getResourceCastleList = async () => { //Never got
 xtHandler.on("gcl", (obj, result) =>
     Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj, result })))
 
+const PermanentCastleData = e => Array.from(e.A).map(e => ({
+    //Units? : Array.from(U.U).map(Number), 
+    //Tools? : Array.from(U.L).map(Number),
+
+    unlockedHorses : Array.from(e.UH).map(Number),
+    areaID : Number(e.AID),
+    kingdomID : Number(e.KID),
+}))
+
+const permanentCastleData = {}
+
+const getPermanentCastle = () => PermanentCastleData(permanentCastleData)
+
+xtHandler.on("gpc", (obj, result) =>
+    Object.assign(permanentCastleData, { ...obj, result }))
+
 let _kingdomInfoList = {}
 
 /**
@@ -918,11 +934,11 @@ const ActualMovement = e => ({
     //??? : Number(e.D),
     targetID: Number(e.TID),
     type: Number(e.T),
-    //??? : Number(e.HBW),
+    horseType : Number(e.HBW),
     kingdomID: Number(e.KID),
     targetAttack: GAAAreaInfo(e.TA),
     sourceID: Number(e.SID),
-    //??? : Number(e.OID),
+    ownerID : Number(e.OID),
 
     sourceAttack: GAAAreaInfo(e.TA),
 })
@@ -1020,6 +1036,7 @@ module.exports = {
     getResourceCastleList,
     getKingdomInfoList,
     getEventList,
+    getPermanentCastle,
     HighscoreType,
     Types: {
         OwnerInfo,

@@ -156,10 +156,7 @@ events.once("load", async () => {
                 const level = 
                     Number(eventAutoScalingCamps.find(obj => 
                         AI.extraData[5] == obj.eventAutoScalingCampID).camplevel)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
-
-                if (pluginOptions.useCoin)
-                    attackInfo.HBW = 1007
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, pluginOptions.useCoin)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []

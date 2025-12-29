@@ -45,7 +45,7 @@ if (isMainThread)
 
     }
 
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
+const { Types, getPermanentCastle, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
@@ -131,10 +131,7 @@ events.once("load", async () => {
                 await skipTarget(AI)
 
                 const level = 70
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
-
-                if (pluginOptions.useCoin)
-                    attackInfo.HBW = 1007
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, pluginOptions.useCoin)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []

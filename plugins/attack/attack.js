@@ -22,8 +22,9 @@ if (isMainThread) {
     }
     return
 }
-
+const stables = require('../../items/horses.json')
 const {botConfig, playerInfo} = require("../../ggebot")
+const { getPermanentCastle } = require('../../protocols')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -74,7 +75,7 @@ function assignUnit(unitSlot, units, maxUnits) {
 
     return unitAmmount
 }
-function getAttackInfo(kid, sourceCastle, AI, commander, level, waves) {
+function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) {
     const attackTarget = {
         SX: sourceCastle.x,
         SY: sourceCastle.y,
@@ -175,6 +176,25 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves) {
         attackTarget.A.push(wave)
     }
 
+    if (useCoin) {
+        const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
+            e.areaID == sourceCastle.extraData[0])
+            .unlockedHorses
+        attackTarget.HBW = unlockedHorses.find(e => 
+            stables.find(a => e == a.wodID).type == 7)
+        attackTarget.PTT = 0
+    }
+    else {
+        attackTarget.HBW = -1
+        attackTarget.PTT = 1
+    }
+    if(attackTarget.HBW == undefined)
+    {
+        attackTarget.HBW = -1
+        attackTarget.PTT = 0
+        console.warn(`[${name}] Couldn't find stable.`)
+    }
+    
     return attackTarget
 }
 

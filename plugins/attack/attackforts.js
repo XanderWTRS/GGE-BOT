@@ -210,10 +210,7 @@ events.once("load", async () => {
                 }
                 const level = toLevel[AI.extraData[2]]
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level)
-
-                if (pluginOptions.useCoin)
-                    attackInfo.HBW = 1030
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, pluginOptions.useCoin)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
