@@ -281,11 +281,13 @@ async function fortressHit(name, kid, type, level, options) {
 
     while (true) {
         let minimumTimeTillHit = Infinity
-        sortedAreaInfo.forEach(e => 
-            minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e)))
+        sortedAreaInfo.forEach(e => {
+            if(!movements.find(a => a.x == e.x && a.y == e.y))
+                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
+        })
         let time = (Math.max(0, minimumTimeTillHit - new Date().getTime()))
         console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next fortress hit`)
-        await new Promise(r => setTimeout(r, time).unref());
+        await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());
     }
