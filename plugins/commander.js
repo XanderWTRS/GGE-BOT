@@ -13,7 +13,6 @@ let commanders = []
 let usedCommanders = [] 
 
 function freeCommander(LID) {
-    console.debug(`Freeing ${LID}`)
     if (LID == undefined)
         return
     let index = usedCommanders.findIndex(e => e == LID)
@@ -24,7 +23,6 @@ function freeCommander(LID) {
     event.dispatchEvent(new CustomEvent('freedCommander', { detail: LID }))
 }
 function useCommander(LID) {
-    console.debug(`Using ${LID}`)
     if (LID != undefined && !usedCommanders.includes(LID))
         usedCommanders.push(LID)
     return LID
