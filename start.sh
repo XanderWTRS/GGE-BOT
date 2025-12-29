@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 URL="http://127.0.0.1:3001"
 
+if [ ! -d ".git" ]; then
+  git init -b main
+  git remote add origin https://github.com/darrenthebozz/GGE-BOT.git
+  git add .
+  git pull origin main
+fi
+
 git pull --recurse-submodules
 npm i
  
