@@ -7,7 +7,7 @@ if (isMainThread)
         hidden: true
     };
 
-    const { xtHandler, sendXT, events } = require("../ggebot")
+const { xtHandler, sendXT, events } = require("../ggebot")
 const EventEmitter = require('node:events')
 
 class TargetType {

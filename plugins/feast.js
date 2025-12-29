@@ -1,6 +1,6 @@
 const { isMainThread } = require('node:worker_threads')
-const { botConfig } = require("../ggebot")
 const name = "Feast"
+
 if (isMainThread) {
     module.exports = {
         name: name,
@@ -29,7 +29,7 @@ if (isMainThread) {
     return
 }
 
-const { events } = require("../ggebot")
+const { events, botConfig } = require("../ggebot")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 const { ClientCommands, getResourceCastleList, KingdomID, AreaType } = require("../protocols.js")
