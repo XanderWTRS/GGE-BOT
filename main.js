@@ -5,21 +5,20 @@ const express = require("express")
 const bodyParser = require('body-parser')
 const { DatabaseSync } = require('node:sqlite')
 const { WebSocketServer } = require("ws")
-const crypto = require('crypto');
+const crypto = require('crypto')
 const { Worker } = require('node:worker_threads')
-const undici = require('undici');
-const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js');
+const undici = require('undici')
+const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
 const path = require('path')
-let clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
-let client = new Client(clientOptions)
-const jsdom = require("jsdom");
+const {parseStringPromise} = require('xml2js')
 
 const ActionType = require("./actions.json")
 const ErrorType = require("./errors.json")
 
-console.log("Try out our test branch at https://github.com/darrenthebozz/GGE-BOT/tree/test")
+const clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
+const client = new Client(clientOptions)
+
 console.log("Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.")
-console.log("Thanks")
 
 const ggeConfigExample = `{
     "webPort" : "3001",
@@ -33,14 +32,8 @@ const ggeConfigExample = `{
     "discordClientId" : "",
     "discordClientSecret" : ""
 }`
-/*
-  {
-    //uuid : [ws: WebSocket()]
-  }
-*/
-const loggedInUsers = {
-}
 
+const loggedInUsers = {}
 const botMap = new Map()
 
 const userDatabase = new DatabaseSync('./user.db')
@@ -172,7 +165,7 @@ async function start() {
       ggeConfig.fontPath = "C:\\Windows\\Fonts\\segoeui.ttf"
     }
     catch (e) {
-      console.warn(`${ggeConfig.fontPath} does not exist.`)
+      console.warn(`${ggeConfig.fontPath} font does not exist.`)
       hasDiscord = false
     }
   }
@@ -258,33 +251,17 @@ async function start() {
   await getLangJSON()
   await getServerXML()
 
-  let instances = []
-  let servers = new jsdom.JSDOM((await fs.readFile("./1.xml")).toString())
-  let _instances = servers.window.document.getElementsByTagName("instance")
-  for (var key in _instances) {
-    let obj = _instances[key]
+  const instances = []
+  const json = await parseStringPromise((await fs.readFile("./1.xml")).toString())
+  
+  json.network.instances[0].instance.forEach(e => {
+    instances.push({
+      gameURL: e.server[0],
+      gameServer: e.zone[0],
+      id: e['$'].value
+    })
+  })
 
-    let server, zone
-
-    for (var key2 in obj.childNodes) {
-      let obj2 = obj.childNodes[key2]
-
-      switch (obj2.nodeName) {
-        case "SERVER":
-          server = String(obj2.childNodes[0].nodeValue)
-          break;
-        case "ZONE":
-          zone = String(obj2.childNodes[0].nodeValue)
-          break;
-      }
-      if (server && zone)
-        break
-    }
-    if (server)
-      instances.push({ id: Number(obj.getAttribute("value")), gameURL: server, gameServer: zone })
-  }
-  servers = undefined
-  _instances = undefined
   let pluginData = require("./plugins")
 
   try {

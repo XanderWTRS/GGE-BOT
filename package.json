@@ -4,13 +4,13 @@
     "discord.js": "^14.16.3",
     "emoji-dictionary": "^1.0.12",
     "express": "^4.21.1",
-    "jsdom": "^27.3.0",
     "node-cache": "^5.1.2",
     "pretty-time": "^1.1.0",
     "pureimage": "^0.4.18",
     "sharp": "^0.34.2",
     "turl": "^1.1.2",
     "undici": "^6.21.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "xml2js": "^0.6.2"
   }
 }
