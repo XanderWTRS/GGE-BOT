@@ -5,16 +5,15 @@ if [ ! -d ".git" ]; then
   git init -b main 
   git remote add origin https://github.com/darrenthebozz/GGE-BOT.git
   git add .
-  git submodule deinit -f plugins-extra
-  git submodule init plugins-extra
   git fetch origin
   git reset --hard 
   git clean -f -d
-  git pull origin main --recurse-submodules
-  exit 0
+  git pull origin main
+  git submodule deinit -f plugins-extra
+  git submodule init plugins-extra
 fi
 
-git pull --recurse-submodules
+git pull origin main --recurse-submodules
 npm i
  
 if which xdg-open > /dev/null
