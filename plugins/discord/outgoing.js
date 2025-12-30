@@ -77,7 +77,7 @@ clientReady.then(async client => {
                 "```ansi\n" +
                 `${attackerName} (${attackerArea}) is attacking ${victimName} (${victimArea}) from ${victimAlliance} in ${kidName[movement.M.KID]} ${clicks} clicks` +
                 "```" +
-                `<t:${Math.round(new Date().getTime() / 1000 + time)}:R>`)
+                `<t:${Math.round(Date.now() / 1000 + time)}:R>`)
     
             setTimeout(() => {
                 movements = movements.filter(item => item !== movement.M.MID)

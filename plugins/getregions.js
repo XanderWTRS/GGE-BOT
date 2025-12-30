@@ -119,7 +119,7 @@ xtHandler.on("gaa", obj => {
         mapObject.kid = obj.KID
         mapObject.x = x
         mapObject.y = y
-        mapObject.timeSinceRequest = new Date().getTime()
+        mapObject.timeSinceRequest = Date.now()
         Object.defineProperty(mapObject, 'updateRealtime', {
             set: function (bool) {
                 if ((!!this.updateTimer) == bool)

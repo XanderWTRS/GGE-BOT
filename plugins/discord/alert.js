@@ -129,7 +129,7 @@ clientReady.then(async client => {
                 "```ansi\n" +
                 `${attackerName} (${attackerArea}) from ${attackerAlliance} is attacking ${victimName} (${victimArea}) in ${kidName[movement.M.KID]} ${clicks} clicks` +
                 "```" +
-                `<t:${Math.round(new Date().getTime() / 1000 + time)}:R>`;
+                `<t:${Math.round(Date.now() / 1000 + time)}:R>`;
             let data = {}
             data.content = content
             movements.push(movement);

@@ -40,7 +40,7 @@ events.once("load", () => {
     if(!pluginOptions.channelID)
         return console.warn("Missing channel")
     setInterval(async () => {
-        let currentDate = new Date().getTime()
+        let currentDate = Date.now()
 
         if (needSort) {
             towers.sort((a, b) => {

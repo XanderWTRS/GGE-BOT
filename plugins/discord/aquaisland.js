@@ -48,7 +48,7 @@ const pluginOptions = botConfig.plugins[require('path').basename(__filename).sli
 
     events.once("load", async () => 
         setInterval(async () => {
-            let currentDate = new Date().getTime()
+            let currentDate = Date.now()
             if (needSort) {
                 aquaMapObjects.sort((a, b) => {
                     if (a.ai[4 - 3] < b.ai[4 - 3]) return -1;
@@ -96,7 +96,7 @@ const pluginOptions = botConfig.plugins[require('path').basename(__filename).sli
                         channel.send(
                             mention +
                             `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
-                            ` <t:${Math.round(new Date().getTime() / 1000 + deltaTime)}:R>`
+                            ` <t:${Math.round(Date.now() / 1000 + deltaTime)}:R>`
                         )
                         return true
                     }

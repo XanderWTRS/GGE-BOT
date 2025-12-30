@@ -258,7 +258,7 @@ async function start() {
     instances.push({
       gameURL: e.server[0],
       gameServer: e.zone[0],
-      id: e['$'].value
+      gameID: e['$'].value
     })
   })
 
@@ -499,7 +499,7 @@ async function start() {
       }
     }
     else {
-      let instance = instances.find(e => Number(e.id) == data.server)
+      let instance = instances.find(e => Number(e.gameID) == data.server)
       data = { ...data, ...instance }
     }
 

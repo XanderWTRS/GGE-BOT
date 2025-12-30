@@ -1,29 +1,25 @@
 process.on('uncaughtException', console.error) //Wanna cry? Remove this.
-const { isMainThread, workerData, parentPort, BroadcastChannel } = require('node:worker_threads');
+const { isMainThread, workerData, parentPort } = require('node:worker_threads');
 const EventEmitter = require('node:events')
 const WebSocket = require('ws')
-const ActionType = require("./actions.json")
-const err = require("./err.json")
+const ActionType = require('./actions.json')
+const err = require('./err.json')
 const {DatabaseSync} = require('node:sqlite')
 const events = new EventEmitter()
 if (isMainThread)
     return
-let botConfig = workerData
-//TODO: make the server actually fill auto vals!
-botConfig.gameURL ??= "ep-live-mz-int1-sk1-gb1-game.goodgamestudios.com"
-botConfig.gameServer ??= "EmpireEx_19"
+const botConfig = workerData
 
-let _console = console
+const _console = console
 
 function mngLog(msg,logLevel) {
-    // if(logLevel > 0)
     _console.log(`[${botConfig.name}] ${msg}`)
-    let now = new Date();
-    let hours = now.getHours();
-    let minutes = now.getMinutes();
+    const now = new Date()
+    let hours = now.getHours()
+    let minutes = now.getMinutes()
     
-    hours = hours < 10 ? '0' + hours : hours;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
+    hours = hours < 10 ? '0' + hours : hours
+    minutes = minutes < 10 ? '0' + minutes : minutes
     
     parentPort.postMessage([ActionType.GetLogs,[logLevel, `[${hours + ':' + minutes}] ` + msg]])
 }
@@ -147,7 +143,7 @@ xtHandler.on("gpi", obj => {
 
 module.exports = { sendXT, xtHandler, waitForResult, webSocket, events, botConfig, playerInfo }
 require("./protocols.js")
-for (const [key,val] of Object.entries(botConfig.plugins)) {
+for (const [_,val] of Object.entries(botConfig.plugins)) {
     if(!val.state)
         continue
     try {
@@ -377,7 +373,7 @@ xtHandler.on("lli", async (obj,r) => {
     parentPort.postMessage([ActionType.StatusUser, status])
     const userDatabase = new DatabaseSync('./user.db')
     userDatabase.prepare(`UPDATE SubUsers SET state = ? WHERE id = ?`)
-        .run(0, botConfig.id)
+        .run(0, botConfig.gameID)
     userDatabase.close()
 })
 

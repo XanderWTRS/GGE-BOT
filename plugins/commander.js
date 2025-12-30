@@ -128,7 +128,7 @@ xtHandler.on("cat", obj => {
 
         movementInfo.movement.movement.totalTime -
         (movementInfo.movement.movement.deltaTime -
-        new Date().getTime()))
+        Date.now()))
 })
 
 module.exports = {

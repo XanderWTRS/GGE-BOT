@@ -110,7 +110,7 @@ async function fortressHit(name, kid, type, level, options) {
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
-                const timeSinceEpoch = new Date().getTime()
+                const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const oldAreaInfo = sortedAreaInfo[i];
                     
@@ -126,7 +126,7 @@ async function fortressHit(name, kid, type, level, options) {
                     Object.assign(oldAreaInfo, areaInfo)
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[2] * 1000)
 
-                    if (towerTime.get(oldAreaInfo) - new Date().getTime() > 0)
+                    if (towerTime.get(oldAreaInfo) - Date.now() > 0)
                         continue
 
                     index = i
@@ -143,7 +143,7 @@ async function fortressHit(name, kid, type, level, options) {
                 const attackerRangeTroops = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i];
+                    const unit = sourceCastle.unitInventory[i]
                     const unitInfo = units.find(obj => unit.unitID == obj.wodID)
                     if (unitInfo == undefined)
                         continue
@@ -188,7 +188,7 @@ async function fortressHit(name, kid, type, level, options) {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                let [obj, r] =await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] = await waitForResult("cra", 6000, (obj, result) => {
                     if (result != 0)
                         return true
 
@@ -211,7 +211,7 @@ async function fortressHit(name, kid, type, level, options) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                                        await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
+                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
                         if (movementInfo.movement.movement.kingdomID != kid)
                             return
                         if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
@@ -269,7 +269,7 @@ async function fortressHit(name, kid, type, level, options) {
             if (d1 > d2)
                 return 1
         })
-        const timeSinceEpoch = new Date().getTime()
+        const timeSinceEpoch = Date.now()
         areaInfo.forEach(ai =>
             towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
@@ -284,7 +284,7 @@ async function fortressHit(name, kid, type, level, options) {
             if(!movements.find(a => a.x == e.x && a.y == e.y))
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
-        let time = (Math.max(0, minimumTimeTillHit - new Date().getTime()))
+        let time = (Math.max(0, minimumTimeTillHit - Date.now()))
         console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next fortress hit`)
         await new Promise(r => setTimeout(r, time).unref())
         

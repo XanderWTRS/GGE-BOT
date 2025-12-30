@@ -157,7 +157,7 @@ async function barronHit(name, type, kid, options) {
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
-                const timeSinceEpoch = new Date().getTime()
+                const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const oldAreaInfo = sortedAreaInfo[i];
                     
@@ -173,7 +173,7 @@ async function barronHit(name, type, kid, options) {
                     Object.assign(oldAreaInfo, areaInfo)
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[2] * 1000)
 
-                    if (!options.useTimeSkips && towerTime.get(oldAreaInfo) - new Date().getTime() > 0)
+                    if (!options.useTimeSkips && towerTime.get(oldAreaInfo) - Date.now() > 0)
                         continue
 
                     index = i
@@ -321,7 +321,7 @@ async function barronHit(name, type, kid, options) {
             if (d1 > d2)
                 return 1
         })
-        const timeSinceEpoch = new Date().getTime()
+        const timeSinceEpoch = Date.now()
         areaInfo.forEach(ai =>
             towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
@@ -335,7 +335,7 @@ async function barronHit(name, type, kid, options) {
         sortedAreaInfo.forEach(e => 
             minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e)))
 
-        await new Promise(r => setTimeout(r, (Math.max(0, minimumTimeTillHit - new Date().getTime()))).unref());
+        await new Promise(r => setTimeout(r, (Math.max(0, minimumTimeTillHit - Date.now()))).unref());
         
         while (await sendHit());
     }

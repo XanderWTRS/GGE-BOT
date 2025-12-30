@@ -170,7 +170,7 @@ events.once("load", async () => {
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
-                const timeSinceEpoch = new Date().getTime()
+                const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const oldAreaInfo = sortedAreaInfo[i];
                     
@@ -187,7 +187,7 @@ events.once("load", async () => {
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[5] * 1000)
                     if(oldAreaInfo.extraData[3] > 0)
                         continue
-                    if (towerTime.get(oldAreaInfo) - new Date().getTime() > 0)
+                    if (towerTime.get(oldAreaInfo) - Date.now() > 0)
                         continue
 
                     index = i
@@ -339,7 +339,7 @@ events.once("load", async () => {
             if (d1 > d2)
                 return 1
         })
-        const timeSinceEpoch = new Date().getTime()
+        const timeSinceEpoch = Date.now()
         areaInfo.forEach(ai =>
             towerTime.set(ai, timeSinceEpoch + ai.extraData[5] * 1000))
 
@@ -368,7 +368,7 @@ events.once("load", async () => {
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
 
-        let time = (Math.max(0, minimumTimeTillHit - new Date().getTime()))
+        let time = (Math.max(0, minimumTimeTillHit - Date.now()))
         console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next fortress hit`)
         await new Promise(r => setTimeout(r, time).unref());
         

@@ -34,7 +34,7 @@ let aquaFortsAlert = []
 
 mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapObject) => {
     let type = mapObject.ai[5 - 3]
-    let deltaTime = mapObject.ai[8 - 3] - (new Date().getTime() - mapObject.timeSinceRequest) / 1000
+    let deltaTime = mapObject.ai[8 - 3] - (Date.now() - mapObject.timeSinceRequest) / 1000
 
     if (aquaMapObjects.find(e => mapObject == e)) {
         let hitsLeft = 10 - mapObject.ai[7 - 3]
@@ -65,7 +65,7 @@ let maxAquaTowers = 60
 
 events.once("load", async (_, r) => {
     setInterval(async () => {
-        let currentDate = new Date().getTime()
+        let currentDate = Date.now()
         if (needSort) {
             aquaMapObjects.sort((a, b) => {
                 //time

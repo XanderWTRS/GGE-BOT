@@ -929,7 +929,7 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
 
 const ActualMovement = e => ({
     movementId: Number(e.MID),
-    deltaTime: Number(e.PT * 1000 + new Date().getTime()),
+    deltaTime: Number(e.PT * 1000 + Date.now()),
     totalTime: Number(e.TT * 1000),
     //??? : Number(e.D),
     targetID: Number(e.TID),

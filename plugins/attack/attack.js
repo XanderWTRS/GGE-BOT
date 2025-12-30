@@ -22,9 +22,27 @@ if (isMainThread) {
     }
     return
 }
-const stables = require('../../items/horses.json')
-const {botConfig, playerInfo} = require("../../ggebot")
+const { DatabaseSync } = require('node:sqlite')
+const { botConfig, playerInfo } = require('../../ggebot')
 const { getPermanentCastle } = require('../../protocols')
+const stables = require('../../items/horses.json')
+
+const userDatabase = new DatabaseSync('./user.db')
+
+userDatabase.exec(
+  `CREATE TABLE IF NOT EXISTS "PlayerInfo" (
+	"id"	INTEGER UNIQUE,
+	"timeTillTimeout"	INTEGER,
+	PRIMARY KEY("id")
+);
+`)
+userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
+.run(botConfig.id, 0)
+
+let {timeTillTimeout} = userDatabase.prepare('Select timeTillTimeout From PlayerInfo WHERE id=?')
+    .get(botConfig.id)
+
+const setTimeTillTimeout = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -205,11 +223,12 @@ function randomIntFromInterval(min, max) {
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 const attacks = []
 let alreadyRunning = false
-let timeTillTimeout = NaN
 const napTime = 1000 * 60 * 60 * 2
 const waitToAttack = callback => new Promise((resolve, reject) => {
-    if (isNaN(timeTillTimeout))
-        timeTillTimeout = new Date().getTime() + napTime
+    if (timeTillTimeout == 0) {
+        timeTillTimeout = Date.now() + napTime
+        setTimeTillTimeout.run(timeTillTimeout)
+    }
 
     attacks.push(() => {
         try {
@@ -228,20 +247,20 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
         setImmediate(async () => {
             try {
                 do {
-                    const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000;
-                    let timeout = ms => new Promise(r => setTimeout(r, ms).unref());
+                    const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000
+                    let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
 
                     if(!await (attacks.shift()()))
                         continue
-                    if (timeTillTimeout - new Date().getTime() <= 0) {
-                        console.log(`[${name}] Having a 30 minute nap to prevent ban`)
-                        await timeout(1000 * 60 * 30)
-                        timeTillTimeout = new Date().getTime() + napTime
+                    if (timeTillTimeout - Date.now() <= 0) {
+                        const timeTillNextHit = 1000 * 60 * 30 - (timeTillTimeout - Date.now())
+                        console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
+                        await timeout(timeTillNextHit)
+                        timeTillTimeout = Date.now() + napTime
+                        setTimeTillTimeout(timeTillTimeout)
                     }
                     else
                         await timeout(Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt)
-
-
                 }
                 while (attacks.length > 0);
             }
