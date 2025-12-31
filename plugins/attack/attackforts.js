@@ -6,6 +6,29 @@ if (isMainThread)
         name: name,
         pluginOptions: [
             {
+                type: "Text",
+                label: "Com White List",
+                key: "commanderWhiteList"
+            },
+            {
+                type: "Checkbox",
+                label: "Easy forts only",
+                key: "easyfortsonly",
+                default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Add worser forts",
+                key: "addworserforts",
+                default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Hard forts prioritised",
+                key: "hardforts",
+                default: false
+            },
+            {
                 type: "Checkbox",
                 label: "Use Coin",
                 key: "useCoin",
@@ -76,14 +99,41 @@ function spiralCoordinates(n) {
     return { x, y };
 }
 
-const pluginOptions = Object.assign(structuredClone(
-    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
-    botConfig.plugins["attack"] ?? {})
+const pluginOptions = 
+    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
+    let allowedLevels = [
+        9,
+        8,
+        7,
+        14,
+        13,
+        12,
+    ]
+
+    if (pluginOptions["easyfortsonly"]) {
+        allowedLevels = [
+            9, 8, 7
+        ]
+    }
+
+    if (pluginOptions["hardforts"]) {
+        allowedLevels = [
+            9,
+            14,
+            8,
+            13,
+            7,
+            12,
+        ]
+    }
+    if (pluginOptions["addworserforts"])
+        allowedLevels.push([11, 10])
+    
     let aquamarine = 0
     xtHandler.on("grc", (obj, r) => r == 0 ? aquamarine = obj.A : void 0)
     if (pluginOptions["buycoins"]) {
@@ -182,6 +232,11 @@ events.once("load", async () => {
                         continue
 
                     const areaInfo = (await ClientCommands.getAreaInfo(kid, oldAreaInfo.x, oldAreaInfo.y, oldAreaInfo.x, oldAreaInfo.y)()).areaInfo[0]
+
+                    if(!allowedLevels.includes(areaInfo.extraData[2])) {
+                        towerTime.set(areaInfo, timeSinceEpoch + 60 * 60 * 1000) //HACK:
+                        continue
+                    }
 
                     Object.assign(oldAreaInfo, areaInfo)
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[5] * 1000)
