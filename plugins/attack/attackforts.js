@@ -106,6 +106,11 @@ const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
+    kingdomLock(() => 
+        sendXT("jca", JSON.stringify({ CID: -1, KID: KingdomID.stormIslands })))
+    setInterval(() => kingdomLock(() =>
+        sendXT("jca", JSON.stringify({ CID: -1, KID: KingdomID.stormIslands }))),
+        1000 * 60 * 5)
     let allowedLevels = [
         9,
         8,
