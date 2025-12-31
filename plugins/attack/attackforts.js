@@ -233,12 +233,12 @@ events.once("load", async () => {
 
                     const areaInfo = (await ClientCommands.getAreaInfo(kid, oldAreaInfo.x, oldAreaInfo.y, oldAreaInfo.x, oldAreaInfo.y)()).areaInfo[0]
 
+                    Object.assign(oldAreaInfo, areaInfo)
                     if(!allowedLevels.includes(areaInfo.extraData[2])) {
                         towerTime.set(areaInfo, timeSinceEpoch + 60 * 60 * 1000) //HACK:
                         continue
                     }
 
-                    Object.assign(oldAreaInfo, areaInfo)
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[5] * 1000)
                     if(oldAreaInfo.extraData[3] > 0)
                         continue
