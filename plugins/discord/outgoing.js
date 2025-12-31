@@ -13,7 +13,7 @@ if (isMainThread)
                 key: "channelID",
             }
         ]
-    };
+    }
 
 const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const { clientReady } = require('./discord')
@@ -31,26 +31,26 @@ clientReady.then(async client => {
             }
     
             if (movements.find(e => e == movement.M.MID))
-                return;
+                return
     
             if (movement.M.T != movementType.attack)
-                return;
+                return
     
             if (!([0, 1, 2, 3].includes(movement.M.KID)))
-                return;
+                return
     
-            let attacker = obj.O.find((e) => e.OID == movement.M.SA[4]);
-            let victim = obj.O.find((e) => e.OID == movement.M.TA[4]);
+            let attacker = obj.O.find((e) => e.OID == movement.M.SA[4])
+            let victim = obj.O.find((e) => e.OID == movement.M.TA[4])
     
             if (attacker.AID != playerInfo.alliance.id) //if victim is outside of our alliance then ignore it for alerts
-                return;
+                return
     
-            let attackerName = attacker.N;
+            let attackerName = attacker.N
             let attackerArea = movement.M.SA[10]
     
             let victimName = victim.N
             let victimArea = movement.M.TA[10]
-            let victimAlliance = victim.AN;
+            let victimAlliance = victim.AN
     
             var timetaken = movement.M.TT
             var timespent = movement.M.PT
@@ -71,7 +71,7 @@ clientReady.then(async client => {
     
             let time = timetaken - timespent
     
-            movements.push(movement.M.MID);
+            movements.push(movement.M.MID)
     
             channel.send( //<-- asyncronous bastard causing my fucking hack
                 "```ansi\n" +
@@ -81,7 +81,7 @@ clientReady.then(async client => {
     
             setTimeout(() => {
                 movements = movements.filter(item => item !== movement.M.MID)
-            }, time * 1000).unref();
+            }, time * 1000).unref()
         })
     })
 })

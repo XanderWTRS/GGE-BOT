@@ -2,11 +2,11 @@ const name = "Slash Commands"
 if (require('node:worker_threads').isMainThread)
     return module.exports = { name }
 
-const { Events, SlashCommandBuilder, Interaction, Collection, REST, Routes } = require('discord.js');
+const { Events, SlashCommandBuilder, Interaction, Collection, REST, Routes } = require('discord.js')
 const { client, clientReady } = require('./discord')
 const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggebot")
-const { ClientCommands, HighscoreType, Types, AreaType } = require('../../protocols.js');
-const ggeConfig = require("../../ggeConfig.json");
+const { ClientCommands, HighscoreType, AreaType } = require('../../protocols.js')
+const ggeConfig = require("../../ggeConfig.json")
 
 let commands = new Collection()
 async function refreshCommands() {
@@ -21,34 +21,34 @@ async function refreshCommands() {
     )
 }
 client.on(Events.InteractionCreate, async interaction => {
-    const command = commands.get(interaction.commandName);
+    const command = commands.get(interaction.commandName)
 
     if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
-        return;
+        console.error(`No command matching ${interaction.commandName} was found.`)
+        return
     }
 
     if (interaction.isAutocomplete()) {
         try {
-            await command.autoComplete(interaction);
+            await command.autoComplete(interaction)
         } catch (error) {
-            console.error(error);
+            console.error(error)
         }
         return
     }
-    if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand()) return
 
     try {
-        await command.execute(interaction);
+        await command.execute(interaction)
     } catch (error) {
-        console.error(error);
+        console.error(error)
         if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true })
         } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
         }
     }
-});
+})
 let playerids = []
 async function getStormRanks(i) {
     await i.deferReply()
@@ -84,7 +84,7 @@ async function getStormRanks(i) {
                             return
                         
                         playerids.push(e[2].OID)
-                    });
+                    })
                     }
                     catch(e) {
                         console.warn(j)
@@ -101,7 +101,7 @@ async function getStormRanks(i) {
     let lootTable = []
     await Promise.all(playerids.map(async (pid) => {
         try {
-        sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }));
+        sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }))
         let [obj, _2] = await waitForResult("gpe", 1000 * 60, (obj, result) => {
             if (result != 0)
                 return false
@@ -111,7 +111,7 @@ async function getStormRanks(i) {
             return true
         })
 
-        lootTable.push([obj.NOM, obj.AMT]);
+        lootTable.push([obj.NOM, obj.AMT])
         }
         catch(e) {
             console.error(e)
@@ -122,14 +122,14 @@ async function getStormRanks(i) {
     let msg = ""
 
     for (let i = 0; i < lootTable.length; i++) {
-        const element = lootTable[i];
+        const element = lootTable[i]
         msg += `${i + 1}. ${element[0]} ${element[1].toLocaleString()}\n`
         if (i > 50)
             break
     }
     while (msg.length >= 2000 - 6)
         msg = msg.replace(/\n.*$/, '')
-    await i.editReply("```" + msg + "```");
+    await i.editReply("```" + msg + "```")
 }
 
 async function getAllianceEventRank(interaction, LT) {
@@ -204,7 +204,7 @@ async function getAllianceEventRank(interaction, LT) {
             AID = await getAllianceByName(allianceName)
     }
     catch {
-        await interaction.editReply("Could not find the alliance specified");
+        await interaction.editReply("Could not find the alliance specified")
         return
     }
     let members = await getAllianceMembers(AID)
@@ -246,7 +246,7 @@ async function getAllianceEventRank(interaction, LT) {
                                 console.error(e2)
                             }
                             lootTable.push([e[2].N, e[1]])
-                        });
+                        })
                     }
                     catch (e) {
                         console.warn(e)
@@ -282,7 +282,7 @@ async function getAllianceEventRank(interaction, LT) {
                     if (!lootTable.every(a => a[0] != e[2].N))
                         return
                     lootTable.push([e[2].N, e[1]])
-                });
+                })
             } catch (a) {
                 if (!lootTable.every(a => a[0] != e.N))
                     return
@@ -295,7 +295,7 @@ async function getAllianceEventRank(interaction, LT) {
     else if (LT == "Storm") {
         let playerids = await getAlliancePlayerID(AID)
         await Promise.all(playerids.map(async pid => {
-            sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }));
+            sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }))
             let [obj, _2] = await waitForResult("gpe", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -304,7 +304,7 @@ async function getAllianceEventRank(interaction, LT) {
                     return false
                 return true
             })
-            lootTable.push([obj.NOM, obj.AMT]);
+            lootTable.push([obj.NOM, obj.AMT])
         }))
     }
     else if (LT == 54 || LT == 55) {
@@ -374,11 +374,11 @@ async function getAllianceEventRank(interaction, LT) {
     let msg = ""
 
     for (let i = 0; i < lootTable.length; i++) {
-        const element = lootTable[i];
+        const element = lootTable[i]
         msg += `${i + 1}. ${element[0]} ${element[1].toLocaleString()}\n`
     }
 
-    await interaction.editReply("```" + msg + "```");
+    await interaction.editReply("```" + msg + "```")
 }
 
 let alliances = []
@@ -410,7 +410,7 @@ events.once("load", async () => {
                 obj.L.forEach(e => {
                     if (!alliances.includes(e[2][1]))
                         alliances.push(e[2][1])
-                });
+                })
                 if ((j + 1) > obj.LR)
                     break
 
@@ -424,14 +424,14 @@ events.once("load", async () => {
 })
 
 let genericAutoComplete = async (interaction) => {
-    const focusedValue = interaction.options.getFocused();
-    const filtered = alliances.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase()));
+    const focusedValue = interaction.options.getFocused()
+    const filtered = alliances.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase()))
     filtered.splice(25, Infinity)
 
     await interaction.respond(
         filtered.map(choice => ({ name: choice, value: choice })),
-    );
-};
+    )
+}
 let getHonourRanking = async (interaction) => {
     await interaction.deferReply()
     let getHonourList = async function*() {
@@ -439,7 +439,7 @@ let getHonourRanking = async (interaction) => {
         for (let j = 1; j + 1 <= 3000; j += 8) {
             let highScoreData = await ClientCommands.getHighScore(HighscoreType.honour, 6, j)()
             for (let i = 0; i < highScoreData.list.length; i++) {
-                const e = highScoreData.list[i];
+                const e = highScoreData.list[i]
                 if (e.playerData.isRuin && !e.playerData.castlePositionList.every(e => e.areaType == AreaType.outpost))
                     continue
                 if (e.playerData.remainingNoobTime)
@@ -463,7 +463,7 @@ let getHonourRanking = async (interaction) => {
     playerList.sort((a,b) => b[2] - a[2])
     let msg = "```"
     for (let i = 0; i < playerList.length; i++) {
-        const playerData = playerList[i];
+        const playerData = playerList[i]
         msg += `${playerData[0]} ${playerData[1]} ${playerData[2]}\n`
     }
 
@@ -471,7 +471,7 @@ let getHonourRanking = async (interaction) => {
         msg = msg.replace(/\n.*$/, '')
 
     msg += "```"
-    await interaction.editReply(msg);
+    await interaction.editReply(msg)
 }
 
 let getAllianceQuestPointCount = async (interaction) => {
@@ -486,7 +486,7 @@ let getAllianceQuestPointCount = async (interaction) => {
         msg = msg.replace(/\n.*$/, '')
 
     msg += "```"
-    await interaction.editReply(msg);
+    await interaction.editReply(msg)
 }
 ([
     {
@@ -638,6 +638,6 @@ let getAllianceQuestPointCount = async (interaction) => {
     if(botConfig.externalEvent && !e.data.name.includes("external_"))
         return
     commands.set(e.data.name, e)
-});
+})
 
 refreshCommands.bind(this)()

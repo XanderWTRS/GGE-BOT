@@ -5,7 +5,8 @@ if (isMainThread)
     return module.exports = {
         name: name,
         hidden: true
-    };
+    }
+
 const { getCommanderStats } = require("../../getEquipment")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID, spendSkip } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront } = require("./attack.js")
@@ -22,58 +23,58 @@ const minTroopCount = 100
 const troopBlackList = [277, 34, 35]
 
 function spiralCoordinates(n) {
-    if (n === 0) return { x: 0, y: 0 };
+    if (n === 0) return { x: 0, y: 0 }
 
-    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2);
-    const layerStart = (2 * (k - 1) + 1) ** 2;
-    const offset = n - layerStart;
-    const sideLength = 2 * k;
-    const side = Math.floor(offset / sideLength);
-    const posInSide = offset % sideLength;
+    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2)
+    const layerStart = (2 * (k - 1) + 1) ** 2
+    const offset = n - layerStart
+    const sideLength = 2 * k
+    const side = Math.floor(offset / sideLength)
+    const posInSide = offset % sideLength
 
-    let x, y;
+    let x, y
 
     switch (side) {
         case 0:
-            x = k;
-            y = -k + 1 + posInSide;
-            break;
+            x = k
+            y = -k + 1 + posInSide
+            break
         case 1:
-            x = k - 1 - posInSide;
-            y = k;
-            break;
+            x = k - 1 - posInSide
+            y = k
+            break
         case 2:
-            x = -k;
-            y = k - 1 - posInSide;
-            break;
+            x = -k
+            y = k - 1 - posInSide
+            break
         case 3:
-            x = -k + 1 + posInSide;
-            y = -k;
-            break;
+            x = -k + 1 + posInSide
+            y = -k
+            break
     }
 
-    return { x, y };
+    return { x, y }
 }
 async function barronHit(name, type, kid, options) {
     function getLevel(victorys, kid) {
         function getKingdomOffset(e) {
-            var t = 0;
+            let t = 0
             switch (e) {
                 case 0:
-                    t = 1;
-                    break;
+                    t = 1
+                    break
                 case 2:
-                    t = 20;
-                    break;
+                    t = 20
+                    break
                 case 1:
-                    t = 35;
-                    break;
+                    t = 35
+                    break
                 case 3:
                     t = 45
             }
             return t
         }
-        var n = getKingdomOffset(kid);
+        var n = getKingdomOffset(kid)
         return (0 | Math.floor(1.9 * Math.pow(Math.abs(victorys), .555))) + n
     }
     let pluginOptions = {}
@@ -146,8 +147,8 @@ async function barronHit(name, type, kid, options) {
     const sendHit = async () => {
         let comList = undefined
         if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
-            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
-            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1)
+            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
         const commander = await waitForCommanderAvailable(comList)
@@ -159,7 +160,7 @@ async function barronHit(name, type, kid, options) {
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
-                    const oldAreaInfo = sortedAreaInfo[i];
+                    const oldAreaInfo = sortedAreaInfo[i]
                     
                     if(movements.find(e => e.x == oldAreaInfo.x && e.y == oldAreaInfo.y))
                         continue
@@ -193,7 +194,7 @@ async function barronHit(name, type, kid, options) {
                 const attackerRangeTroops = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i];
+                    const unit = sourceCastle.unitInventory[i]
                     const unitInfo = units.find(obj => unit.unitID == obj.wodID)
                     if (unitInfo == undefined)
                         continue
@@ -235,7 +236,7 @@ async function barronHit(name, type, kid, options) {
                     wave.M.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                });
+                })
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
@@ -335,7 +336,7 @@ async function barronHit(name, type, kid, options) {
         sortedAreaInfo.forEach(e => 
             minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e)))
 
-        await new Promise(r => setTimeout(r, (Math.max(0, minimumTimeTillHit - Date.now()))).unref());
+        await new Promise(r => setTimeout(r, (Math.max(0, minimumTimeTillHit - Date.now()))).unref())
         
         while (await sendHit());
     }

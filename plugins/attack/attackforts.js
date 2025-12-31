@@ -52,7 +52,8 @@ if (isMainThread)
                 key: "buyxp",
                 default: false
             }]
-    };
+    }
+
 const { getCommanderStats } = require("../../getEquipment")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID, kingdomLock } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
@@ -66,37 +67,37 @@ const pretty = require('pretty-time')
 const minTroopCount = 100
 
 function spiralCoordinates(n) {
-    if (n === 0) return { x: 0, y: 0 };
+    if (n === 0) return { x: 0, y: 0 }
 
-    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2);
-    const layerStart = (2 * (k - 1) + 1) ** 2;
-    const offset = n - layerStart;
-    const sideLength = 2 * k;
-    const side = Math.floor(offset / sideLength);
-    const posInSide = offset % sideLength;
+    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2)
+    const layerStart = (2 * (k - 1) + 1) ** 2
+    const offset = n - layerStart
+    const sideLength = 2 * k
+    const side = Math.floor(offset / sideLength)
+    const posInSide = offset % sideLength
 
-    let x, y;
+    let x, y
 
     switch (side) {
         case 0:
-            x = k;
-            y = -k + 1 + posInSide;
-            break;
+            x = k
+            y = -k + 1 + posInSide
+            break
         case 1:
-            x = k - 1 - posInSide;
-            y = k;
-            break;
+            x = k - 1 - posInSide
+            y = k
+            break
         case 2:
-            x = -k;
-            y = k - 1 - posInSide;
-            break;
+            x = -k
+            y = k - 1 - posInSide
+            break
         case 3:
-            x = -k + 1 + posInSide;
-            y = -k;
-            break;
+            x = -k + 1 + posInSide
+            y = -k
+            break
     }
 
-    return { x, y };
+    return { x, y }
 }
 
 const pluginOptions = 
@@ -213,7 +214,7 @@ events.once("load", async () => {
         let comList = undefined
         if (![, ""].includes(pluginOptions.commanderWhiteList)) {
             const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
-            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
         const commander = await waitForCommanderAvailable(comList, undefined, 
@@ -227,7 +228,7 @@ events.once("load", async () => {
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
-                    const oldAreaInfo = sortedAreaInfo[i];
+                    const oldAreaInfo = sortedAreaInfo[i]
                     
                     if(movements.find(e => e.x == oldAreaInfo.x && e.y == oldAreaInfo.y))
                         continue
@@ -276,7 +277,7 @@ events.once("load", async () => {
                 const attackerRangeTroops = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i];
+                    const unit = sourceCastle.unitInventory[i]
                     const unitInfo = units.find(obj => unit.unitID == obj.wodID)
                     if (unitInfo == undefined)
                         continue
@@ -312,7 +313,7 @@ events.once("load", async () => {
                     wave.R.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                });
+                })
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
@@ -406,16 +407,16 @@ events.once("load", async () => {
         sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
         sortedAreaInfo.sort((a, b) => {
             if ((a.extraData[2] % 10) > (b.extraData[2] % 10)) 
-                return -1;
+                return -1
             if ((a.extraData[2] % 10) < (b.extraData[2] % 10)) 
-                return 1;
+                return 1
             //hits left
             if (a.extraData[4] < b.extraData[4]) 
                 return -1
             if (a.extraData[4] > b.extraData[4]) 
                 return 1
 
-            return 0;
+            return 0
         })
         while (await sendHit());
     }
@@ -430,7 +431,7 @@ events.once("load", async () => {
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
         console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next fortress hit`)
-        await new Promise(r => setTimeout(r, time).unref());
+        await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());
     }

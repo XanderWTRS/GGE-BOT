@@ -1,11 +1,11 @@
-const { isMainThread } = require('node:worker_threads');
+const { isMainThread } = require('node:worker_threads')
 const name = "GetRegion"
 
 if (isMainThread)
     return module.exports = {
         name: name,
         hidden: true
-    };
+    }
 
 const { xtHandler, sendXT, events } = require("../ggebot")
 const EventEmitter = require('node:events')
@@ -82,7 +82,7 @@ let getTowers = () => {
 
     let recievedData = false
     let retryAttempts = 0
-    xtHandler.once("gaa", () => { recievedData = true; retryAttempts = 0; })
+    xtHandler.once("gaa", () => { recievedData = true; retryAttempts = 0 })
     let timer = setInterval(() => {
         if (recievedData == true)
             return clearInterval(timer)
@@ -115,7 +115,7 @@ xtHandler.on("gaa", obj => {
             return
         /**@type {TargetType} */
         let mapObject = mapObjects[obj.KID][type][`${x}:${y}`] ??= new TargetType()
-        mapObject.ai = e;
+        mapObject.ai = e
         mapObject.kid = obj.KID
         mapObject.x = x
         mapObject.y = y
@@ -123,7 +123,7 @@ xtHandler.on("gaa", obj => {
         Object.defineProperty(mapObject, 'updateRealtime', {
             set: function (bool) {
                 if ((!!this.updateTimer) == bool)
-                    return;
+                    return
 
                 if (!bool) {
                     clearInterval(this.updateTimer)
@@ -146,9 +146,8 @@ xtHandler.on("gaa", obj => {
                 return !!this.updateTimer
             }
         })
-        mapObjects[obj.KID][type].event.emit("update", mapObject);
-
-        mapObject.event.emit("update", mapObject);
+        mapObjects[obj.KID][type].event.emit("update", mapObject)
+        mapObject.event.emit("update", mapObject)
     })
 })
 

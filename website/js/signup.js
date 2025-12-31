@@ -1,17 +1,16 @@
-addEventListener("DOMContentLoaded", (event) => {
-    document.getElementById("signup-form").addEventListener('submit', signup);
-})
+addEventListener("DOMContentLoaded", () =>
+    document.getElementById("signup-form").addEventListener('submit', signup))
 
 async function signup(event) {
-    event.preventDefault();
+    event.preventDefault()
 
-    var loginFormElement = document.getElementById("signup-form")
-    var username = loginFormElement.querySelector("#username").value
-    var password = loginFormElement.querySelector("#password").value
-    var token = loginFormElement.querySelector("#token").value
-    var loginInfoBannerElement = loginFormElement.querySelector("#login-info-banner")
+    let loginFormElement = document.getElementById("signup-form")
+    let username = loginFormElement.querySelector("#username").value
+    let password = loginFormElement.querySelector("#password").value
+    let token = loginFormElement.querySelector("#token").value
+    let loginInfoBannerElement = loginFormElement.querySelector("#login-info-banner")
     
-    var json;
+    let json
     try {
     json = await (await fetch(`${location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${location.port}/api`, {
         method: "POST",
@@ -26,12 +25,12 @@ async function signup(event) {
     if(json.r != 0)
     {
         loginInfoBannerElement.innerHTML = "Login failed"
-        return false;
+        return false
     }
 
     document.cookie = `uuid=${json.uuid}`
 
-    window.location.replace("/index.html");
+    window.location.replace("/index.html")
 
     return false
 }

@@ -34,8 +34,7 @@ userDatabase.exec(
 	"id"	INTEGER UNIQUE,
 	"timeTillTimeout"	INTEGER,
 	PRIMARY KEY("id")
-);
-`)
+)`)
 userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
 .run(botConfig.id, 0)
 
@@ -67,7 +66,7 @@ function getMaxWaveCount(e) {
     const waveUnlockLevelList = [0, 13, 26, 51]
     for (var n = 1, i = waveUnlockLevelList.length - 1; i >= 0; i--)
         if (e >= waveUnlockLevelList[i]) {
-            n = i + 1;
+            n = i + 1
             break
         }
     return n
@@ -216,9 +215,8 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
     return attackTarget
 }
 
-function randomIntFromInterval(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
+const randomIntFromInterval = (min, max) =>
+    Math.floor(Math.random() * (max - min + 1) + min)
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 const attacks = []

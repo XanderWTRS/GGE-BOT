@@ -1,24 +1,24 @@
-addEventListener("DOMContentLoaded", (event) => {
-  document.getElementById("login-form").addEventListener('submit', login);
-})
+addEventListener("DOMContentLoaded", () => 
+  document.getElementById("login-form").addEventListener('submit', login))
 
 async function login(event) {
-  event.preventDefault();
+  event.preventDefault()
   
-  var loginFormElement = document.getElementById("login-form")
+  let loginFormElement = document.getElementById("login-form")
 
-  var emailOrName = loginFormElement.querySelector("#email_name").value
-  var password = loginFormElement.querySelector("#password").value
-  var loginInfoBannerElement = loginFormElement.querySelector("#login-info-banner")
-  var isChecked = loginFormElement.querySelector('#remember-password').checked;
+  let emailOrName = loginFormElement.querySelector("#email_name").value
+  let password = loginFormElement.querySelector("#password").value
+  let loginInfoBannerElement = loginFormElement.querySelector("#login-info-banner")
+  let isChecked = loginFormElement.querySelector('#remember-password').checked
+
   loginInfoBannerElement.innerHTML = ""
   if(emailOrName.length === 0 || password.length === 0)
   {
     loginInfoBannerElement.innerHTML = "The credentials that you provided were invalid"
-    return false;
+    return false
   }
 
-  var json = await (await fetch(`${location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${location.port}/api`, {
+  let json = await (await fetch(`${location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${location.port}/api`, {
     method: "POST",
     body: JSON.stringify({ id: 0, email_name: emailOrName, password: password }),
     headers: {
@@ -38,7 +38,7 @@ async function login(event) {
     else
       document.cookie = `uuid=${json.uuid};max-age=31536000`
 
-    window.location.replace("/index.html");
+    window.location.replace("/index.html")
   }
-  return false;
+  return false
 }

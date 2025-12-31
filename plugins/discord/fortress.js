@@ -1,5 +1,5 @@
 //message main thread to add id to list
-const { isMainThread, parentPort, threadId } = require('node:worker_threads');
+const { isMainThread } = require('node:worker_threads')
 const name = "Fortress"
 
 if (isMainThread)
@@ -12,12 +12,12 @@ if (isMainThread)
                 key: "channelID",
             }
         ]
-    };
+    }
 
 const { events, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
-const pretty = require('pretty-time');
-const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
+const pretty = require('pretty-time')
+const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 addToWhiteList(11)
@@ -46,17 +46,16 @@ events.once("load", () => {
             towers.sort((a, b) => {
                 let deltaTimeA = Math.max(0, a.ai[5 - 3] - (currentDate - a.timeSinceRequest) / 1000)
                 let deltaTimeB = Math.max(0, b.ai[5 - 3] - (currentDate - b.timeSinceRequest) / 1000)
-                if (deltaTimeA < deltaTimeB) return -1;
-                if (deltaTimeA > deltaTimeB) return 1;
-
+                if (deltaTimeA < deltaTimeB) return -1
+                if (deltaTimeA > deltaTimeB) return 1
 
                 KIDPOW = [, 1, 0, 3]
                 if (KIDPOW[a.ai[7 - 3]] > KIDPOW[b.ai[7 - 3]])
-                    return -1;
+                    return -1
                 if (KIDPOW[a.ai[7 - 3]] < KIDPOW[b.ai[7 - 3]])
-                    return 1;
+                    return 1
 
-                return 0;
+                return 0
             })
             needSort = false
         }

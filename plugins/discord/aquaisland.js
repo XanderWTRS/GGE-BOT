@@ -1,4 +1,4 @@
-const { isMainThread } = require('node:worker_threads');
+const { isMainThread } = require('node:worker_threads')
 const name = "Aquaisland"
 
 if (isMainThread)
@@ -17,12 +17,12 @@ if (isMainThread)
                 key: "alertChannelID",
             }
         ]
-};
+}
 
-const pretty = require('pretty-time');
+const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
-const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
+const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
     addToWhiteList(24)
@@ -51,20 +51,20 @@ const pluginOptions = botConfig.plugins[require('path').basename(__filename).sli
             let currentDate = Date.now()
             if (needSort) {
                 aquaMapObjects.sort((a, b) => {
-                    if (a.ai[4 - 3] < b.ai[4 - 3]) return -1;
-                    if (a.ai[4 - 3] > b.ai[4 - 3]) return 1;
+                    if (a.ai[4 - 3] < b.ai[4 - 3]) return -1
+                    if (a.ai[4 - 3] > b.ai[4 - 3]) return 1
                     //time
                     let deltaTimeA = a.ai[9 - 3] - (currentDate - a.timeSinceRequest) / 1000
                     let deltaTimeB = b.ai[9 - 3] - (currentDate - b.timeSinceRequest) / 1000
-                    if (deltaTimeA < deltaTimeB) return -1;
-                    if (deltaTimeA > deltaTimeB) return 1;
+                    if (deltaTimeA < deltaTimeB) return -1
+                    if (deltaTimeA > deltaTimeB) return 1
                     //Island Type
                     if (a.ai[8 - 3] != 6 && b.ai[8 - 3] == 6)
                         return -1
                     if (a.ai[8 - 3] = 6 && b.ai[8 - 3] != 6)
                         return 1
 
-                    return 0;
+                    return 0
                 })
                 needSort = false
             }

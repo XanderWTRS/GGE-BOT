@@ -79,7 +79,7 @@ events.once("load", () => {
     })
     xtHandler.on("gam", (obj) => {
         for (let i = 0; i < obj.M.length; i++) {
-            const o = obj.M[i];
+            const o = obj.M[i]
             if (o.M.SA[4] != playerInfo.playerID)
                 continue
 
@@ -93,7 +93,7 @@ events.once("load", () => {
             useCommander(lordID)
         }
         for (let i = 0; i < obj.M.length; i++) {
-            const o = obj.M[i];
+            const o = obj.M[i]
             try {
                 if (o.M.TA[4] != playerInfo.playerID)
                     continue

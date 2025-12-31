@@ -1,4 +1,4 @@
-const { isMainThread, parentPort, threadId } = require('node:worker_threads');
+const { isMainThread, parentPort, threadId } = require('node:worker_threads')
 const name = "Aqua Tower"
 
 if (isMainThread)
@@ -17,12 +17,11 @@ if (isMainThread)
                 key: "alertChannelID",
             }
         ]
-    };
+    }
 
 const { events, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
-const pretty = require('pretty-time');
-const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js");
+const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 addToWhiteList(25)
@@ -71,16 +70,16 @@ events.once("load", async (_, r) => {
                 //time
                 let deltaTimeA = Math.max(0, a.ai[8 - 3] - (currentDate - a.timeSinceRequest) / 1000)
                 let deltaTimeB = Math.max(0, b.ai[8 - 3] - (currentDate - b.timeSinceRequest) / 1000)
-                if (deltaTimeA < deltaTimeB) return -1;
-                if (deltaTimeA > deltaTimeB) return 1;
+                if (deltaTimeA < deltaTimeB) return -1
+                if (deltaTimeA > deltaTimeB) return 1
                 //level
-                if ((a.ai[5 - 3] % 10) > (b.ai[5 - 3] % 10)) return -1;
-                if ((a.ai[5 - 3] % 10) < (b.ai[5 - 3] % 10)) return 1;
+                if ((a.ai[5 - 3] % 10) > (b.ai[5 - 3] % 10)) return -1
+                if ((a.ai[5 - 3] % 10) < (b.ai[5 - 3] % 10)) return 1
                 //hits left
                 if (a.ai[7 - 3] < b.ai[7 - 3]) return -1
                 if (a.ai[7 - 3] > b.ai[7 - 3]) return 1
 
-                return 0;
+                return 0
             })
             needSort = false
         }

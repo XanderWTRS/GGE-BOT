@@ -104,15 +104,15 @@ events.once("load", async () => {
     while (!quit) {
         let comList = undefined
         if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
-            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1);
-            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1)
+            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
         const commander = await waitForCommanderAvailable(comList)
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-                    .areaInfo.find(e => AreaType.mainCastle == e.type);
+                    .areaInfo.find(e => AreaType.mainCastle == e.type)
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
                     .castles.find(a => a.kingdomID == kid)
@@ -141,7 +141,7 @@ events.once("load", async () => {
                 const attackerShieldBerimondTools = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i];
+                    const unit = sourceCastle.unitInventory[i]
                     const unitInfo = units.find(obj => unit.unitID == obj.wodID)
                     if (unitInfo == undefined)
                         continue
@@ -286,7 +286,7 @@ events.once("load", async () => {
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                     }
-                });
+                })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach(unitSlot =>
                     maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?

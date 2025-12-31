@@ -15,7 +15,7 @@ if (isMainThread)
                 key: "channelIDAqua",
             }
         ]
-    };
+    }
 
 const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
 
@@ -59,22 +59,22 @@ clientReady.then(async client => {
             }
     
             if (![0,25,31,24,29].includes(movement.M.T))
-                return;
+                return
     
             let e = movements.find((e) => e.M.MID == movement.M.MID)
     
-            let attacker = obj.O.find((e) => e.OID == movement.M.SA[4]);
-            let victim = obj.O.find((e) => e.OID == movement.M.TA[4]);
+            let attacker = obj.O.find((e) => e.OID == movement.M.SA[4])
+            let victim = obj.O.find((e) => e.OID == movement.M.TA[4])
     
             if (attacker.AID == playerInfo.alliance.id)
-                return;
+                return
 
             if (e) {
                 if (movement.GA && movement.M.KID != 4 && (await e.message)?.attachments.size == 0) {
                     let stream = await createLayout(movement.GA)
                     stream.on("error", console.warn)
-                    const file = new AttachmentBuilder(stream);
-                    await (await e.message).edit({ content: (await e.message).content, files: [file] });
+                    const file = new AttachmentBuilder(stream)
+                    await (await e.message).edit({ content: (await e.message).content, files: [file] })
                 }
                 return
             }
@@ -84,8 +84,8 @@ clientReady.then(async client => {
             let timespent = movement.M.PT
             let time = timetaken - timespent
     
-            let attackerName = attacker.N;
-            let attackerAlliance = attacker.AN;
+            let attackerName = attacker.N
+            let attackerAlliance = attacker.AN
             let attackerArea = movement.M.SA[10]
             if(bannedOIDS.includes(movement.M.SA[4]) && !botConfig.externalEvent) 
                 return
@@ -120,7 +120,7 @@ clientReady.then(async client => {
             let x2 = movement.M.SA[1]
             let y2 = movement.M.SA[2]
     
-            let clicks = Math.round(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 10) / 10;
+            let clicks = Math.round(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 10) / 10
     
             let channel = ((movement.M.KID != 4) ? channelAlert : channelAquaAlert)
             if(channel == undefined)
@@ -129,13 +129,13 @@ clientReady.then(async client => {
                 "```ansi\n" +
                 `${attackerName} (${attackerArea}) from ${attackerAlliance} is attacking ${victimName} (${victimArea}) in ${kidName[movement.M.KID]} ${clicks} clicks` +
                 "```" +
-                `<t:${Math.round(Date.now() / 1000 + time)}:R>`;
+                `<t:${Math.round(Date.now() / 1000 + time)}:R>`
             let data = {}
             data.content = content
-            movements.push(movement);
+            movements.push(movement)
     
             if (movement.GA != undefined) {
-                const file = new AttachmentBuilder(await createLayout(movement.GA));
+                const file = new AttachmentBuilder(await createLayout(movement.GA))
                 data.files = [file]
             }
             let message = channel.send(data)
@@ -143,11 +143,11 @@ clientReady.then(async client => {
             if (member != undefined) {
                 let shouldAlertMember = () => member?.presence?.status == undefined || (member?.presence?.status !== PresenceUpdateStatus.Online && member?.presence?.status !== PresenceUpdateStatus.DoNotDisturb)
                 if (movement.M.KID != 4 && shouldAlertMember()) {
-                    let spreadAlert = async () => shouldAlertMember() ? await channelAlert.send(mention) : void 0;
-                    setTimeout(spreadAlert, time * 1000 / 4).unref();
-                    setTimeout(spreadAlert, time * 1000 / 3).unref();
-                    setTimeout(spreadAlert, time * 1000 / 2).unref();
-                    setTimeout(spreadAlert, time * 1000 / 1.5).unref();
+                    let spreadAlert = async () => shouldAlertMember() ? await channelAlert.send(mention) : void 0
+                    setTimeout(spreadAlert, time * 1000 / 4).unref()
+                    setTimeout(spreadAlert, time * 1000 / 3).unref()
+                    setTimeout(spreadAlert, time * 1000 / 2).unref()
+                    setTimeout(spreadAlert, time * 1000 / 1.5).unref()
                 }
             }
             if (movement?.GA == undefined)
@@ -155,7 +155,7 @@ clientReady.then(async client => {
     
             setTimeout(() => {
                 movements = movements.filter(item => item.M.MID !== movement.M.MID)
-            }, time * 1000);
+            }, time * 1000)
             await message
         })
     })

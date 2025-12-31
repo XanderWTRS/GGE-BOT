@@ -18,40 +18,40 @@ if (isMainThread)
                 default: false
             }
         ]
-    };
+    }
 
 const turl = require('turl')
-const emoji = require("emoji-dictionary");
-const { xtHandler, sendXT, waitForResult, botConfig } = require("../../ggebot")
+const emoji = require("emoji-dictionary")
+const { xtHandler, sendXT, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
 function parseMessage(e) {
     if (!e)
-        return "";
+        return ""
     return e = e.replace(/&percnt;/g, "%").replace(/&quot;/g, '"').replace(/&145;/g, "'").replace(/<br \/>/g, "\n").replace(/%5C/g, "\\").replace(/(\[|\])/g, " ")
 }
 function cleanUnmatchedTags(t) {
     return t.replace(/<(?![^<>]*>)/g, '').replace(/(?<!<[^<>]*)>/g, '')
-};
+}
 function unparseMessage(e) {
     if (!e)
-        return "";
+        return ""
 
     e = cleanUnmatchedTags(e)
 
     e = e.replace(/<.*?>/g, (m) => {
         if (m.match(/<\/?color.*?>/))
-            return m;
+            return m
         if (m.match(/<\/?b>/))
-            return m;
+            return m
         if (m.match(/<\/?br>/))
-            return m;
+            return m
         if (m.match(/<\/?a.*?>/))
-            return m;
+            return m
 
-        return "";
+        return ""
     })
 
     return e = e.replaceAll("%", "&percnt;").replaceAll('"', "&quot;").replaceAll("'", "&145;").replaceAll("\n", "<br>").replaceAll("\\", "%5C").replaceAll(/(\[|\])/g, " ")
@@ -60,11 +60,11 @@ clientReady.then(async client => {
     let channel = await client.channels.fetch(pluginOptions.channelID)
     xtHandler.on("acm", (obj) => {
         if (obj.CM.PN.toLowerCase() == botConfig.name.toLowerCase())
-            return;
+            return
 
         var msg = parseMessage(obj.CM.MT)
 
-        channel.send(obj.CM.PN + ": " + msg);
+        channel.send(obj.CM.PN + ": " + msg)
     })
     client.on("messageCreate", async (message) => {
         if (message.author.bot) return
@@ -90,21 +90,21 @@ clientReady.then(async client => {
                 msg = msg.replace(element, "")
             else
                 msg = msg.replace(element, ":" + emoji.getName(element) + ":")
-        });
+        })
 
         if (msg != "" && message.attachments.size > 0)
             msg += "<br>"
         if (message.attachments.size > 0)
             msg += "attached: "
-        var i = 0;
+        let i = 0
         for await (const [_, attachment] of message.attachments.entries()) {
-            var url = await turl.shorten(attachment.proxyURL)
+            const url = await turl.shorten(attachment.proxyURL)
             msg += `<a href="${url}">${i++}</a> `
         }
         msg = unparseMessage(msg)
 
         if (msg == "")
-            return;
+            return
 
         sendXT("acm", "{ \"M\" : \"" + (!pluginOptions.hideDiscordName ? (unparseMessage(name) + ": ") : "") + msg + "\"}", "str")
     })
