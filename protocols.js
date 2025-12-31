@@ -1,4 +1,4 @@
-const { waitForResult, sendXT, xtHandler } = require("./ggebot")
+const { waitForResult, sendXT, xtHandler, events } = require("./ggebot")
 const fs = require("fs/promises")
 const AreaType = Object.freeze({
     barron: 2,
@@ -578,8 +578,26 @@ const getEventList = async () => { //Never got
 
     return _activeEventList
 }
-xtHandler.on("sei", (obj, result) =>
-    Object.assign(_activeEventList, { ...obj, result }))
+xtHandler.on("sei", (obj, result) => {
+    obj.E.find(e => {
+        if (_activeEventList.E?.find(a => a.EID == e.EID))
+            return
+        
+        console.debug(`Event ${e.EID} has started`)
+        events.emit("eventStart", e)
+    })
+    
+    _activeEventList.E?.find(e => {
+        if (obj.E.find(a => a.EID == e.EID))
+            return
+        
+        console.debug(`Event ${e.EID} has stopped`)
+        events.emit("eventStop", e)
+    })
+    
+    Object.assign(_activeEventList, { ...obj, result })
+
+})
 
 let _resourceCastleList = {}
 /**
