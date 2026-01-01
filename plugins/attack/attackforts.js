@@ -24,12 +24,6 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
-                label: "Hard forts prioritised",
-                key: "hardforts",
-                default: false
-            },
-            {
-                type: "Checkbox",
                 label: "Use Coin",
                 key: "useCoin",
                 default: false
@@ -126,19 +120,8 @@ events.once("load", async () => {
             9, 8, 7
         ]
     }
-
-    if (pluginOptions["hardforts"]) {
-        allowedLevels = [
-            9,
-            14,
-            8,
-            13,
-            7,
-            12,
-        ]
-    }
     if (pluginOptions["addworserforts"])
-        allowedLevels.push([11, 10])
+        allowedLevels.push(11, 10)
     
     let aquamarine = 0
     xtHandler.on("grc", (obj, r) => r == 0 ? aquamarine = obj.A : void 0)
