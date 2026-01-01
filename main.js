@@ -672,18 +672,21 @@ async function start() {
     }
 
     ws.addListener('message', async event => {
-      let [err, action, obj] = JSON.parse(event.toString())
+      let [_, action, obj] = JSON.parse(event.toString())
 
       switch (action) {
-        case ActionType.GetUsers:
+        case ActionType.GetUsers: {
           refreshUsers()
           break
-        case ActionType.StatusUser:
+        }
+        case ActionType.StatusUser: {
           break
-        case ActionType.AddUser:
+        }
+        case ActionType.AddUser: {
           addUser(uuid, new User(obj))
           refreshUsers()
           break
+        }
         case ActionType.RemoveUser: {
           let lastError = undefined
           for (let i = 0; i < obj.length; i++) {
@@ -704,7 +707,7 @@ async function start() {
         }
         case ActionType.SetUser: {
           let oldUser = getSpecificUser(uuid, new User(obj))
-          let user = changeUser(uuid, user)
+          let user = changeUser(uuid, new User(obj))
           if (user.state == 0) {
             try {
               removeBot(user.id)
