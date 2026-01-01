@@ -702,7 +702,7 @@ async function start() {
           refreshUsers()
           break
         }
-        case ActionType.SetUser:
+        case ActionType.SetUser: {
           let oldUser = getSpecificUser(uuid, new User(obj))
           let user = changeUser(uuid, user)
           if (user.state == 0) {
@@ -738,6 +738,7 @@ async function start() {
           loggedInUsers[uuid]?.forEach(({ ws }) =>
             ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
           break
+        }
         case ActionType.GetLogs: {
           if (!obj) {
             loggedInUsers[uuid].find(o => o.ws == ws).viewedUser = undefined
