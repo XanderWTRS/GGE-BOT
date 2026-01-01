@@ -1,33 +1,42 @@
-const https = require('node:https')
-const http = require('node:http')
-const fs = require('fs/promises')
-const express = require("express")
-const bodyParser = require('body-parser')
-const { DatabaseSync } = require('node:sqlite')
-const { WebSocketServer } = require("ws")
-const crypto = require('crypto')
-const { Worker } = require('node:worker_threads')
-const undici = require('undici')
-const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
 const path = require('path')
+const crypto = require('crypto')
+const undici = require('undici')
+const fs = require('fs/promises')
+const http = require('node:http')
+const express = require('express')
+const https = require('node:https')
+const bodyParser = require('body-parser')
+const { WebSocketServer } = require("ws")
 const {parseStringPromise} = require('xml2js')
+const { DatabaseSync } = require('node:sqlite')
+const { Worker } = require('node:worker_threads')
+const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
 
-const ActionType = require("./actions.json")
-const ErrorType = require("./errors.json")
+const ErrorType = require('./errors.json')
+const ActionType = require('./actions.json')
 
-const clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
+const clientOptions = { 
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildModeration,
+    GatewayIntentBits.GuildIntegrations,
+  ]
+}
+
 const client = new Client(clientOptions)
 
-console.log("Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.")
+console.log('Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.')
 
 const ggeConfigExample = `{
     "webPort" : "3001",
-    
     "fontPath" : "",
     "privateKey" : "",
     "cert" : "",
     "signupToken" : "",
-    
     "discordToken" : "",
     "discordClientId" : "",
     "discordClientSecret" : ""
@@ -46,7 +55,7 @@ userDatabase.exec(
 	"privilege"	INTEGER,
   "discordUserId"	TEXT,
   "discordGuildId" TEXT
-);
+)
 `)
 userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "SubUsers" (
@@ -59,7 +68,7 @@ userDatabase.exec(
   "externalEvent" INTEGER,
 	"server"	INTEGER,
   PRIMARY KEY("id" AUTOINCREMENT)
-);
+)
 `)
 
 class User {
@@ -77,23 +86,23 @@ class User {
   }
 }
 const addUser = (uuid, user) => {
-  userDatabase.prepare("INSERT INTO SubUsers (uuid, name, pass, plugins, state, externalEvent, server) VALUES(?,?,?,?,?,?,?)")
+  userDatabase.prepare('INSERT INTO SubUsers (uuid, name, pass, plugins, state, externalEvent, server) VALUES(?,?,?,?,?,?,?)')
     .run(uuid, user.name, user.pass, JSON.stringify(user.plugins), 0, Number(user.externalEvent), user.server)
 }
 const getSpecificUser = (uuid, user) => {
-  const row = userDatabase.prepare("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;")
+  const row = userDatabase.prepare('Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?')
     .get(uuid, user.id)
 
-  row.plugins = JSON.parse(row.plugins ?? "{}")
+  row.plugins = JSON.parse(row.plugins ?? '{}')
 
   return new User(row)
 }
 const changeUser = (uuid, user) => {
-  if (user.pass == undefined || user.pass === "" || user.pass == "null") {
-    userDatabase.prepare('UPDATE SubUsers SET name = ?, state = ?, plugins = ?, externalEvent = ?, server = ? WHERE uuid = ? AND id = ?')
+  if (user.pass == undefined || user.pass === '' || user.pass == "null") {
+    userDatabase.prepare('UPDATE SubUsers SET name=?, state=?, plugins=?, externalEvent =?, server=? WHERE uuid=? AND id=?')
       .run(user.name, user.state, JSON.stringify(user.plugins), Number(user.externalEvent), user.server, uuid, user.id)
 
-    const row = userDatabase.prepare('Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;')
+    const row = userDatabase.prepare('Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?')
       .get(uuid, user.id)
 
     row.plugins = JSON.parse(row.plugins ?? '{}')
@@ -103,7 +112,7 @@ const changeUser = (uuid, user) => {
   userDatabase.prepare(`UPDATE SubUsers SET name = ?, pass = ?, state = ?, plugins = ?, externalEvent = ?, server = ? WHERE uuid = ? AND id = ?`)
     .run(user.name, user.pass, user.state, JSON.stringify(user.plugins), Number(user.externalEvent), user.server, uuid, user.id)
 
-  const row = userDatabase.prepare("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?;")
+  const row = userDatabase.prepare("Select id, name, plugins, pass, state, externalEvent, server From SubUsers WHERE uuid=? AND id=?")
     .get(uuid, user.id)
   row.plugins = JSON.parse(row.plugins ?? '{}')
 
@@ -114,11 +123,11 @@ const removeUser = (uuid, user) => {
   if (uuid === undefined || user.id === undefined)
     return
 
-  userDatabase.prepare(`DELETE FROM SubUsers WHERE uuid = ? AND id = ?`)
+  userDatabase.prepare('DELETE FROM SubUsers WHERE uuid = ? AND id = ?')
   .run(uuid, user.id)
 }
 const getUser = uuid => {
-  let str = uuid === undefined ? "" : "Where uuid=?;"
+  let str = uuid === undefined ? '' : 'Where uuid=?'
 
   const prep = userDatabase.prepare(`Select id, uuid, name, plugins, pass, state, externalEvent, server From SubUsers ${str}`)
   const rows = uuid ? prep.all(uuid) : prep.all()
@@ -131,119 +140,112 @@ const getUser = uuid => {
 
 async function start() {
   try {
-    await fs.access("./ggeConfig.json")
+    await fs.access('./ggeConfig.json')
   }
-  catch (e) {
-    fs.writeFile("./ggeConfig.json", ggeConfigExample)
-    console.info("ggeConfig.json has been generated")
+  catch {
+    fs.writeFile('./ggeConfig.json', ggeConfigExample)
+    console.info('ggeConfig.json has been generated')
   }
-  const ggeConfig = JSON.parse((await fs.readFile("./ggeConfig.json")).toString())
+  const ggeConfig = JSON.parse((await fs.readFile('./ggeConfig.json')).toString())
 
-  ggeConfig.webPort ??= "3001"
+  ggeConfig.webPort ??= '3001'
 
-  if (ggeConfig.cert) {
+  if (ggeConfig.cert)
     await fs.access(ggeConfig.cert)
-  }
 
-  if (ggeConfig.privateKey) {
+  if (ggeConfig.privateKey)
     await fs.access(ggeConfig.privateKey)
-  }
 
   let certFound = true
   if (!(ggeConfig.privateKey || ggeConfig.cert)) {
     certFound = false
     if (!ggeConfig.privateKey)
-      console.warn("Could not find privateKey! Falling back to http mode")
+      console.warn('Could not find privateKey! Falling back to http mode')
     if (!ggeConfig.cert)
-      console.warn("Could not find cert! Falling back to http mode")
+      console.warn('Could not find cert! Falling back to http mode')
   }
   let hasDiscord = true
 
   if (!ggeConfig.fontPath) {
     try {
-      await fs.access("C:\\Windows\\Fonts\\segoeui.ttf")
-      ggeConfig.fontPath = "C:\\Windows\\Fonts\\segoeui.ttf"
+      await fs.access(':\\Windows\\Fonts\\segoeui.ttf')
+      ggeConfig.fontPath = 'C:\\Windows\\Fonts\\segoeui.ttf'
     }
-    catch (e) {
-      console.warn(`${ggeConfig.fontPath} font does not exist.`)
+    catch {
+      console.warn(`Couldn't access font ${ggeConfig.fontPath}`)
       hasDiscord = false
     }
   }
 
   if (!ggeConfig.discordToken || !ggeConfig.discordClientId) {
-    console.warn("Could not setup discord")
-    console.warn("Following configurations are missing: ")
+    console.warn('Could not setup discord')
+    console.warn('Following configurations are missing:')
     if (!ggeConfig.discordToken)
-      console.warn("discordToken")
+      console.warn('discordToken')
     if (!ggeConfig.discordClientId)
-      console.warn("discordClientId")
+      console.warn('discordClientId')
 
     hasDiscord = false
   }
 
   let needLang = false
   async function getItemsJSON() {
-    const response = await fetch("https://empire-html5.goodgamestudios.com/default/items/ItemsVersion.properties");
+    const response = await fetch('https://empire-html5.goodgamestudios.com/default/items/ItemsVersion.properties')
     const str = await response.text()
 
     let str2 = undefined
     try {
-      str2 = (await fs.readFile("./ItemsVersion.properties")).toString()
+      str2 = (await fs.readFile('./ItemsVersion.properties')).toString()
     }
-    catch (e) {
-      // console.warn(e)
-    }
+    catch {}
+
     let needItems = needLang = str != str2
     try {
-      await fs.access("./items")
+      await fs.access('./items')
     }
-    catch (e) {
+    catch {
       needItems = true
-      // console.warn(e)
-      await fs.mkdir("./items")
+      await fs.mkdir('./items')
     }
     if (needItems) {
-      await fs.writeFile("./ItemsVersion.properties", str)
+      await fs.writeFile('./ItemsVersion.properties', str)
 
-      const response = await fetch(`https://empire-html5.goodgamestudios.com/default/items/items_v${str.match(new RegExp(/(?!.*=).*/))[0]}.json`);
+      const response = await fetch(`https://empire-html5.goodgamestudios.com/default/items/items_v${str.match(new RegExp(/(?!.*=).*/))[0]}.json`)
       for (const [key, value] of Object.entries(await response.json())) {
-        if (!/^[A-Za-z\_]+$/.test(key)) {
-          // console.warn(`${key}: is not suitable for a filename`)
+        if (!/^[A-Za-z\_]+$/.test(key))
           continue
-        }
 
         await fs.writeFile(`./items/${key}.json`, JSON.stringify(value))
       }
-
     }
   }
 
   async function getLangJSON() {
     try {
-      await fs.access("./lang.json")
+      await fs.access('./lang.json')
     }
-    catch (e) {
+    catch {
       needLang = true
     }
     if (needLang) {
-      const response = await fetch(`https://empire-html5.goodgamestudios.com/config/languages/4018/en.json`);
+      const response = await fetch('https://empire-html5.goodgamestudios.com/config/languages/4018/en.json')
       const str = await response.text()
 
-      await fs.writeFile("./lang.json", str)
+      await fs.writeFile('./lang.json', str)
     }
   }
   async function getServerXML() {
     try {
-      await fs.access("./1.xml")
+      await fs.access('./1.xml')
     }
-    catch (e) {
+    catch {
       needLang = true
     }
     if (needLang) {
-      const response = await fetch(`https://empire-html5.goodgamestudios.com/config/network/1.xml`);
+      const response = await fetch('https://empire-html5.goodgamestudios.com/config/network/1.xml')
       const str = await response.text()
 
-      await fs.writeFile("./1.xml", str)
+      await fs.writeFile('./1.xml', str)
     }
   }
 
@@ -252,45 +254,44 @@ async function start() {
   await getServerXML()
 
   const instances = []
-  const json = await parseStringPromise((await fs.readFile("./1.xml")).toString())
+  const json = await parseStringPromise((await fs.readFile('./1.xml')).toString())
   
-  json.network.instances[0].instance.forEach(e => {
+  json.network.instances[0].instance.forEach(e => 
     instances.push({
       gameURL: e.server[0],
       gameServer: e.zone[0],
       gameID: e['$'].value
-    })
-  })
+    }))
 
-  let pluginData = require("./plugins")
+  let pluginData = require('./plugins')
 
   try {
-    pluginData = pluginData.concat(require("./plugins-extra"))
-  } catch (e) {
-
-  }
+    pluginData = pluginData.concat(require('./plugins-extra'))
+  } catch {}
 
   const plugins = pluginData
     .filter(e => !e[1].hidden)
     .map(e => new Object({ key: path.basename(e[0]), filename: e[0], name: e[1].name, description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions }))
-    .sort((a, b) => {
-      a.force ??= 0
-      b.force ??= 0
-      return a.force - b.force
-    })
+    .sort((a, b) => (a.force ?? 0) - (b.force ?? 0))
 
-  let loginCheck = uuid => 
+  const loginCheck = uuid => 
     !!userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid ?? "")
 
   const app = express()
   app.use(bodyParser.urlencoded({ extended: true }))
-  app.get("/", (_, res) => res.redirect('/index.html'))
-  app.get("/lang.json", (_, res) => { res.setHeader("Access-Control-Allow-Origin", "*"); res.sendFile("lang.json", { root: ".", }) })
-  app.get("/1.xml", (_, res) => { res.setHeader("Access-Control-Allow-Origin", "*"); res.sendFile("1.xml", { root: ".", }) })
-  app.post("/api", bodyParser.json(), async (req, res) => {
+  app.get('/', (_, res) => res.redirect('/index.html'))
+  app.get('/lang.json', (_, res) => { 
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.sendFile('lang.json', { root: '.' }) 
+  })
+  app.get('/1.xml', (_, res) => { 
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.sendFile('1.xml', { root: "." }) 
+  })
+  app.post('/api', bodyParser.json(), async (req, res) => {
     let json = req.body
 
-    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json')
     if (json.id == 0) {
       const row = userDatabase.prepare('Select * FROM Users WHERE username = ?')
         .get(json.email_name)
@@ -304,17 +305,17 @@ async function start() {
     }
     else if (json.id == 1) {
       if (json.token != ggeConfig.signupToken)
-        return res.send(JSON.stringify({ id: 0, r: 1, error: "Invalid Sign up details." }))
+        return res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid Sign up details.' }))
 
       const salt = crypto.randomBytes(256)
-      const passwordHash = crypto.pbkdf2Sync(json.password, salt, 600000, 64, "sha256")
+      const passwordHash = crypto.pbkdf2Sync(json.password, salt, 600000, 64, 'sha256')
       const uuid = crypto.randomUUID()
       try {
-      userDatabase.prepare("INSERT INTO Users (username, passwordHash, passwordSalt, uuid) VALUES(?,?,?,?)")
+      userDatabase.prepare('INSERT INTO Users (username, passwordHash, passwordSalt, uuid) VALUES(?,?,?,?)')
          .run(json.username, passwordHash, salt, uuid)
           res.send(JSON.stringify({ r: 0, uuid: uuid }))
       }
-      catch(e) {
+      catch {
           res.send(JSON.stringify({ r: 1 }))
           console.error(err)
       }
@@ -337,27 +338,27 @@ async function start() {
             }).toString(),
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          });
+            }
+          })
 
-          const oauthData = await tokenResponseData.body.json();
+          const oauthData = await tokenResponseData.body.json()
           const userResult = await undici.request('https://discord.com/api/users/@me', {
             headers: {
               authorization: `${oauthData.token_type} ${oauthData.access_token}`,
-            },
-          });
+            }
+          })
           let discordIdentifier = await userResult.body.json()
           let guildId = request.query.guild_id
           if (!discordIdentifier.id)
-            return response.send("Could not get discord id!")
+            return response.send('Could not get discord id!')
           if (!guildId)
-            return response.send("Could not get guild id!")
+            return response.send('Could not get guild id!')
           let userIsAdmin = client.guilds.cache.get(guildId)
-            .members.cache.get(discordIdentifier.id)?.permissions?.has("Administrator");
+            .members.cache.get(discordIdentifier.id)?.permissions?.has('Administrator')
           if (userIsAdmin == undefined)
-            return response.send("User isn't in guild")
+            return response.send('User isn\'t in guild')
           if (!userIsAdmin)
-            return response.send("User is not admin!")
+            return response.send('User is not admin!')
 
           let guild = client.guilds.cache.get(guildId)
           let channelData = guild.channels.cache.map(channel => {
@@ -366,25 +367,24 @@ async function start() {
               return { id: channel.id, name: channel.name }
 
             return undefined
-          }).filter((e) => e !== undefined)
-          let uuid = request.headers.cookie.split('; ').find(e => e.startsWith("uuid="))
+          }).filter(e => e !== undefined)
+          let uuid = request.headers.cookie.split('; ').find(e => e.startsWith('uuid='))
             .substring(5, Infinity)
           let valid = loginCheck(uuid)
           if (!valid)
-            return response.send("uuid is not valid!")
+            return response.send('uuid is not valid!')
 
-          userDatabase.prepare(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`)
+          userDatabase.prepare('UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?')
               .run(discordIdentifier.id, guildId, uuid)
           
           loggedInUsers[uuid].forEach(o =>
-            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-          )
-          return response.send("Successful!")
+            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]])))
+          return response.send('Successful!')
         })
       })
       resolve()
     })
-    client.login(ggeConfig.discordToken);
+    client.login(ggeConfig.discordToken)
   }
 
   app.use(express.static('website'))
@@ -393,45 +393,44 @@ async function start() {
     messageBuffer ??= []
     messageBufferCount ??= 0
     if (user.id && botMap.get(user.id) != undefined)
-      throw Error("User already in use")
+      throw Error('User already in use')
 
     let data = structuredClone(user)
 
     let discordCreds = uuid => {
-      const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?;').get(uuid)
+      const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid)
       return row ? { discordGuildId: row.discordGuildId, discordUserId: row.discordUserId } : undefined
     }
     const discordData = discordCreds(uuid)
     plugins.forEach(plugin =>
-      plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : void 0
-    )
-    plugins.forEach(plugin => data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : void 0)
+      plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : undefined)
+    plugins.forEach(plugin => 
+      data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : undefined)
 
     if (user.externalEvent == true) {
       let users = getUser(uuid)
       let bot = users.find(e => user.name == e.id && user.id != e.id && e.state)
-      let getExternalEvent = (worker, alreadyStarted) => new Promise((resolve) => { //TODO add timed reject method
+      let getExternalEvent = (worker, alreadyStarted) => new Promise(resolve => { //TODO: add timed reject method
         let func = (obj) => {
           if (obj[0] != ActionType.GetExternalEvent)
             return
           resolve(obj[1])
-          worker.off("message", func)
+          worker.off('message', func)
         }
 
-        worker.on("message", func)
-        if (alreadyStarted) {
+        worker.on('message', func)
+        
+        if (alreadyStarted)
+          return worker.postMessage([ActionType.GetExternalEvent])
+
+        let a = obj => {
+          if (obj[0] != ActionType.Started)
+            return
+
           worker.postMessage([ActionType.GetExternalEvent])
+          worker.off('message', a)
         }
-        else {
-          let a = obj => {
-            if (obj[0] != ActionType.Started)
-              return
-
-            worker.postMessage([ActionType.GetExternalEvent])
-            worker.off("message", a)
-          }
-          worker.on("message", a)
-        }
+        worker.on('message', a)
       })
 
       if (bot) {
@@ -440,22 +439,25 @@ async function start() {
         let data3 = await getExternalEvent(worker, true)
 
         if (data3.ths.tsid == 24)
-          user.gameURL = "EmpireEx_42"
-        user.gameServer = "ep-live-temp1-game.goodgamestudios.com"
+          user.gameURL = 'EmpireEx_42'
+        
+        user.gameServer = 'ep-live-temp1-game.goodgamestudios.com'
         user.tempServerData = data3
       }
       else {
-
         let data2 = structuredClone(user)
-        plugins.forEach(plugin => plugin.force ? (data2.plugins[plugin.key] ??= {}).state = true : void 0)
-        plugins.forEach(plugin => data2.plugins[plugin.key]?.state ? data2.plugins[plugin.key].filename = plugin.filename : void 0)
+        plugins.forEach(plugin => 
+          plugin.force ? (data2.plugins[plugin.key] ??= {}).state = true : undefined)
+        plugins.forEach(plugin => 
+          data2.plugins[plugin.key]?.state ? data2.plugins[plugin.key].filename = plugin.filename : undefined)
+
         data2.plugins = []
         data2.externalEvent = false
 
-        const worker = new Worker("./ggebot.js", { workerData: { ...data2, discordData } });
+        const worker = new Worker('./ggebot.js', { workerData: { ...data2, discordData } })
         worker.messageBuffer = messageBuffer
         worker.messageBufferCount = messageBufferCount
-        worker.on("message", async obj => {
+        worker.on('message', async obj => {
           switch (obj[0]) {
             case ActionType.GetLogs:
               if (!uuid)
@@ -464,49 +466,46 @@ async function start() {
               worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
               loggedInUsers[uuid]?.forEach(o => {
                 if (o.viewedUser == user.id)
-                  o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
-              });
-              break;
+                  o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs,
+                  [worker.messageBuffer, worker.messageBufferCount]]))
+              })
+              break
           }
         })
         let data3 = await getExternalEvent(worker)
 
-        //if (data.tsh.tsid == 24)
         let tempServerEvent = data3.sei.E.find(e => e.EID == 106)
         if (data3.glt.TSIP && data3.glt.TSZ) {
           data.gameURL = `${data3.glt.TSIP}`
           data.gameServer = data3.glt.TSZ
         }
         else if (tempServerEvent?.TSID == 24) {
-          data.gameServer = "EmpireEx_42"
-          data.gameURL = "ep-live-temp1-game.goodgamestudios.com"
+          data.gameServer = 'EmpireEx_42'
+          data.gameURL = 'ep-live-temp1-game.goodgamestudios.com'
         }
         else if (tempServerEvent?.TSID == 21) {
-          data.gameServer = "EmpireEx_42"
-          data.gameURL = "ep-live-temp1-game.goodgamestudios.com"
+          data.gameServer = 'EmpireEx_42'
+          data.gameURL = 'ep-live-temp1-game.goodgamestudios.com'
         }
-        else if (data3.sei.E.find(e => e.EID == 113)) { //PLEASECHECKLATER:
-          data.gameServer = "EmpireEx_45"
-          data.gameURL = "ep-live-battle1-game.goodgamestudios.com"
+        else if (data3.sei.E.find(e => e.EID == 113)) {
+          data.gameServer = 'EmpireEx_45'
+          data.gameURL = 'ep-live-battle1-game.goodgamestudios.com'
         }
         else {
-          console.error("Couldn't find compatible event")
-          await worker.terminate()
-          return
+          console.error('Couldn\'t find compatible event')
+          return await worker.terminate()
         }
         data.tempServerData = data3
         await worker.terminate()
       }
     }
-    else {
-      let instance = instances.find(e => Number(e.gameID) == data.server)
-      data = { ...data, ...instance }
-    }
+    else data = { ...data, ...instances.find(e => Number(e.gameID) == data.server) }
 
-    const worker = new Worker("./ggebot.js", { workerData: { ...data, discordData } });
+    const worker = new Worker('./ggebot.js', { workerData: { ...data, discordData } })
 
     worker.messageBuffer = messageBuffer
     worker.messageBufferCount = messageBufferCount
+
     if (user.id)
       botMap.set(user.id, worker)
 
@@ -515,85 +514,83 @@ async function start() {
       if (botMap.get(user.id) == worker) {
         botMap.set(user.id, undefined)
         if (user.state == true)
-          return createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount) //Eat my recursive ass ;)
+          createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
       }
     }
 
-    worker.on("message", obj => {
+    worker.on('message', obj => {
       switch (obj[0]) {
         case ActionType.KillBot:
-          userDatabase.prepare(`UPDATE SubUsers SET state = ? WHERE id = ?`).run(0, user.id)
+          userDatabase.prepare('UPDATE SubUsers SET state = ? WHERE id = ?').run(0, user.id)
           removeBot(user.id)
           
           loggedInUsers[uuid]?.forEach(({ws}) => 
               ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
           break
         case ActionType.GetLogs:
-          if (uuid) {
-            worker.messageBuffer[worker.messageBufferCount] = obj[1]
-            worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
-            loggedInUsers[uuid]?.forEach(o => {
-              if (o.viewedUser == user.id)
-                o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
-            })
-          }
-          break;
+          worker.messageBuffer[worker.messageBufferCount] = obj[1]
+          worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
+          loggedInUsers[uuid]?.forEach(o => 
+              o.viewedUser == user.id ? o.ws.send(JSON.stringify([
+                ErrorType.Success, 
+                ActionType.GetLogs,
+                [worker.messageBuffer, worker.messageBufferCount]
+              ])) : undefined)
+          break
         case ActionType.StatusUser:
           obj[1].id = user.id
-          loggedInUsers[uuid]?.forEach(o => {
-            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.StatusUser, obj[1]]))
-          })
+          loggedInUsers[uuid]?.forEach(o =>
+            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.StatusUser, obj[1]])))
           break
         case ActionType.RemoveUser:
-          worker.off("exit", onTerminate)
+          worker.off('exit', onTerminate)
           removeUser(uuid, user)
           break
         case ActionType.SetUser:
-          userDatabase.prepare(`UPDATE SubUsers SET pass = ? WHERE uuid = ? AND id = ?`)
+          userDatabase.prepare('UPDATE SubUsers SET pass = ? WHERE uuid = ? AND id = ?')
             .run(obj[1], uuid, user.id)
           break
       }
     })
 
-    worker.on("exit", onTerminate)
+    worker.on('exit', onTerminate)
 
     await new Promise(resolve => {
-      let func = async (obj) => {
+      const func = obj => {
         if (obj[0] != ActionType.Started)
           return
         resolve()
-        worker.once("exit", resolve)
-        worker.off("message", func)
+        worker.once('exit', resolve)
+        worker.off('message', func)
       }
 
-      worker.on("message", func)
+      worker.on('message', func)
     })
 
     return worker
   }
 
-  const removeBot = (id) => {
+  const removeBot = id => {
     const worker = botMap.get(id)
 
     if (worker == undefined)
-      throw "No worker found"
+      throw 'No worker found'
+    
     botMap.delete(id)
-
     worker.terminate()
   }
 
   const users = getUser()
   for (let i = 0; i < users.length; i++) {
-    const user = users[i];
+    const user = users[i]
 
-    if (user.state == 0)
-      continue
-    createBot(user.uuid, user)
+    if (user.state != 0)
+      createBot(user.uuid, user)
   }
 
-  let wss = new WebSocketServer({ noServer: true })
+  const wss = new WebSocketServer({ noServer: true })
+  const options = {}
 
-  let options = {}
   if (certFound) {
     options.key = await fs.readFile(ggeConfig.privateKey, 'utf8')
     options.cert = await fs.readFile(ggeConfig.cert, 'utf8')
@@ -602,31 +599,20 @@ async function start() {
   const socket = (certFound ? https : http)
     .createServer(options, app).listen(ggeConfig.webPort)
 
-  socket.on("upgrade", (req, socket, head) => {
-    wss.handleUpgrade(req, socket, head, socket => {
-      wss.emit('connection', socket, req)
-    })
-  })
+  socket.on('upgrade', (req, socket, head) =>
+    wss.handleUpgrade(req, socket, head, socket =>
+      wss.emit('connection', socket, req)))
 
-  wss.addListener("connection", (ws, req) => {
-    const refreshUsers = () => {
-      try {
-        let users = getUser(uuid)
-
-        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [users, plugins]]))
-      }
-      catch (e) {
-        console.error(e)
-        ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetUsers, {}]))
-      }
-    }
-    let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith("uuid="))
+  wss.addListener('connection', (ws, req) => {
+    const refreshUsers = () => 
+        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]]))
+    
+    let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith('uuid='))
       .substring(5, Infinity)
 
-    if (!loginCheck(uuid)) {
-      ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
-      return
-    }
+    if (!loginCheck(uuid))
+      return ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
+    
     loggedInUsers[uuid] ??= []
     loggedInUsers[uuid].push({ ws })
 
@@ -644,7 +630,7 @@ async function start() {
       worker.postMessage([ActionType.StatusUser])
     })
     if (hasDiscord) {
-      const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?;').get(uuid)
+      const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid)
       try {
         if (!row.discordGuildId)
           throw "no discordGuildId"
@@ -653,7 +639,7 @@ async function start() {
         let userIsAdmin = false
         try {
           userIsAdmin = client.guilds.cache.get(row.discordGuildId).members.cache.get(row.discordUserId)
-            .permissions.has("Administrator");
+            .permissions.has("Administrator")
         } catch (e) {
           console.error(e)
         }
@@ -670,51 +656,38 @@ async function start() {
           ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
         }
         else {
-          userDatabase.prepare(`UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?`) 
+          userDatabase.prepare('UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?') 
             .run(undefined, undefined, uuid)
 
           loggedInUsers[uuid].forEach(({ws}) =>
-            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, undefined]])))
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, 
+              [ggeConfig.discordClientId, undefined]])))
         }
       }
       catch (e) {
-        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
+        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, 
+          [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
         console.error(e)
       }
     }
 
-    ws.addListener("message", async event => {
+    ws.addListener('message', async event => {
       let [err, action, obj] = JSON.parse(event.toString())
-      err = Number(err)
-      action = Number(action)
-
-      getUser(uuid)
 
       switch (action) {
-        case ActionType.GetUsers: {
+        case ActionType.GetUsers:
           refreshUsers()
-          break;
-        }
+          break
         case ActionType.StatusUser:
           break
-        case ActionType.AddUser: {
-          let user = new User(obj)
-          try {
-            addUser(uuid, user)
-          }
-          catch (e) {
-            console.error(e)
-            ws.send(JSON.stringify([ErrorType.Generic, ActionType.AddUser, {}]))
-          }
-          finally {
-            refreshUsers()
-          }
-          break;
-        }
+        case ActionType.AddUser:
+          addUser(uuid, new User(obj))
+          refreshUsers()
+          break
         case ActionType.RemoveUser: {
           let lastError = undefined
           for (let i = 0; i < obj.length; i++) {
-            const user = obj[i];
+            const user = obj[i]
             try {
               removeUser(uuid, user)
             }
@@ -727,97 +700,81 @@ async function start() {
             ws.send(JSON.stringify([ErrorType.Generic, ActionType.RemoveUser, {}]))
           }
           refreshUsers()
-
-          break;
+          break
         }
-        case ActionType.SetUser: {
-          let user = new User(obj)
-
-          try {
-            let oldUser = getSpecificUser(uuid, user)
-            user = changeUser(uuid, user)
-            if (user.state == 0) {
-              try {
-                removeBot(user.id)
-              } catch (e) {
-                console.warn(e)
-              }
+        case ActionType.SetUser:
+          let oldUser = getSpecificUser(uuid, new User(obj))
+          let user = changeUser(uuid, user)
+          if (user.state == 0) {
+            try {
+              removeBot(user.id)
+            } catch (e) {
+              console.warn(e)
             }
+          }
+          else {
+            let worker = botMap.get(user.id)
+            if (worker == undefined)
+              worker = await createBot(uuid, user)
             else {
-              let worker = botMap.get(user.id)
-              if (worker == undefined) {
-                worker = await createBot(uuid, user)
+              let restartedUser = false
+              for (const [key, value] of Object.entries(oldUser.plugins)) {
+                if (user.plugins[key].state == value.state)
+                  continue
+                restartedUser = true
+                removeBot(user.id)
+                worker = await createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
+                break
               }
-              else {
-                let restartedUser = false
-                for (const [key, value] of Object.entries(oldUser.plugins)) {
-                  if (user.plugins[key].state == value.state)
-                    continue
-                  restartedUser = true
-                  removeBot(user.id)
-                  worker = await createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
-                  break
-                }
-                if (!restartedUser) {
-                  let data = structuredClone(user)
+              if (!restartedUser) {
+                let data = structuredClone(user)
 
-                  plugins.forEach(plugin => plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : void 0)
-                  plugins.forEach(plugin => data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : void 0)
-                  worker.postMessage([ActionType.SetPluginOptions, data])
-                }
+                plugins.forEach(plugin => plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : void 0)
+                plugins.forEach(plugin => data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : void 0)
+                worker.postMessage([ActionType.SetPluginOptions, data])
               }
             }
           }
-          catch (e) {
-            console.error(e)
-            ws.send(JSON.stringify([ErrorType.Generic, ActionType.SetUser, {}]))
-          }
-          finally {
-            loggedInUsers[uuid]?.forEach(({ws}) => 
-                ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
-          }
-          break;
-        }
+          loggedInUsers[uuid]?.forEach(({ ws }) =>
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
+          break
         case ActionType.GetLogs: {
           if (!obj) {
-            let i = loggedInUsers[uuid].findIndex(o => o.ws == ws)
-            loggedInUsers[uuid][i].viewedUser = undefined
+            loggedInUsers[uuid].find(o => o.ws == ws).viewedUser = undefined
             break
           }
           const user = new User(obj)
           const worker = botMap.get(user.id)
 
-          if (worker == undefined) {
-            console.warn("Invalid bot")
-            ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetLogs, {}]))
-            return
-          }
-          let i = loggedInUsers[uuid].findIndex(obj => obj.ws == ws)
-          loggedInUsers[uuid][i].viewedUser = user.id
-          loggedInUsers[uuid][i].ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, [worker.messageBuffer, worker.messageBufferCount]]))
-          break;
+          if (worker == undefined)
+            return ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetLogs, {}]))
+          
+          let loggedInUser = loggedInUsers[uuid].find(obj => obj.ws == ws)
+          loggedInUser.viewedUser = user.id
+          loggedInUser.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, 
+            [worker.messageBuffer, worker.messageBufferCount]]))
+          break
         }
-        default: {
+        default:
           ws.send(JSON.stringify([ErrorType.UnknownAction, ActionType.Unknown, {}]))
-        }
       }
     })
-    ws.addListener("close", () => {
+    ws.addListener('close', () => {
       if (!uuid)
         return
       let index = loggedInUsers[uuid].findIndex((obj) => obj.ws == ws)
       if (index == -1)
-        throw Error("Couldn't find index of logged in user")
+        throw Error('Couldn\'t find index of logged in user')
 
       loggedInUsers[uuid].splice(index, 1)
 
       if (loggedInUsers[uuid].length == 0)
         if (!delete loggedInUsers[uuid])
-          throw "Could not remove a user that logged off"
+          throw 'Could not remove a user that logged off'
     })
   })
 
-  console.info("Started")
+  console.info('Started')
 }
 
 start()
