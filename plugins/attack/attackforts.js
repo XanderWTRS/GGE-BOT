@@ -224,7 +224,6 @@ events.once("load", async () => {
 
                     Object.assign(oldAreaInfo, areaInfo)
                     if(!allowedLevels.includes(areaInfo.extraData[2])) {
-                        towerTime.set(areaInfo, timeSinceEpoch + 60 * 60 * 1000) //HACK:
                         continue
                     }
 
@@ -408,6 +407,10 @@ events.once("load", async () => {
         let minimumTimeTillHit = Infinity
 
         sortedAreaInfo.forEach(e => {
+            if ((towerTime.get(e) - Date.now()) <= 0 && !allowedLevels.includes(areaInfo.extraData[2])) {
+                towerTime.set(areaInfo, timeSinceEpoch + 60 * 60 * 1000) //HACK:
+                return
+            }
             if (!movements.find(a => a.x == e.x && a.y == e.y))
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
