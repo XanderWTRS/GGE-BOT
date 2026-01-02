@@ -33,15 +33,19 @@ userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "PlayerInfo" (
 	"id"	INTEGER UNIQUE,
 	"timeTillTimeout"	INTEGER,
+    "lastHitTime" INTEGER,
 	PRIMARY KEY("id")
 )`)
-userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
-.run(botConfig.id, 0)
 
-let {timeTillTimeout} = userDatabase.prepare('Select timeTillTimeout From PlayerInfo WHERE id=?')
+userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
+    .run(botConfig.id, 0)
+
+let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
     .get(botConfig.id)
 
 const setTimeTillTimeout = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
+
+const setLastHitTime = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -247,14 +251,22 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                 do {
                     const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000
                     let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
+                    const time = Date.now()
+                    const deltaLastHitTime = lastHitTime - time
+                    const deltaTimeTillTimeout = (timeTillTimeout - time) - deltaLastHitTime
 
-                    if (timeTillTimeout - Date.now() <= 0) {
-                        const timeTillNextHit = 1000 * 60 * 30 - (timeTillTimeout - Date.now())
+                    if (deltaTimeTillTimeout <= 0) {
+                        //Issue is that when you turn it off timeTillTimeout increases
+                        //To mitigate I need to keep lastHitTime
+                        const timeTillNextHit = 1000 * 60 * 30 - deltaTimeTillTimeout
                         console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
                         await timeout(timeTillNextHit)
-                        timeTillTimeout = Date.now() + napTime
+                        timeTillTimeout = time + napTime
                         setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
                     }
+
+                    lastHitTime = Date.now()
+                    setLastHitTime.run(lastHitTime, botConfig.id)
 
                     if(!await (attacks.shift()()))
                         continue
