@@ -225,7 +225,7 @@ const napTime = 1000 * 60 * 60 * 2
 const waitToAttack = callback => new Promise((resolve, reject) => {
     if (timeTillTimeout == 0) {
         timeTillTimeout = Date.now() + napTime
-        setTimeTillTimeout.run(timeTillTimeout)
+        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
     }
 
     attacks.push(() => {
@@ -255,7 +255,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                         console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
                         await timeout(timeTillNextHit)
                         timeTillTimeout = Date.now() + napTime
-                        setTimeTillTimeout.run(timeTillTimeout)
+                        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
                     }
                     else
                         await timeout(Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt)
