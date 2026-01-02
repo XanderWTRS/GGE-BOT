@@ -8,7 +8,7 @@ if (isMainThread)
         hidden: true
     }
 
-const { Client, Events, GatewayIntentBits } = require('discord.js')
+const { Client, Events, GatewayIntentBits, Collection } = require('discord.js')
 const ggeConfig = require("../../ggeConfig.json")
 const { events, botConfig } = require('../../ggebot')
 
