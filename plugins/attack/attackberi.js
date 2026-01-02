@@ -131,7 +131,7 @@ events.once("load", async () => {
                 await skipTarget(AI)
 
                 const level = 70
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, pluginOptions.useCoin)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions.useCoin)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []

@@ -154,7 +154,7 @@ events.once("load", async () => {
                 await skipTarget(AI)
 
                 const level = Number(eventAutoScalingCamps.find(obj => AI.extraData[5] == obj.eventAutoScalingCampID).camplevel)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, pluginOptions.useCoin)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions.useCoin)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
