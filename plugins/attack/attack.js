@@ -40,8 +40,10 @@ userDatabase.exec(
 userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
     .run(botConfig.id, 0)
 
-let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
-    .get(botConfig.id)
+let {timeTillTimeout, lastHitTime} = 0 //userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
+    // .get(botConfig.id)
+timeTillTimeout = 0
+lastHitTime = 0
 
 const setTimeTillTimeout = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
 
@@ -253,7 +255,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
                     const time = Date.now()
                     const deltaLastHitTime = lastHitTime - time
-                    const deltaTimeTillTimeout = (timeTillTimeout - time) - deltaLastHitTime
+                    const deltaTimeTillTimeout = (timeTillTimeout - time) //- deltaLastHitTime
 
                     if (deltaTimeTillTimeout <= 0) {
                         //Issue is that when you turn it off timeTillTimeout increases
