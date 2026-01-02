@@ -600,3 +600,10 @@ let getAllianceQuestPointCount = async (interaction) => {
 })
 
 module.exports = { genericAutoComplete }
+
+try {
+    require('../../plugins-extra/discord/extraSlashCommands.js')
+}
+catch(e) {
+    console.debug(e)
+}
