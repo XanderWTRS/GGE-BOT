@@ -45,7 +45,7 @@ let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeou
 
 const setTimeTillTimeout = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
 
-const setLastHitTime = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
+const setLastHitTime = userDatabase.prepare('UPDATE PlayerInfo SET lastHitTime = ? WHERE id = ?')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
