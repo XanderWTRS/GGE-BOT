@@ -248,8 +248,6 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000
                     let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
 
-                    if(!await (attacks.shift()()))
-                        continue
                     if (timeTillTimeout - Date.now() <= 0) {
                         const timeTillNextHit = 1000 * 60 * 30 - (timeTillTimeout - Date.now())
                         console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
@@ -257,8 +255,11 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                         timeTillTimeout = Date.now() + napTime
                         setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
                     }
-                    else
-                        await timeout(Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt)
+
+                    if(!await (attacks.shift()()))
+                        continue
+                    
+                    await timeout(Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt)
                 }
                 while (attacks.length > 0);
             }
