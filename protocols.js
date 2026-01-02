@@ -700,7 +700,7 @@ const clientGetHighscore = (LT, LID, SV) => {
 }
 const PlayerAlliance = e => ({
     allianceID: Number(e.AID),
-    //??? : Number(e.R),
+    rank : Number(e.R),
     allianceName: String(e.N),
     //??? : Number(e.ACF),
     //??? : Number(e.SA)
@@ -748,7 +748,7 @@ const JoinOpenAlliance = e => ({
     playerAlliance: PlayerAlliance(e.gal)
 })
 
-const clientJoinOpenAlliance = (AID) => {
+const clientJoinOpenAlliance = AID => {
     sendXT("joa", JSON.stringify({ AID }))
 
     return async () => {
@@ -1025,6 +1025,43 @@ const ReturningAttack = e => ({
     ownerInfo: e.O? OwnerInfo(e.O) : undefined
 })
 
+const clientGetAllianceByID = AID => {
+    sendXT("ain", JSON.stringify({ AID }))
+
+    return async () => {
+        try {
+            let [obj, result] = await waitForResult("ain", 1000 * 10, obj => 
+                obj?.A.AID == AID)
+
+            return Alliance({ ...obj.A, result: result })
+        }
+        catch (e) {
+            console.warn(e)
+            return { result: -1 }
+        }
+    }
+}
+
+const clientGetAllianceByName = name => {
+    sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
+
+    return async () => {
+        let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
+            if (result != 0)
+                return false
+
+            if (obj.LT != 11 || obj.SV.toLowerCase() != name.toLowerCase())
+                return false
+            return true
+        })
+
+        let item = obj.L?.find(e => e[2][1].toLowerCase() == name.toLowerCase())
+        if (item == undefined) {
+            throw Error("ALLIANCE_NOT_FOUND")
+        }
+        return clientGetAllianceByID(item[2][0])()
+    }
+}
 module.exports = {
     ClientCommands: {
         getHighScore: clientGetHighscore,
@@ -1042,7 +1079,9 @@ module.exports = {
         getPlayerEventPoints: clientGetPlayerEventPoints,
         joinArea: clientJoinArea,
         searchPlayerName: clientSearchPlayerName,
-        allianceQuestPointCount: clientAllianceQuestPointCount
+        allianceQuestPointCount: clientAllianceQuestPointCount,
+        getAllianceByID: clientGetAllianceByID,
+        getAllianceByName : clientGetAllianceByName
     },
     kingdomLock,
     areaInfoLock,

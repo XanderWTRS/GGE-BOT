@@ -2,53 +2,12 @@ const name = "Slash Commands"
 if (require('node:worker_threads').isMainThread)
     return module.exports = { name }
 
-const { Events, SlashCommandBuilder, Interaction, Collection, REST, Routes } = require('discord.js')
-const { client, clientReady } = require('./discord')
+const { Events, SlashCommandBuilder, Interaction } = require('discord.js')
+const { client, clientReady, commands } = require('./discord')
 const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggebot")
 const { ClientCommands, HighscoreType, AreaType } = require('../../protocols.js')
 const ggeConfig = require("../../ggeConfig.json")
 
-let commands = new Collection()
-async function refreshCommands() {
-    await clientReady
-    const rest = new REST().setToken(ggeConfig.discordToken)
-    if (commands.size == 0)
-        return console.warn(`[${name}] No commands`)
-    
-    await rest.put(
-        Routes.applicationGuildCommands(ggeConfig.discordClientId, botConfig.discordData.discordGuildId),
-        { body: commands.map(command => command.data.toJSON()) },
-    )
-}
-client.on(Events.InteractionCreate, async interaction => {
-    const command = commands.get(interaction.commandName)
-
-    if (!command) {
-        console.error(`No command matching ${interaction.commandName} was found.`)
-        return
-    }
-
-    if (interaction.isAutocomplete()) {
-        try {
-            await command.autoComplete(interaction)
-        } catch (error) {
-            console.error(error)
-        }
-        return
-    }
-    if (!interaction.isChatInputCommand()) return
-
-    try {
-        await command.execute(interaction)
-    } catch (error) {
-        console.error(error)
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true })
-        } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true })
-        }
-    }
-})
 let playerids = []
 async function getStormRanks(i) {
     await i.deferReply()
@@ -640,4 +599,4 @@ let getAllianceQuestPointCount = async (interaction) => {
     commands.set(e.data.name, e)
 })
 
-refreshCommands.bind(this)()
+module.exports = { genericAutoComplete }
