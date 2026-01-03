@@ -124,11 +124,12 @@ events.once("load", async () => {
         return console.warn(`${name} Event not running`)
 
     if (eventInfo.EDID == -1) {
-        const eventDifficultyID =
-            Number(eventsDifficulties.find(e =>
-                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID && e.eventID == eventID
-                    .difficultyID))
-
+        const eventDifficultyID = 
+            Number(eventsDifficulties.find(e => 
+                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID && 
+                e.eventID == eventID)
+                .difficultyID)
+                
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
 
