@@ -408,7 +408,7 @@ events.once("load", async () => {
 
         sortedAreaInfo.forEach(e => {
             if ((towerTime.get(e) - Date.now()) <= 0 && !allowedLevels.includes(e.extraData[2])) {
-                towerTime.set(e, timeSinceEpoch + 60 * 60 * 1000) //HACK:
+                towerTime.set(e, new Date.now() + 60 * 60 * 1000) //HACK:
                 return
             }
             if (!movements.find(a => a.x == e.x && a.y == e.y))
