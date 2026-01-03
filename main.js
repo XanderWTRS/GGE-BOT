@@ -45,7 +45,7 @@ const ggeConfigExample = `{
 const loggedInUsers = {}
 const botMap = new Map()
 
-const userDatabase = new DatabaseSync('./user.db')
+const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60})
 userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "Users" (
 	"username"	TEXT NOT NULL UNIQUE,

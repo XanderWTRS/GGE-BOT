@@ -27,7 +27,7 @@ const { botConfig, playerInfo } = require('../../ggebot')
 const { getPermanentCastle } = require('../../protocols')
 const stables = require('../../items/horses.json')
 
-const userDatabase = new DatabaseSync('./user.db')
+const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
 
 userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "PlayerInfo" (
@@ -40,8 +40,8 @@ userDatabase.exec(
 userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
     .run(botConfig.id, 0)
 
-let {timeTillTimeout, lastHitTime} = 0 //userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
-    // .get(botConfig.id)
+let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
+    .get(botConfig.id)
 timeTillTimeout = 0
 lastHitTime = 0
 
