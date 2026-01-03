@@ -307,7 +307,7 @@ events.once("load", async () => {
                 })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach(unitSlot =>
-                    maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
+                    maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length > 0 ?
                         attackerMeleeTroops : attackerRangeTroops,
                         maxTroops))
 
