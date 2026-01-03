@@ -407,7 +407,7 @@ events.once("load", async () => {
         let minimumTimeTillHit = Infinity
 
         sortedAreaInfo.forEach(e => {
-            if ((towerTime.get(e) - Date.now()) <= 0 && !allowedLevels.includes(areaInfo.extraData[2])) {
+            if ((towerTime.get(e) - Date.now()) <= 0 && !allowedLevels.includes(e.extraData[2])) {
                 towerTime.set(areaInfo, timeSinceEpoch + 60 * 60 * 1000) //HACK:
                 return
             }
