@@ -354,7 +354,7 @@ async function start() {
           if (!guildId)
             return response.send('Could not get guild id!')
           let userIsAdmin = client.guilds.cache.get(guildId)
-            .members.cache.get(discordIdentifier.id)?.permissions?.has('Administrator')
+            .members?.cache.get(discordIdentifier.id)?.permissions?.has('Administrator')
           if (userIsAdmin == undefined)
             return response.send('User isn\'t in guild')
           if (!userIsAdmin)

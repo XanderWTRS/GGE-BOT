@@ -14,6 +14,6 @@ if not exist ".git"\ (
 
 git pull origin main --recurse-submodules
 call npm i
-start node main.js
+start node main.js --no-warnings
 start http://127.0.0.1:3001
 pause
