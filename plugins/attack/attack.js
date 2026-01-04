@@ -255,10 +255,10 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
                     const time = Date.now()
                     const deltaLastHitTime = lastHitTime - time
-                    const deltaTimeTillTimeout = (timeTillTimeout - time)
+                    const deltaTimeTillTimeout = timeTillTimeout - time
 
-                    if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
-                        const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout + deltaLastHitTime)
+                    if (deltaTimeTillTimeout - deltaLastHitTime <= 0) {
+                        const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
                         console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
                         await timeout(timeTillNextHit)
                         timeTillTimeout = Date.now() + napTime
