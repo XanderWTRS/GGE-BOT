@@ -255,12 +255,10 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
                     const time = Date.now()
                     const deltaLastHitTime = lastHitTime - time
-                    const deltaTimeTillTimeout = (timeTillTimeout - time) //- deltaLastHitTime
+                    const deltaTimeTillTimeout = (timeTillTimeout - time)
 
                     if (deltaTimeTillTimeout <= 0) {
-                        //Issue is that when you turn it off timeTillTimeout increases
-                        //To mitigate I need to keep lastHitTime
-                        const timeTillNextHit = 1000 * 60 * 30 - deltaTimeTillTimeout
+                        const timeTillNextHit = 1000 * 60 * 30 - deltaTimeTillTimeout - deltaLastHitTime
                         console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
                         await timeout(timeTillNextHit)
                         timeTillTimeout = time + napTime
