@@ -90,20 +90,22 @@ const pluginOptions = botConfig.plugins[require('path').basename(__filename).sli
     
                     let mention = "<@&1266227924592496670> "
 
-                    try {
-                        const channel = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
+                    if (pluginOptions.alertChannelID) {
+                        try {
+                            const channel = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
 
-                        channel.send(
-                            mention +
-                            `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
-                            ` <t:${Math.round(Date.now() / 1000 + deltaTime)}:R>`
-                        )
-                        return true
+                            channel.send(
+                                mention +
+                                `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
+                                ` <t:${Math.round(Date.now() / 1000 + deltaTime)}:R>`
+                            )
+                            return true
+                        }
+                        catch (e) {
+                            console.warn(e)
+                        }
                     }
-                    catch (e) {
-                        console.warn(e)
-                    }
-                    
+
                 }
                 if (deltaTime <= 0 && !mapObject.updateRealtime) {
                     mapObject.updateRealtime = true

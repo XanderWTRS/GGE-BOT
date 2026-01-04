@@ -41,6 +41,8 @@ mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapO
             map.set(mapObject, true)
 
             let mention = "<@&1266227556529606676> "
+
+            if(pluginOptions.alertChannelID) {
                 try {
                     const channel = channelID = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
                     channel.send(mention + `${mapObject.x}:${mapObject.y} ${type == 9 ? "(Easy)" : "(Hard)"}`)
@@ -49,7 +51,7 @@ mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapO
                 catch (e) {
                     console.warn(e)
                 }
-            
+            }
         }
 
         return
