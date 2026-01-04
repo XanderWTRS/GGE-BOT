@@ -37,7 +37,8 @@ clientReady.then(async client => {
     }
     let channelAquaAlert
     try {
-     channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
+        if (pluginOptions.channelAquaAlert)
+            channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
     }
     catch (e) {
         console.warn(`[${name}] ${e}`)
