@@ -211,26 +211,27 @@ events.once("load", async () => {
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
-                    const oldAreaInfo = sortedAreaInfo[i]
+                    const areaInfo = sortedAreaInfo[i]
                     
-                    if(movements.find(e => e.x == oldAreaInfo.x && e.y == oldAreaInfo.y))
+                    if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
 
-                    let time = towerTime.get(oldAreaInfo) - timeSinceEpoch
+                    let time = towerTime.get(areaInfo) - timeSinceEpoch
                     if (time > 0)
                         continue
 
-                    const areaInfo = (await ClientCommands.getAreaInfo(kid, oldAreaInfo.x, oldAreaInfo.y, oldAreaInfo.x, oldAreaInfo.y)()).areaInfo[0]
+                    Object.assign(areaInfo, 
+                        (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)())
+                        .areaInfo[0])
 
-                    Object.assign(oldAreaInfo, areaInfo)
                     if(!allowedLevels.includes(areaInfo.extraData[2])) {
                         continue
                     }
 
-                    towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[5] * 1000)
-                    if(oldAreaInfo.extraData[3] > 0)
+                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[5] * 1000)
+                    if(areaInfo.extraData[3] > 0)
                         continue
-                    if (towerTime.get(oldAreaInfo) - Date.now() > 0)
+                    if (towerTime.get(areaInfo) - Date.now() > 0)
                         continue
 
                     index = i
@@ -406,17 +407,19 @@ events.once("load", async () => {
     while (true) {
         let minimumTimeTillHit = Infinity
 
-        sortedAreaInfo.forEach(e => {
-            if ((towerTime.get(e) - Date.now()) <= 0 && !allowedLevels.includes(e.extraData[2])) {
-                towerTime.set(e, Date.now() + 60 * 60 * 1000) //HACK:
-                return
-            }
-            if (!movements.find(a => a.x == e.x && a.y == e.y))
-                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
-        })
+        for (let i = 0; i < sortedAreaInfo.length; i++) {
+            const areaInfo = sortedAreaInfo[i]
+
+            if (!allowedLevels.includes(areaInfo.extraData[2]))
+                if((towerTime.get(areaInfo) - Date.now()) <= 0)
+                    continue
+            
+            if (!movements.find(movement => movement.x == areaInfo.x && movement.y == areaInfo.y))
+                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(areaInfo))
+        }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next fortress hit`)
+        console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next possible fortress hit`)
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());
