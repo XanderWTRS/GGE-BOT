@@ -5,7 +5,14 @@ const name = "Attack Fortress (Fire Peaks)"
 if (isMainThread)
     return module.exports = {
         name: name,
-        description: "Hits fortresses"
+        description: "Hits fortresses",
+        pluginOptions: [
+            {
+                type: "Text",
+                label: "Com White List",
+                key: "commanderWhiteList"
+            }
+        ]
     }
 
 const { AreaType, KingdomID } = require('../../protocols')

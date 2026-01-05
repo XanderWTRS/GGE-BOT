@@ -16,7 +16,12 @@ if (isMainThread)
                 type: "Checkbox",
                 label: "Use TimeSkips",
                 key: "useTimeSkips",
-            }
+            },
+            {
+                type: "Text",
+                label: "Com White List",
+                key: "commanderWhiteList"
+            },
         ]
     }
 

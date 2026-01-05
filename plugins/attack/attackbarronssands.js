@@ -17,6 +17,11 @@ if (isMainThread)
                 label: "Use TimeSkips",
                 key: "useTimeSkips",
             },
+            {
+                type: "Text",
+                label: "Com White List",
+                key: "commanderWhiteList"
+            }
         ]
     }
 
