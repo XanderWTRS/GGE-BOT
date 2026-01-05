@@ -259,8 +259,10 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
 
                     if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
                         const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
-                        console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
-                        await timeout(timeTillNextHit)
+                        if(timeTillNextHit > 0) {
+                            console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
+                            await timeout(timeTillNextHit)
+                        }
                         timeTillTimeout = Date.now() + napTime
                         setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
                     }

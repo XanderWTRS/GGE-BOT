@@ -21,7 +21,7 @@ if (isMainThread)
                 type: "Text",
                 label: "Com White List",
                 key: "commanderWhiteList"
-            },
+            }
         ]
     }
 
