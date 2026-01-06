@@ -407,6 +407,12 @@ async function start() {
     plugins.forEach(plugin => 
       data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : undefined)
 
+    const instance = instances.find(e => Number(e.gameID) == data.server)
+
+    data.gameURL ??= instance.gameURL
+    data.gameServer ??= instance.gameServer
+    data.gameID ??= instance.gameID
+
     if (user.externalEvent == true) {
       let users = getUser(uuid)
       let bot = users.find(e => user.name == e.id && user.id != e.id && e.state)
@@ -454,6 +460,10 @@ async function start() {
         data2.plugins = []
         data2.externalEvent = false
 
+        data2.gameURL ??= instance.gameURL
+        data2.gameServer ??= instance.gameServer
+        data2.gameID ??= instance.gameID
+
         const worker = new Worker('./ggebot.js', { workerData: { ...data2, discordData } })
         worker.messageBuffer = messageBuffer
         worker.messageBufferCount = messageBufferCount
@@ -499,7 +509,6 @@ async function start() {
         await worker.terminate()
       }
     }
-    else data = { ...data, ...instances.find(e => Number(e.gameID) == data.server) }
 
     const worker = new Worker('./ggebot.js', { workerData: { ...data, discordData } })
 

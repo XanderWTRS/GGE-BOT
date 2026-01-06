@@ -352,11 +352,11 @@ xtHandler.on("lli", async (obj,r) => {
         }, 25 * 1000)
 
         xtHandler.once("sei", () => {
+            parentPort.postMessage([ActionType.Started])
             console.log("Logged in")
             events.emit("load")
             clearTimeout(timer)
         })
-        parentPort.postMessage([ActionType.Started])
         setInterval(() => sendXT("pin", "<RoundHouseKick>"), 1000 * 60).unref()
         return
     }

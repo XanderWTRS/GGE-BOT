@@ -37,8 +37,8 @@ userDatabase.exec(
 	PRIMARY KEY("id")
 )`)
 
-userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout) VALUES(?,?)`)
-    .run(botConfig.id, 0)
+userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, lastHitTime) VALUES(?,?)`)
+    .run(botConfig.id, 0, 0)
 
 let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
     .get(botConfig.id)
