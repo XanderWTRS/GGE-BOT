@@ -33,11 +33,11 @@ userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "PlayerInfo" (
 	"id"	INTEGER UNIQUE,
 	"timeTillTimeout"	INTEGER,
-    "lastHitTime" INTEGER,
+    "lastHitTime"	INTEGER,
 	PRIMARY KEY("id")
 )`)
 
-userDatabase.prepare(`INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, lastHitTime) VALUES(?,?,?)`)
+userDatabase.prepare('INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, lastHitTime) VALUES(?,?,?)')
     .run(botConfig.id, 0, 0)
 
 let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
