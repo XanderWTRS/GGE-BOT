@@ -587,7 +587,7 @@ function setEvent(obj, result) {
         if (_activeEventList.E?.find(a => a.EID == e.EID))
             return
         
-        console.debug(`Event ${e.EID} has started`)
+        // console.debug(`Event ${e.EID} has started`)
         events.emit("eventStart", e)
     })
     
@@ -595,7 +595,7 @@ function setEvent(obj, result) {
         if (obj.E.find(a => a.EID == e.EID))
             return
         
-        console.debug(`Event ${e.EID} has stopped`)
+        // console.debug(`Event ${e.EID} has stopped`)
         events.emit("eventStop", e)
     })
     

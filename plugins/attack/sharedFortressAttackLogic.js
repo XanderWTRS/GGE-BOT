@@ -100,9 +100,7 @@ async function fortressHit(name, kid, type, level, options) {
         }
 
         const commander = await waitForCommanderAvailable(comList, 
-            (a, b) =>
-                (b.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? true : false) ?? false - 
-                (a.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? true : false) ?? false,
+            !((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true,
             (a, b) => getCommanderStats(b).relicSpeedBonus - getCommanderStats(a).relicSpeedBonus)
         try {
             const attackInfo = await waitToAttack(async () => {

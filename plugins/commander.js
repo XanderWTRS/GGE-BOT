@@ -36,7 +36,7 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     if (sortCallback)
         usableCommanders.sort(sortCallback)
     if (filterCallback)
-        usableCommanders.sort(filterCallback)
+        usableCommanders = usableCommanders.filter(filterCallback)
 
     let LID = usableCommanders[0]?.lordID
 
