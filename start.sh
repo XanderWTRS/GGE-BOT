@@ -24,4 +24,4 @@ then
   gnome-open $URL &
 fi
 
-node main.js --no-warnings
+node --no-warnings main.js
