@@ -22,6 +22,7 @@ if (isMainThread)
 const { events, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
 const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
+const { getKingdomInfoList, KingdomID } = require('../../protocols.js')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 addToWhiteList(25)
@@ -65,6 +66,11 @@ mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapO
 let maxAquaTowers = 60
 
 events.once("load", async (_, r) => {
+        let kingdomInfoList = await getKingdomInfoList()
+    
+        if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+            return console.warn(`[${name}] refusing to run without Storm Islands unlocked`)
+
     setInterval(async () => {
         let currentDate = Date.now()
         if (needSort) {

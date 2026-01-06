@@ -10,143 +10,150 @@ if (isMainThread)
                 label: "Channel ID",
                 key: "channelID",
             },
-            
+
             {
                 type: "Channel",
                 label: "Alert Channel ID",
                 key: "alertChannelID",
             }
         ]
-}
+    }
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggebot")
 const { clientReady } = require('./discord')
 const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
+const { getKingdomInfoList, KingdomID } = require('../../protocols.js')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
-    addToWhiteList(24)
+addToWhiteList(24)
 
-    let maxListedAquaObjects = 64
-    
-    let aquaMapObjects = []
-    
-    let needSort = false
+let maxListedAquaObjects = 64
 
-    let map = new Map()
+let aquaMapObjects = []
 
-    mapObjects[4][24].event.addListener("update", (/**@type {TargetType}*/mapObject) => {
-        if (aquaMapObjects.find(e => mapObject == e) || ![3,6].includes(mapObject.ai[8 - 3])) 
-            return
-        
-        if(mapObject.ai[9 - 3] < 60 * 10) 
-            map.set(mapObject, true)
+let needSort = false
 
-        aquaMapObjects.push(mapObject)
-        needSort = true
-    })
+let map = new Map()
 
-    events.once("load", async () => 
-        setInterval(async () => {
-            let currentDate = Date.now()
-            if (needSort) {
-                aquaMapObjects.sort((a, b) => {
-                    if (a.ai[4 - 3] < b.ai[4 - 3]) return -1
-                    if (a.ai[4 - 3] > b.ai[4 - 3]) return 1
-                    //time
-                    let deltaTimeA = a.ai[9 - 3] - (currentDate - a.timeSinceRequest) / 1000
-                    let deltaTimeB = b.ai[9 - 3] - (currentDate - b.timeSinceRequest) / 1000
-                    if (deltaTimeA < deltaTimeB) return -1
-                    if (deltaTimeA > deltaTimeB) return 1
-                    //Island Type
-                    if (a.ai[8 - 3] != 6 && b.ai[8 - 3] == 6)
-                        return -1
-                    if (a.ai[8 - 3] = 6 && b.ai[8 - 3] != 6)
-                        return 1
+mapObjects[4][24].event.addListener("update", (/**@type {TargetType}*/mapObject) => {
+    if (aquaMapObjects.find(e => mapObject == e) || ![3, 6].includes(mapObject.ai[8 - 3]))
+        return
 
-                    return 0
-                })
-                needSort = false
-            }
+    if (mapObject.ai[9 - 3] < 60 * 10)
+        map.set(mapObject, true)
 
-            let msg = "Coords  Time\n"
+    aquaMapObjects.push(mapObject)
+    needSort = true
+})
 
-            aquaMapObjects.every(async (/**@type {TargetType}*/mapObject, index) => {
-                let deltaTime = mapObject.ai[9 - 3] - (currentDate - mapObject.timeSinceRequest) / 1000
-                let playerId = mapObject.ai[4 - 3]
-                let isSmallIsland = mapObject.ai[8 - 3] == 6
+events.once("load", async () => {
+    let kingdomInfoList = await getKingdomInfoList()
 
-                if (index >= maxListedAquaObjects || playerId > 0)
-                    return false
+    if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+        return console.warn(`[${name}] refusing to run without Storm Islands unlocked`)
 
-                let hour12 = new Date((deltaTime + 3600) * 1000 + currentDate).toLocaleTimeString()
-                if (hour12.length <= 10)
-                    hour12 += ' '
+    setInterval(async () => {
+        let currentDate = Date.now()
+        if (needSort) {
+            aquaMapObjects.sort((a, b) => {
+                if (a.ai[4 - 3] < b.ai[4 - 3]) return -1
+                if (a.ai[4 - 3] > b.ai[4 - 3]) return 1
+                //time
+                let deltaTimeA = a.ai[9 - 3] - (currentDate - a.timeSinceRequest) / 1000
+                let deltaTimeB = b.ai[9 - 3] - (currentDate - b.timeSinceRequest) / 1000
+                if (deltaTimeA < deltaTimeB) return -1
+                if (deltaTimeA > deltaTimeB) return 1
+                //Island Type
+                if (a.ai[8 - 3] != 6 && b.ai[8 - 3] == 6)
+                    return -1
+                if (a.ai[8 - 3] = 6 && b.ai[8 - 3] != 6)
+                    return 1
 
-                msg += `${mapObject.x}\:${mapObject.y}   ${isSmallIsland ? "(Small)" : "(Big)  "} ${hour12} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, deltaTime))), 's')}\n`
-
-                if(map.get(mapObject) != true && deltaTime < 60 * 10) {
-                    map.set(mapObject, true)
-    
-                    let mention = "<@&1266227924592496670> "
-
-                    if (pluginOptions.alertChannelID) {
-                        try {
-                            const channel = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
-
-                            channel.send(
-                                mention +
-                                `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
-                                ` <t:${Math.round(Date.now() / 1000 + deltaTime)}:R>`
-                            )
-                            return true
-                        }
-                        catch (e) {
-                            console.warn(e)
-                        }
-                    }
-
-                }
-                if (deltaTime <= 0 && !mapObject.updateRealtime) {
-                    mapObject.updateRealtime = true
-                    mapObject.event.addListener("update", function func(/**@type {TargetType}*/mapObject) {
-                        let time = mapObject.ai[7 - 3]
-
-                        if (time <= 0 && !(aquaMapObjects.indexOf(mapObject) >= maxListedAquaObjects) && playerId == mapObject.ai[4 - 3])
-                            return
-                        
-                        map.set(mapObject, undefined)
-
-                        mapObject.updateRealtime = false
-                        needSort = true
-                        mapObject.event.removeListener("update", func)
-                    })
-                    needSort = true
-                }
-                return true
+                return 0
             })
-            msg = "```ansi\n" + msg
+            needSort = false
+        }
 
-            while (msg.length >= 2000 - 3)
-                msg = msg.replace(/\n.*$/, '')
+        let msg = "Coords  Time\n"
 
-            msg += "```"
+        aquaMapObjects.every(async (/**@type {TargetType}*/mapObject, index) => {
+            let deltaTime = mapObject.ai[9 - 3] - (currentDate - mapObject.timeSinceRequest) / 1000
+            let playerId = mapObject.ai[4 - 3]
+            let isSmallIsland = mapObject.ai[8 - 3] == 6
 
-                try {
-                    const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
-    
-                    let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                    if (!message || message.author.id != (await clientReady).user.id)
-                        message = await channel.send({ content: "```Loading...```", flags: [4096] })
-    
-                    if (message.content == msg)
-                        return false
-                    message.edit(msg)
-                    return true
+            if (index >= maxListedAquaObjects || playerId > 0)
+                return false
+
+            let hour12 = new Date((deltaTime + 3600) * 1000 + currentDate).toLocaleTimeString()
+            if (hour12.length <= 10)
+                hour12 += ' '
+
+            msg += `${mapObject.x}\:${mapObject.y}   ${isSmallIsland ? "(Small)" : "(Big)  "} ${hour12} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, deltaTime))), 's')}\n`
+
+            if (map.get(mapObject) != true && deltaTime < 60 * 10) {
+                map.set(mapObject, true)
+
+                let mention = "<@&1266227924592496670> "
+
+                if (pluginOptions.alertChannelID) {
+                    try {
+                        const channel = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
+
+                        channel.send(
+                            mention +
+                            `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
+                            ` <t:${Math.round(Date.now() / 1000 + deltaTime)}:R>`
+                        )
+                        return true
+                    }
+                    catch (e) {
+                        console.warn(e)
+                    }
                 }
-                catch(e) {
-                    console.warn(e)
-                    return true
-                }
-            
-        }, 6 * 1000).unref())
+
+            }
+            if (deltaTime <= 0 && !mapObject.updateRealtime) {
+                mapObject.updateRealtime = true
+                mapObject.event.addListener("update", function func(/**@type {TargetType}*/mapObject) {
+                    let time = mapObject.ai[7 - 3]
+
+                    if (time <= 0 && !(aquaMapObjects.indexOf(mapObject) >= maxListedAquaObjects) && playerId == mapObject.ai[4 - 3])
+                        return
+
+                    map.set(mapObject, undefined)
+
+                    mapObject.updateRealtime = false
+                    needSort = true
+                    mapObject.event.removeListener("update", func)
+                })
+                needSort = true
+            }
+            return true
+        })
+        msg = "```ansi\n" + msg
+
+        while (msg.length >= 2000 - 3)
+            msg = msg.replace(/\n.*$/, '')
+
+        msg += "```"
+
+        try {
+            const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
+
+            let message = ((await channel.messages.fetch({ limit: 1 })).first())
+            if (!message || message.author.id != (await clientReady).user.id)
+                message = await channel.send({ content: "```Loading...```", flags: [4096] })
+
+            if (message.content == msg)
+                return false
+            message.edit(msg)
+            return true
+        }
+        catch (e) {
+            console.warn(e)
+            return true
+        }
+
+    }, 6 * 1000).unref()
+})

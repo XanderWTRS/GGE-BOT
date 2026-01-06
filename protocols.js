@@ -578,7 +578,11 @@ const getEventList = async () => { //Never got
 
     return _activeEventList
 }
-xtHandler.on("sei", (obj, result) => {
+
+function setEvent(obj, result) {
+    if(result != 0)
+        return
+    
     obj.E.find(e => {
         if (_activeEventList.E?.find(a => a.EID == e.EID))
             return
@@ -596,8 +600,11 @@ xtHandler.on("sei", (obj, result) => {
     })
     
     Object.assign(_activeEventList, { ...obj, result })
+}
 
-})
+xtHandler.on("fjf", (obj, result) => 
+    setEvent(obj.sei, result))
+xtHandler.on("sei", setEvent)
 
 let _resourceCastleList = {}
 /**
@@ -615,6 +622,9 @@ const getResourceCastleList = async () => { //Never got
 }
 xtHandler.on("gcl", (obj, result) =>
     Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj, result })))
+
+xtHandler.on("fjf", (obj, result) =>
+    Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj.mir.gcl, result })))
 
 const PermanentCastleData = e => Array.from(e.A).map(e => ({
     //Units? : Array.from(U.U).map(Number), 
@@ -649,7 +659,8 @@ const getKingdomInfoList = async () => {
 }
 xtHandler.on("kpi", (obj, result) =>
     Object.assign(_kingdomInfoList, { ...obj, result }))
-
+xtHandler.on("fjf", (obj, result) => 
+    Object.assign(_kingdomInfoList, { ...obj.kpi, result }))
 const Feast = e => ({
     type: Number(e.T),
     deltaTime: Number(e.RT),
