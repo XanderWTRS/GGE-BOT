@@ -99,7 +99,7 @@ async function fortressHit(name, kid, type, level, options) {
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
-        const commander = await waitForCommanderAvailable(comList, 
+        const commander = await waitForCommanderAvailable(comList, commander =>
             !((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true,
             (a, b) => getCommanderStats(b).relicSpeedBonus - getCommanderStats(a).relicSpeedBonus)
         try {
