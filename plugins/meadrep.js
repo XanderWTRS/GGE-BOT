@@ -57,7 +57,7 @@ events.once("load", async () => {
         if (resource?.remainingTime >= (stormAreaInfo.mead - (resourceMead ? resourceMead.count : 0)) / stormAreaInfo.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
             console.log(`[${name}] Using ${Math.floor(resource.remainingTime / 60 / 30)} 30 minute skips`)
             for (let i = 0; i < resource.remainingTime / 60 / 30; i++) {
-                await ClientCommands.getMinuteSkipKingdom(MinuteSkipType["30minute"], targetKingdomID, KingdomSkipType.sendResource)()
+                await ClientCommands.getMinuteSkipKingdom(MinuteSkipType.MS3, targetKingdomID, KingdomSkipType.sendResource)()
             }
             resource.remainingTime = 0
         }
