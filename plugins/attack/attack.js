@@ -201,10 +201,12 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
 
     if (useCoin) {
         const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
-            e.areaID == sourceCastle.extraData[0])
-            .unlockedHorses
-        attackTarget.HBW = unlockedHorses.find(e => 
-            stables.find(a => e == a.wodID).type == 7)
+            (kid == 10 || e.areaID == sourceCastle.extraData[0]))?.unlockedHorses
+            
+        attackTarget.HBW = unlockedHorses?.find(e => {
+            let horse = stables.find(a => e == a.wodID) 
+            return Number(horse.costFactorC1) > 0 && Number(horse.costFactorC2) == 0
+        })
         attackTarget.PTT = 0
     }
     else {
