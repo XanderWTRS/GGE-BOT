@@ -632,7 +632,7 @@ xtHandler.on("gcl", (obj, result) =>
 xtHandler.on("fjf", (obj, result) =>
     Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj.mir.gcl, result })))
 
-const PermanentCastleData = e => Array.from(e.A).map(e => ({
+const PermanentCastleData = e => e.map(e => ({
     //Units? : Array.from(U.U).map(Number), 
     //Tools? : Array.from(U.L).map(Number),
 
@@ -641,12 +641,19 @@ const PermanentCastleData = e => Array.from(e.A).map(e => ({
     kingdomID : Number(e.KID),
 }))
 
-const permanentCastleData = {}
+const permanentCastleData = []
 
 const getPermanentCastle = () => PermanentCastleData(permanentCastleData)
 
-xtHandler.on("gpc", (obj, result) =>
-    Object.assign(permanentCastleData, { ...obj, result }))
+xtHandler.on("gpc", (obj, result) => {
+    obj.A.forEach(e => {
+        const castleData = permanentCastleData.find(a => e.AID == a.AID && e.KID == a.KID)
+        if(!castleData)
+            permanentCastleData.push(e)
+        else
+            Object.assign(castleData, e)
+    })
+})
 
 let _kingdomInfoList = {}
 
