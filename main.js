@@ -173,7 +173,6 @@ async function start() {
     }
     catch {
       console.warn(`Couldn't access font ${ggeConfig.fontPath}`)
-      hasDiscord = false
     }
   }
 
