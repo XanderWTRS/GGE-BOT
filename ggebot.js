@@ -229,9 +229,9 @@ events.once("load", async (_, r) => {
             return
 
         Object.assign(status, {
-            aquamarine: castleProd.aqua,
-            food: castleProd.food,
-            mead: castleProd.mead
+            aquamarine: Math.floor(castleProd.aqua),
+            food: Math.floor(castleProd.food),
+            mead: Math.floor(castleProd.mead)
         })
         parentPort.postMessage([ActionType.StatusUser, status])
     })
