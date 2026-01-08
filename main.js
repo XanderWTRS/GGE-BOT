@@ -168,8 +168,8 @@ async function start() {
 
   if (!ggeConfig.fontPath) {
     try {
-      await fs.access(':\\Windows\\Fonts\\segoeui.ttf')
-      ggeConfig.fontPath = 'C:\\Windows\\Fonts\\segoeui.ttf'
+      ggeConfig.fontPath ??= 'C:\\Windows\\Fonts\\segoeui.ttf'
+      await fs.access(ggeConfig.fontPath)
     }
     catch {
       console.warn(`Couldn't access font ${ggeConfig.fontPath}`)
