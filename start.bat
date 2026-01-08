@@ -11,7 +11,8 @@ if not exist ".git"\ (
   git submodule deinit -f plugins-extra
   git submodule init plugins-extra
 )
-
+GCM_INTERACTIVE=never
+GIT_TERMINAL_PROMPT=0
 git pull origin main --recurse-submodules
 call npm i
 start node --no-warnings main.js

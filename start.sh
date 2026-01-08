@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 URL="http://127.0.0.1:3001"
-
+export GCM_INTERACTIVE=never
+export GIT_TERMINAL_PROMPT=0
 if [ ! -d ".git" ]; then
   git init -b main 
   git remote add origin https://github.com/darrenthebozz/GGE-BOT.git
@@ -13,7 +14,12 @@ if [ ! -d ".git" ]; then
   git submodule init plugins-extra
 fi
 
-git pull origin main --recurse-submodules
+if ! command -v gh >/dev/null 2>&1; then
+  git pull origin main --recurse-submodules
+elif gh auth status >/dev/null 2>&1; then
+  git pull origin main --recurse-submodules
+fi
+
 npm i
  
 if which xdg-open > /dev/null
