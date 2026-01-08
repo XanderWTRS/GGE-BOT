@@ -1,11 +1,10 @@
 process.on('uncaughtException', console.error) //Wanna cry? Remove this.
-const { isMainThread, workerData, parentPort } = require('node:worker_threads');
+const { isMainThread, workerData, parentPort } = require('node:worker_threads')
 const EventEmitter = require('node:events')
 const WebSocket = require('ws')
 const ActionType = require('./actions.json')
 const err = require('./err.json')
-const {DatabaseSync} = require('node:sqlite');
-const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js');
+const {DatabaseSync} = require('node:sqlite')
 const events = new EventEmitter()
 if (isMainThread)
     return
@@ -212,6 +211,7 @@ events.on("unload", () => {
     console.log(`sentHits: ${sentHits}`)
 })
 
+const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js');
 let status = {}
 events.once("load", async (_, r) => {
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)
