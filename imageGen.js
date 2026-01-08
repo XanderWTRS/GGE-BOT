@@ -72,16 +72,16 @@ let createLayout = ((GA) => {
 let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => new Promise(async (resolve2, reject2) => {
   let resolve = (d) =>{
     
-    console.log(`end ${unit?.name}_${unit?.group}_${unit?.type}`)
+    // console.log(`end ${unit?.name}_${unit?.group}_${unit?.type}`)
     resolve2(d)
   }
   let reject = (d) => {
     
-    console.log(`end fail ${unit?.name}_${unit?.group}_${unit?.type}`)
+    // console.log(`end fail ${unit?.name}_${unit?.group}_${unit?.type}`)
     reject2(d)
   }
   try {
-    console.log(`start ${unit?.name}_${unit?.group}_${unit?.type}`)
+    // console.log(`start ${unit?.name}_${unit?.group}_${unit?.type}`)
     let asset = await getAsset(`${unit?.name}_${unit?.group}_${unit?.type}`)
 
     asset.on("error", reject)

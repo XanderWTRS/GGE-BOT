@@ -478,18 +478,24 @@ const UnlockInfo = e => ({
     kingdomResource: Number(e.KRS), //Probs relating to storm
     eventRewardsEndID: Number(e.CRS), //Probs relating to storm rewards
 })
-const ResourceTransferResource = e => ({
+const UnitTransferResource = e => ({
     type: String(e[0]),
     count: Number(e[1])
 })
 const ResourceTransfer = e => ({
     kingdomID: Number(e.KID),
-    resources: Array.from(e.G).map(ResourceTransferResource),
-    remainingTime: Number(e.RS)
+    remainingTime: Number(e.RS),
+    resources: Array.from(e.G).map(UnitTransferResource)
+})
+const TroopTransfer = e => ({
+    kingdomID: Number(e.KID),
+    remainingTime: Number(e.RS),
+    units: Array.from(e.I).map(UnitTransferResource)
 })
 const KingdomInfo = e => ({ //KPI
     unlockInfo: Array.from(e.UL ?? []).map(UnlockInfo),
     resourceTransferList: Array.from(e.RT ?? []).map(ResourceTransfer),
+    troopTransferList: Array.from(e.UT ?? []).map(TroopTransfer),
     result: Number(0)
 })
 //TODO: May Conflict with other clientGetKingdomInfo
@@ -531,9 +537,9 @@ const clientGetMinuteSkipKingdom = (skipType, kingdomID, kingdomSkipType) => {
     sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
 
     return async () => {
-        let [obj, result] = await waitForResult("kpi", 1000 * 10)
+        let [obj, result] = await waitForResult("msk", 1000 * 10)
 
-        return KingdomInfo({ ...obj, result: result })
+        return KingdomInfo({ ...obj.kpi, result: result })
     }
 }
 const GCLAreaInfo = e => ({
@@ -644,9 +650,6 @@ xtHandler.on("gpc", (obj, result) =>
 
 let _kingdomInfoList = {}
 
-/**
- * @returns {Promise<KingdomInfo>}
- */
 const getKingdomInfoList = async () => {
     if (!isEmpty(_kingdomInfoList))
         return KingdomInfo(_kingdomInfoList)
@@ -1111,7 +1114,8 @@ module.exports = {
         GetAllMovements,
         ReturningAttack,
         Lord,
-        GAAAreaInfo
+        GAAAreaInfo,
+        KingdomInfo
     },
     currentKingdom
 }
