@@ -4,7 +4,8 @@ const EventEmitter = require('node:events')
 const WebSocket = require('ws')
 const ActionType = require('./actions.json')
 const err = require('./err.json')
-const {DatabaseSync} = require('node:sqlite')
+const {DatabaseSync} = require('node:sqlite');
+const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js');
 const events = new EventEmitter()
 if (isMainThread)
     return
@@ -212,20 +213,29 @@ events.on("unload", () => {
 })
 
 let status = {}
-events.once("load", (_, r) => {
-    let parseGRC = obj => {
-        if (obj.KID != 4)
+events.once("load", async (_, r) => {
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)
+        .areaInfo.find(e => e.type == AreaType.externalKingdom);
+    setInterval(() =>
+        sendXT("dcl", JSON.stringify({ CD: 1 })),
+        1000 * 60 * 5)
+        
+    xtHandler.on("dcl", obj => {
+        const castleProd = Types.DetailedCastleList(obj)
+            .castles.find(a => a.kingdomID == kid)
+            .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+
+        if(!castleProd)
             return
 
         Object.assign(status, {
-            aquamarine: Math.floor(obj.A),
-            food: Math.floor(obj.F),
-            mead: Math.floor(obj.MEAD)
+            aquamarine: castleProd.aqua,
+            food: castleProd.food,
+            mead: castleProd.mead
         })
         parentPort.postMessage([ActionType.StatusUser, status])
-    }
-    xtHandler.on("grc", (obj, r) => r == 0 ? parseGRC(obj) : void 0)
-    xtHandler.on("jaa", (obj, r) => r == 0 ? parseGRC(obj.grc) : void 0)
+    })
+
     xtHandler.on("gcu", obj => {
         Object.assign(status, {
             coin: Math.floor(obj.C1),

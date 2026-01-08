@@ -390,7 +390,7 @@ const GetProductionData = e => ({
     //Beri or other sea event
     maxUnitStorage: Number(e.US),
     hasRoyalCaptialBuff: Boolean(e.RCP),
-    maxAuxilariesStorage: Number(e.AUS),
+    maxAuxilariesTroops: Number(e.AUS),
     morality: Number(e.M),
     factionBuff: Number(e.RFPPA)
 })
@@ -1115,7 +1115,8 @@ module.exports = {
         ReturningAttack,
         Lord,
         GAAAreaInfo,
-        KingdomInfo
+        KingdomInfo,
+        DetailedCastleList
     },
     currentKingdom
 }

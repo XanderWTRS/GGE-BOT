@@ -101,11 +101,6 @@ const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
-    kingdomLock(() => 
-        sendXT("jca", JSON.stringify({ CID: -1, KID: KingdomID.stormIslands })))
-    setInterval(() => kingdomLock(() =>
-        sendXT("jca", JSON.stringify({ CID: -1, KID: KingdomID.stormIslands }))),
-        1000 * 60 * 5)
     let allowedLevels = [
         9,
         8,
@@ -115,49 +110,42 @@ events.once("load", async () => {
         12,
     ]
 
-    if (pluginOptions["easyfortsonly"]) {
-        allowedLevels = [
-            9, 8, 7
-        ]
-    }
-    if (pluginOptions["addworserforts"])
-        allowedLevels.push(11, 10)
-    
-    let aquamarine = 0
-    xtHandler.on("grc", (obj, r) => r == 0 ? aquamarine = obj.A : void 0)
-    if (pluginOptions["buycoins"]) {
-        xtHandler.addListener("jaa", (_, r) => {
-            if (r != 0)
-                return
-
-            if (aquamarine > 500000) { //might not work
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+        .areaInfo.find(e => e.type == AreaType.externalKingdom);
+        
+    xtHandler.on("dcl", obj => {
+        const castleProd = Types.DetailedCastleList(obj)
+            .castles.find(a => a.kingdomID == kid)
+            .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+        
+        if (pluginOptions["buycoins"]) {
+            if (castleProd.aqua > 500000) {
+                castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
                 console.info(`[${name}] Buying Coins`)
             }
-        })
-    }
-    if (pluginOptions["buydeco"]) {
-        xtHandler.addListener("jaa", (_, r) => {
-            if (r != 0)
-                return
-
-            if (aquamarine > 500000) {
+        }
+        if (pluginOptions["buydeco"]) {
+            if (castleProd.aqua > 500000) {
+                castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
                 console.info(`[${name}] Buying Deco`)
             }
-        })
-    }
-    if (pluginOptions["buyxp"]) {
-        xtHandler.addListener("jaa", (_, r) => {
-            if (r != 0)
-                return
-
-            for (let i = 0; i < Math.floor(aquamarine / 10000); i++) {
+        }
+        if (pluginOptions["buyxp"]) {
+            for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+                castleProd.aqua -= 10000
                 sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
                 console.info(`[${name}] Got XP`)
             }
-        })
-    }
+        }
+    })
+    if (pluginOptions["easyfortsonly"])
+        allowedLevels = [9, 8, 7]
+
+    if (pluginOptions["addworserforts"])
+        allowedLevels.push(11, 10)
+    
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
     const movements = []
@@ -190,8 +178,6 @@ events.once("load", async () => {
             return
         movements.splice(index, 1)
     })
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom);
     //Gotta detect cooling down towers
     const sendHit = async () => {
         let comList = undefined
