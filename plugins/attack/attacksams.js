@@ -49,7 +49,7 @@ if (isMainThread)
                 default: false
             },
             {
-                type: "Checkbox",
+                type: "Text",
                 label: "Sams score shutoff",
                 key: "samsScoreShutoff"
             }
