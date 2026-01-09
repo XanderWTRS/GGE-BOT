@@ -169,6 +169,9 @@ events.once("load", async () => {
                     if (unitInfo == undefined)
                         continue
 
+                    if(unitInfo.wodID == 277)
+                        continue
+
                     else if (unitInfo.khanTabletBooster != undefined && unitInfo.ragePointBonus == undefined) {
                         if (unitInfo.gateBonus)
                             attackerGateNomadTools.push([unitInfo, unit.ammount])

@@ -190,6 +190,9 @@ events.once("load", async () => {
                     if (unitInfo == undefined)
                         continue
 
+                    if(unitInfo.wodID == 277)
+                        continue
+
                     else if (unitInfo.samuraiTokenBooster != undefined) {
                         if (unitInfo.gateBonus)
                             attackerGateSamuraiTools.push([unitInfo, unit.ammount])

@@ -146,6 +146,9 @@ events.once("load", async () => {
                     if (unitInfo == undefined)
                         continue
 
+                    if(unitInfo.wodID == 277)
+                        continue
+                    
                     else if (unitInfo.pointBonus) {
                         if (unitInfo.gateBonus)
                             attackerGateBerimondTools.push([unitInfo, unit.ammount])

@@ -212,6 +212,9 @@ events.once("load", async () => {
                     const unitInfo = units.find(obj => unit.unitID == obj.wodID)
                     if (unitInfo == undefined)
                         continue
+                    
+                    if(unitInfo.wodID == 277)
+                        continue
 
                     if (unitInfo.ragePointBonus != undefined)
                         attackerBannerKhanTools.push([unitInfo, unit.ammount])
