@@ -323,7 +323,7 @@ events.once("load", async () => {
 
             if (!attackInfo) {
                 freeCommander(commander.lordID)
-                return false
+                continue
             }
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
@@ -342,7 +342,7 @@ events.once("load", async () => {
                         movementEvents.off("return", self)
                         resolve()
                     }))
-                    return true
+                    break
                 case "LORD_IS_USED":
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
