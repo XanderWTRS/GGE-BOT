@@ -280,7 +280,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                 while (attacks.length > 0);
             }
             catch (e) {
-                
+                console.warn(e)
             }
             finally {
                 alreadyRunning = false
