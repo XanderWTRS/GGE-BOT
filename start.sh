@@ -15,7 +15,7 @@ if [ ! -d ".git" ]; then
 fi
 
 if ! command -v gh >/dev/null 2>&1; then
-  git pull origin main --recurse-submodules
+  git pull origin main 
 elif gh auth status >/dev/null 2>&1; then
   git pull origin main --recurse-submodules
 fi

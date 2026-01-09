@@ -1,19 +1,24 @@
 @echo off
 
 if not exist ".git"\ (
-  git init -b main 
-  git remote add origin https://github.com/darrenthebozz/GGE-BOT.git
-  git add .
-  git fetch origin
-  git reset --hard 
-  git clean -f -d
-  git pull origin main
-  git submodule deinit -f plugins-extra
-  git submodule init plugins-extra
+  git init -b main >NUL 2>&1
+  git remote add origin https://github.com/darrenthebozz/GGE-BOT.git >NUL 2>&1
+  git add . >NUL 2>&1
+  git fetch origin >NUL 2>&1
+  git reset --hard >NUL 2>&1
+  git clean -f -d >NUL 2>&1
+  git pull origin main >NUL 2>&1
+  git submodule deinit -f plugins-extra >NUL 2>&1
+  git submodule init plugins-extra >NUL 2>&1
 )
 set GCM_INTERACTIVE="never"
 set GIT_TERMINAL_PROMPT=0
-git pull origin main --recurse-submodules
+gh auth status >NUL 2>&1
+if %ERRORLEVEL% EQU 0 (
+  git pull origin main --recurse-submodules
+) else (
+  git pull origin main
+)
 call npm i
 start http://127.0.0.1:3001
 node --no-warnings main.js
