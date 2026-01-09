@@ -206,6 +206,8 @@ events.once("load", async () => {
                 const attackerWallNomadTools = []
                 const attackerGateNomadTools = []
                 const attackerShieldNomadTools = []
+                const attackerWallTools = []
+                const attackerShieldTools = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
                     const unit = sourceCastle.unitInventory[i]
@@ -227,6 +229,18 @@ events.once("load", async () => {
                             attackerShieldNomadTools.push([unitInfo, unit.ammount])
                         else
                             attackerNomadTools.push([unitInfo, unit.ammount])
+                    }
+                    else if (
+                        unitInfo.toolCategory &&
+                    unitInfo.usageEventID  == undefined &&
+                    unitInfo.allowedToAttack  == undefined &&
+                    unitInfo.typ == 'Attack' &&
+                    unitInfo.amountPerWave == undefined
+                    ) {
+                        if (unitInfo.wallBonus)
+                            attackerWallTools.push([unitInfo, unit.ammount])
+                        else if (unitInfo.defRangeBonus)
+                            attackerShieldTools.push([unitInfo, unit.ammount])
                     }
                     else if (unitInfo.fightType == 0) {
                         if (unitInfo.role == "melee")
@@ -264,6 +278,9 @@ events.once("load", async () => {
                     attackerWallNomadTools.reverse()
                     attackerShieldNomadTools.reverse()
                 }
+
+                attackerWallNomadTools.push(...attackerWallTools)
+                attackerShieldNomadTools.push(...attackerShieldTools)
 
                 attackInfo.A.forEach((wave, index) => {
                     const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
