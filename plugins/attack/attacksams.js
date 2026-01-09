@@ -96,11 +96,16 @@ events.once("load", async () => {
     }
     let quit = false
     xtHandler.on("pep", obj => {
+        if(pluginOptions.samsScoreShutoff <= 0)
+            pluginOptions.samsScoreShutoff = Infinity
+
         if (obj.EID != 80)
             return
         samsPoints = Number(obj.OP[0])
-        if(samsPoints >= samsScoreShutoff)
+        if(samsPoints >= pluginOptions.samsScoreShutoff) {
+            console.log(`[${name}] Shutting down reason: score reached.`)
             quit = true
+        }
     })
 
     const skipTarget = async (AI) => {
