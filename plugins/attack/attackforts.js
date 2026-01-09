@@ -242,6 +242,7 @@ events.once("load", async () => {
 
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions.useCoin)
 
+                attackTarget.LP = 3
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
 

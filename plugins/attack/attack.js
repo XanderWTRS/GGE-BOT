@@ -111,7 +111,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
         BPC: 0,
         ATT: 0,
         AV: 0,
-        LP: 3,
+        LP: 0,
         FC: 0,
         PTT: 1,
         SD: 0,
