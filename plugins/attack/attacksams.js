@@ -345,7 +345,7 @@ events.once("load", async () => {
 
             if (!attackInfo) {
                 freeCommander(commander.lordID)
-                return false
+                continue
             }
             if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
@@ -355,7 +355,7 @@ events.once("load", async () => {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                                        await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
+                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
                         if (movementInfo.movement.movement.kingdomID != kid)
                             return
                         if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
@@ -364,7 +364,7 @@ events.once("load", async () => {
                         movementEvents.off("return", self)
                         resolve()
                     }))
-                    return true
+                    break
                 case "LORD_IS_USED":
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
