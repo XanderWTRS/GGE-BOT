@@ -12,9 +12,9 @@ if not exist ".git"\ (
   git submodule init plugins-extra
 )
 set GCM_INTERACTIVE="never"
-set GIT_TERMINAL_PROMPT="0"
+set GIT_TERMINAL_PROMPT=0
 git pull origin main --recurse-submodules
 call npm i
-start node --no-warnings main.js
 start http://127.0.0.1:3001
+node --no-warnings main.js
 pause
