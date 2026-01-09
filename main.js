@@ -143,7 +143,7 @@ async function start() {
     await fs.access('./ggeConfig.json')
   }
   catch {
-    fs.writeFile('./ggeConfig.json', ggeConfigExample)
+    await fs.writeFile('./ggeConfig.json', ggeConfigExample)
     console.info('ggeConfig.json has been generated')
   }
   const ggeConfig = JSON.parse((await fs.readFile('./ggeConfig.json')).toString())
