@@ -47,6 +47,11 @@ if (isMainThread)
                 label: "Use Coin",
                 key: "useCoin",
                 default: false
+            },
+            {
+                type: "Checkbox",
+                label: "Sams score shutoff",
+                key: "samsScoreShutoff"
             }
         ]
 
@@ -72,6 +77,7 @@ const getAreaCached = require("../../getmap")
 
 const minTroopCount = 100
 const eventID = 80
+let samsPoints = 0
 
 events.once("load", async () => {
     const sei = await getEventList()
@@ -88,6 +94,14 @@ events.once("load", async () => {
                 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
+    let quit = false
+    xtHandler.on("pep", obj => {
+        if (obj.EID != 80)
+            return
+        samsPoints = Number(obj.OP[0])
+        if(samsPoints >= samsScoreShutoff)
+            quit = true
+    })
 
     const skipTarget = async (AI) => {
         while (AI.extraData[2] > 0) {
@@ -129,7 +143,7 @@ events.once("load", async () => {
         .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
             Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
         .sort((a, b) => a.extraData[6] - b.extraData[6])
-    let quit = false
+
     while (!quit) {
         let comList = undefined
         if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
