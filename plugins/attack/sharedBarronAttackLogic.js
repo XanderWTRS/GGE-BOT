@@ -240,7 +240,7 @@ async function barronHit(name, type, kid, options) {
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
-                let [obj, r] = await waitForResult("cra", 6000, (obj, result) => {
+                let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
 
