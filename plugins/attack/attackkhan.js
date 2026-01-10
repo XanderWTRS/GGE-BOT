@@ -409,7 +409,7 @@ events.once("load", async () => {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                                        await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
+                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
                         if (movementInfo.movement.movement.kingdomID != kid)
                             return
                         if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
@@ -420,6 +420,7 @@ events.once("load", async () => {
                     }))
                     break
                 case "LORD_IS_USED":
+                    console.log(`Lord that is used ${commander.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":

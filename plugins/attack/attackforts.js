@@ -322,6 +322,7 @@ events.once("load", async () => {
                     }))
                     return true
                 case "LORD_IS_USED":
+                    console.log(`Lord that is used ${commander.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
