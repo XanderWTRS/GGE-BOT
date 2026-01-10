@@ -20,7 +20,7 @@ const pretty = require('pretty-time')
 
 const minTroopCount = 100
 
-const troopBlackList = [277, 34, 35]
+const troopBlackList = [277]//, 34, 35]
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
