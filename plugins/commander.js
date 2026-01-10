@@ -97,8 +97,8 @@ events.once("load", () => {
             try {
                 if (o.M.TA[4] != playerInfo.playerID)
                     continue
-                if (o.M.T != 2)
-                    continue
+                // if (o.M.T != 2)
+                    // continue
                 let lordID = o?.UM?.L?.ID
                 if (lordID == undefined)
                     continue
