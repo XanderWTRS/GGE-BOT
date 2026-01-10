@@ -61,61 +61,44 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     return new Types.Lord(commanders.find(e => e.ID == LID))
 }
 
-events.once("load", () => {
-    let parseGLI = e => commanders = e
+let parseGLI = e => commanders = e
 
-    xtHandler.on("aci", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
-    xtHandler.on("adi", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
-    xtHandler.on("gli", (obj, r) => !r ? parseGLI(obj.C) : void 0)
+xtHandler.on("aci", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
+xtHandler.on("adi", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
+xtHandler.on("gli", (obj, r) => !r ? parseGLI(obj.C) : void 0)
 
-    xtHandler.on("cat", obj => {
-        if (obj.A.M.TA[4] != playerInfo.playerID)
-            return
+xtHandler.on("cat", obj => {
+    if (obj.A.M.TA[4] != playerInfo.playerID)
+        return
 
-        useCommander(obj?.A?.UM?.L?.ID)
+    useCommander(obj?.A?.UM?.L?.ID)
 
-        setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID),
-            (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
-    })
-    xtHandler.on("gam", (obj) => {
-        for (let i = 0; i < obj.M.length; i++) {
-            const o = obj.M[i]
-            if (o.M.SA[4] != playerInfo.playerID)
+    setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID),
+        (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
+})
+xtHandler.on("gam", (obj) => {
+    for (let i = 0; i < obj.M.length; i++) {
+        const o = obj.M[i]
+        try {
+            if (o.M.OID != playerInfo.playerID)
                 continue
-
+            
             let lordID = o?.UM?.L?.ID
             if (lordID == undefined)
                 continue
 
             if (usedCommanders.includes(lordID))
                 continue
-            
+
             useCommander(lordID)
-        }
-        for (let i = 0; i < obj.M.length; i++) {
-            const o = obj.M[i]
-            try {
-                if (o.M.TA[4] != playerInfo.playerID)
-                    continue
-                // if (o.M.T != 2)
-                    // continue
-                let lordID = o?.UM?.L?.ID
-                if (lordID == undefined)
-                    continue
 
-                if (usedCommanders.includes(lordID))
-                    continue
-
-                useCommander(lordID)
-                
-                setTimeout(() => freeCommander(lordID), 
-                    (o.M.TT - o.M.PT + 1) * 1000).unref()
-            }
-            catch (e) {
-                console.warn(e)
-            }
+            setTimeout(() => freeCommander(lordID),
+                (o.M.TT - o.M.PT + 1) * 1000).unref()
         }
-    })
+        catch (e) {
+            console.warn(e)
+        }
+    }
 })
 
 const movementEvents = new EventEmitter()
