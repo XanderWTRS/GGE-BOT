@@ -13,9 +13,9 @@ if not exist ".git"\ (
 
   git submodule deinit -f plugins-extra >NUL 2>&1
   git submodule init plugins-extra >NUL 2>&1
+) else (
+  git config --unset credential.helper
 )
-
-git config --unset credential.helper
 
 set GCM_INTERACTIVE="never"
 set GIT_TERMINAL_PROMPT=0
