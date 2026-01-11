@@ -220,21 +220,22 @@ events.once("load", async (_, r) => {
     setInterval(() =>
         sendXT("dcl", JSON.stringify({ CD: 1 })),
         1000 * 60 * 5)
-        
-    xtHandler.on("dcl", obj => {
-        const castleProd = Types.DetailedCastleList(obj)
-            .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo?.find(a => a.areaID == sourceCastleArea.extraData[0])
+    if (!sourceCastleArea) {
+        xtHandler.on("dcl", obj => {
+            const castleProd = Types.DetailedCastleList(obj)
+                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo?.find(a => a.areaID == sourceCastleArea.extraData[0])
 
-        if(!castleProd)
-            return
+            if (!castleProd)
+                return
 
-        Object.assign(status, {
-            aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
-            food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
-            mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
+            Object.assign(status, {
+                aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
+                food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
+                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
+            })
+            parentPort.postMessage([ActionType.StatusUser, status])
         })
-        parentPort.postMessage([ActionType.StatusUser, status])
-    })
+    }
 
     xtHandler.on("gcu", obj => {
         Object.assign(status, {
