@@ -225,11 +225,11 @@ async function barronHit(name, type, kid, options) {
                     
                     let maxTroops = maxTroopFlank
 
-                    if (!hasShieldMadiens) {
+                    // if (!hasShieldMadiens) {
                     wave.L.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    }
+                    // }
                     // maxTroops = maxTroopFlank
                     // wave.R.U.forEach((unitSlot, i) =>
                     //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
