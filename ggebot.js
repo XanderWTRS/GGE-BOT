@@ -215,6 +215,8 @@ const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protoco
 let status = {}
 events.once("load", async (_, r) => {
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
+
+    sendXT("dcl", JSON.stringify({ CD: 1 }))
     setInterval(() =>
         sendXT("dcl", JSON.stringify({ CD: 1 })),
         1000 * 60 * 5)
@@ -228,17 +230,17 @@ events.once("load", async (_, r) => {
             return
 
         Object.assign(status, {
-            aquamarine: castleProd.aqua == 0 ? Math.floor(castleProd.aqua) : undefined,
-            food: castleProd.food == 0 ? Math.floor(castleProd.food) : undefined,
-            mead: Math.floor(castleProd.mead == 0 ? Math.floor(castleProd.mead) : undefined)
+            aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
+            food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
+            mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
         })
         parentPort.postMessage([ActionType.StatusUser, status])
     })
 
     xtHandler.on("gcu", obj => {
         Object.assign(status, {
-            coin: obj.C1 == 0 ? Math.floor(obj.C1) : undefined,
-            rubies: obj.C2 == 0 ? Math.floor(obj.C2) : undefined,
+            coin: obj.C1 != 0 ? Math.floor(obj.C1) : undefined,
+            rubies: obj.C2 != 0 ? Math.floor(obj.C2) : undefined,
         })
         parentPort.postMessage([ActionType.StatusUser, status])
     })
