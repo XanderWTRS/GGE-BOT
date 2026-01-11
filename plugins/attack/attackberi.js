@@ -45,59 +45,68 @@ if (isMainThread)
 
     }
 
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
 const { getCommanderStats } = require("../../getEquipment")
+const units = require("../../items/units.json")
+const pretty = require('pretty-time')
 
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
     botConfig.plugins["attack"] ?? {})
 
-const kid = 0
+const kid = KingdomID.greatEmpire
 const type = AreaType.beriCamp
-
-const units = require("../../items/units.json")
-const pretty = require('pretty-time')
-
 const minTroopCount = 100
 const eventID = 85
 
+const skipTarget = async AI => {
+    while (AI.extraData[2] > 0) {
+        let skip = spendSkip(AI.extraData[2])
+
+        if (skip == undefined)
+            throw new Error("Couldn't find skip")
+
+        sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
+        let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
+            Types.GAAAreaInfo(obj.AI).type == type)
+
+        if (Number(result) != 0)
+            break
+
+        Object.assign(AI, Types.GAAAreaInfo(obj.AI))
+    }
+}
+
+xtHandler.on("cat", (obj, result) => {
+    if (result != 0)
+        return
+
+    let attackSource = obj.A.M.SA
+
+    if (attackSource[0] != type)
+        return
+
+    skipTarget(Types.GAAAreaInfo(attackSource))
+})
+
+let quit = false
+
+events.on("eventStop", eventInfo => {
+    if (eventInfo.EID != eventID)
+        return
+
+    console.log(`[${name}] Shutting down reason: Event ended.`)
+    quit = true
+})
 events.on("eventStart", async eventInfo => {
     if(eventInfo.EID != eventID)
         return
+    
+    quit = false
 
-    const skipTarget = async (AI) => {
-        while (AI.extraData[2] > 0) {
-            let skip = spendSkip(AI.extraData[2])
-
-            if (skip == undefined)
-                throw new Error("Couldn't find skip")
-
-            sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
-            let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
-                Types.GAAAreaInfo(obj.AI).type == type)
-
-            if (Number(result) != 0)
-                break
-
-            Object.assign(AI, Types.GAAAreaInfo(obj.AI))
-        }
-    }
-
-    xtHandler.on("cat", (obj, result) => {
-        if (result != 0)
-            return
-
-        let attackSource = obj.A.M.SA
-
-        if (attackSource[0] != type)
-            return
-
-        skipTarget(Types.GAAAreaInfo(attackSource))
-    })
-    let quit = false
     while (!quit) {
         let comList = undefined
         if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
@@ -351,7 +360,6 @@ events.on("eventStart", async eventInfo => {
                     }))
                     break
                 case "LORD_IS_USED":
-                    console.log(`Lord that is used ${commander.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":

@@ -50,7 +50,7 @@ if (isMainThread)
             },
             {
                 type: "Text",
-                label: "Sams score shutoff",
+                label: "Samurai score shutoff",
                 key: "samsScoreShutoff"
             }
         ]
@@ -79,6 +79,57 @@ const minTroopCount = 100
 const eventID = 80
 let samsPoints = 0
 
+const skipTarget = async (AI) => {
+    while (AI.extraData[2] > 0) {
+        let skip = spendSkip(AI.extraData[2])
+
+        if (skip == undefined)
+            throw new Error("Couldn't find skip")
+
+        sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
+        let [obj, result] = await waitForResult("msd", 7000, (obj, result) => {
+            return result != 0 ||
+                Types.GAAAreaInfo(obj.AI).type == type
+        })
+
+        if (Number(result) != 0)
+            break
+
+        Object.assign(AI, Types.GAAAreaInfo(obj.AI))
+    }
+}
+
+xtHandler.on("cat", (obj, result) => {
+    if (result != 0)
+        return
+
+    let attackSource = obj.A.M.SA
+
+    if (attackSource[0] != type)
+        return
+
+    skipTarget(Types.GAAAreaInfo(attackSource))
+})
+let quit = false
+xtHandler.on("pep", obj => {
+    if (pluginOptions.samsScoreShutoff <= 0)
+        pluginOptions.samsScoreShutoff = Infinity
+
+    if (obj.EID != eventID)
+        return
+    samsPoints = Number(obj.OP[0])
+    if (samsPoints >= pluginOptions.samsScoreShutoff) {
+        console.log(`[${name}] Shutting down reason: score reached.`)
+        quit = true
+    }
+})
+events.on("eventStop", eventInfo => {
+    if (eventInfo.EID != eventID)
+        return
+
+    console.log(`[${name}] Shutting down reason: Event ended.`)
+    quit = true
+})
 events.on("eventStart", async eventInfo => {
     if(eventInfo.EID != eventID)
         return
@@ -92,50 +143,7 @@ events.on("eventStart", async eventInfo => {
                 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
-    let quit = false
-    xtHandler.on("pep", obj => {
-        if(pluginOptions.samsScoreShutoff <= 0)
-            pluginOptions.samsScoreShutoff = Infinity
 
-        if (obj.EID != 80)
-            return
-        samsPoints = Number(obj.OP[0])
-        if(samsPoints >= pluginOptions.samsScoreShutoff) {
-            console.log(`[${name}] Shutting down reason: score reached.`)
-            quit = true
-        }
-    })
-
-    const skipTarget = async (AI) => {
-        while (AI.extraData[2] > 0) {
-            let skip = spendSkip(AI.extraData[2])
-
-            if (skip == undefined)
-                throw new Error("Couldn't find skip")
-
-            sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
-            let [obj, result] = await waitForResult("msd", 7000, (obj, result) => {
-                return result != 0 || 
-                    Types.GAAAreaInfo(obj.AI).type == type })
-
-            if (Number(result) != 0)
-                break
-
-            Object.assign(AI, Types.GAAAreaInfo(obj.AI))
-        }
-    }
-
-    xtHandler.on("cat", (obj, result) => {
-        if (result != 0)
-            return
-
-        let attackSource = obj.A.M.SA
-
-        if (attackSource[0] != type)
-            return
-
-        skipTarget(Types.GAAAreaInfo(attackSource))
-    })
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => AreaType.mainCastle == e.type);
     let gaa = await getAreaCached(kid,
@@ -146,6 +154,8 @@ events.on("eventStart", async eventInfo => {
         .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
             Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
         .sort((a, b) => a.extraData[6] - b.extraData[6])
+
+    quit = false
 
     while (!quit) {
         let comList = undefined
@@ -388,7 +398,6 @@ events.on("eventStart", async eventInfo => {
                     }))
                     break
                 case "LORD_IS_USED":
-                    console.log(`Lord that is used ${commander.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":

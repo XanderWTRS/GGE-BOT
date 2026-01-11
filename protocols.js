@@ -12,7 +12,8 @@ const AreaType = Object.freeze({
     capital: 3,
     fortress : 11,
     beriCastle : 15,
-    stormTower : 25
+    stormTower : 25,
+    khanCamp : 35
 });
 const HighscoreType = Object.freeze({
     honour: 5

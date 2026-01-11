@@ -2,7 +2,6 @@ const { isMainThread } = require('node:worker_threads')
 
 const name = "Attack Khan"
 
-
 if (isMainThread)
     return module.exports = {
         name: name,
@@ -55,13 +54,18 @@ if (isMainThread)
                 label: "No chests",
                 key: "noChests",
                 default: false
+            },
+            {
+                type: "Text",
+                label: "Nomad score shutoff",
+                key: "nomadsScoreShutoff"
             }
         ]
 
     }
 
 const err = require("../../err.json")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
@@ -71,16 +75,35 @@ const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
     botConfig.plugins["attack"] ?? {})
 
-const kid = 0
-const type = 35
-
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 
+const kid = KingdomID.greatEmpire
+const type = AreaType.khanCamp
+const minTroopCount = 100
+const eventID = 72
+
 let campRageNeeded = NaN
 
-xtHandler.on("cra", async (obj, r) => {
+const skipTarget = async AI => {
+    while (AI[5] > 0) {
+        let skip = spendSkip(AI[5])
+
+        if (skip == undefined)
+            throw new Error("Couldn't find skip")
+
+        sendXT("msd", JSON.stringify({ X: AI[1], Y: AI[2], MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
+        let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || obj.AI[0] == type)
+
+        if (Number(result) != 0)
+            break
+
+        Object.assign(AI, obj.AI)
+    }
+}
+
+xtHandler.on("cra", (obj, r) => {
     if (r != 0)
         return false
 
@@ -89,20 +112,24 @@ xtHandler.on("cra", async (obj, r) => {
 
     campRageNeeded = eventAutoScalingCamps.find(obj2 => obj.AAM.M.TA[9] == obj2.eventAutoScalingCampID).playerRageCap
 })
-
-xtHandler.on("cat", async (obj, r) => {
+xtHandler.on("cat", (obj, r) => {
     if (r != 0)
         return false
-
-    if (obj.A.M.SA[0] != type)
+    
+    const attackSource = obj.A.M.SA
+    
+    if (attackSource[0] != type)
         return false
 
-    campRageNeeded = eventAutoScalingCamps.find(obj2 => obj.A.M.SA[9] == obj2.eventAutoScalingCampID).playerRageCap
-})
+    campRageNeeded = eventAutoScalingCamps.find(obj2 => 
+        attackSource[9] == obj2.eventAutoScalingCampID).playerRageCap
 
+    skipTarget(attackSource)
+})
 xtHandler.on("rpr", obj => {
-    if (obj.EID != 72)
+    if (obj.EID != eventID)
         return
+    
     let rage = obj.PCRP
 
     if (obj.PCRP >= campRageNeeded) {
@@ -110,12 +137,30 @@ xtHandler.on("rpr", obj => {
             console.warn(`[${name}] Rage is higher than expected`)
 
         console.info(`[${name}] Rage trigger`)
-        sendXT("lta", JSON.stringify({ "AV": 0, "EID": 72 }))
+        sendXT("lta", JSON.stringify({ AV: 0, EID: eventID }))
     }
 })
 
-const minTroopCount = 100
-const eventID = 72
+let quit = false
+xtHandler.on("pep", obj => {
+    if (pluginOptions.nomadsScoreShutoff <= 0)
+        pluginOptions.nomadsScoreShutoff = Infinity
+
+    if (obj.EID != eventID)
+        return
+    nomadsPoints = Number(obj.OP[0])
+    if (nomadsPoints >= pluginOptions.nomadsScoreShutoff) {
+        console.log(`[${name}] Shutting down reason: Score reached.`)
+        quit = true
+    }
+})
+events.on("eventStop", eventInfo => {
+    if (eventInfo.EID != eventID)
+        return
+
+    console.log(`[${name}] Shutting down reason: Event ended.`)
+    quit = true
+})
 events.on("eventStart", async eventInfo => {
     if (eventInfo.EID != eventID)
         return
@@ -129,39 +174,11 @@ events.on("eventStart", async eventInfo => {
 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
-
-    const skipTarget = async (AI) => {
-        while (AI[5] > 0) {
-            let skip = spendSkip(AI[5])
-
-            if (skip == undefined)
-                throw new Error("Couldn't find skip")
-
-            sendXT("msd", JSON.stringify({ X: AI[1], Y: AI[2], MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
-            let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || obj.AI[0] == type)
-
-            if (Number(result) != 0)
-                break
-
-            Object.assign(AI, obj.AI)
-        }
-    }
-
-    xtHandler.on("cat", (obj, result) => {
-        if (result != 0)
-            return
-
-        let attackSource = obj.A.M.SA
-
-        if (attackSource[0] != type)
-            return
-
-        skipTarget(attackSource)
-    })
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => AreaType.mainCastle == e.type)
 
-    let quit = false
+    quit = false
+
     while (!quit) {
         let comList = undefined
         if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
@@ -414,7 +431,6 @@ events.on("eventStart", async eventInfo => {
                     }))
                     break
                 case "LORD_IS_USED":
-                    console.log(`Lord that is used ${commander.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":

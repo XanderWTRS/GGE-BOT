@@ -290,7 +290,6 @@ async function barronHit(name, type, kid, options) {
                     }))
                     return true
                 case "LORD_IS_USED":
-                    console.log(`Lord that is used ${commander.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
