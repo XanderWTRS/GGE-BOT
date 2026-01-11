@@ -2,6 +2,9 @@
 URL="http://127.0.0.1:3001"
 export GCM_INTERACTIVE=never
 export GIT_TERMINAL_PROMPT=0
+
+git config --unset credential.helper
+
 if [ ! -d ".git" ]; then
   git init -b main 
   git remote add origin https://github.com/darrenthebozz/GGE-BOT.git

@@ -3,7 +3,7 @@ const name = "commander"
 if (require('node:worker_threads').isMainThread)
     return module.exports = { name, hidden: true }
 
-const { xtHandler, events, playerInfo } = require('../ggebot')
+const { xtHandler, playerInfo } = require('../ggebot')
 const { Types } = require('../protocols.js')
 const EventEmitter = require('node:events')
 
