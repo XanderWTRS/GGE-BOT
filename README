@@ -35,7 +35,7 @@ What you need to do to use (Other OS):
 4. Goto the directory of the bot in and run in the terminal
 5. ./start.sh
 
-For Discord:
+For Discord: https://youtu.be/3-Oil6N4OCU
 1. https://discord.com/developers/applications to create a bot
 2. Within your application in Settings goto Bot from there you will find Presence Intent enable all of them from here you will
 also find Token goto the ggeConfig and place it under discordToken.
