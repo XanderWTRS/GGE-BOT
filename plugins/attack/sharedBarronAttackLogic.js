@@ -11,7 +11,7 @@ const { getCommanderStats } = require("../../getEquipment")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront } = require("./attack.js")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
+const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
 const err = require("../../err.json")
 
@@ -152,6 +152,7 @@ async function barronHit(name, type, kid, options) {
         }
 
         const commander = await waitForCommanderAvailable(comList)
+        const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
@@ -224,19 +225,33 @@ async function barronHit(name, type, kid, options) {
                     
                     let maxTroops = maxTroopFlank
 
+                    if (!hasShieldMadiens) {
                     wave.L.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
-
-                    maxTroops = maxTroopFlank
-                    wave.R.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    maxTroops = maxTroopFront
-                    wave.M.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    }
+                    // maxTroops = maxTroopFlank
+                    // wave.R.U.forEach((unitSlot, i) =>
+                    //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                    //         attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    // maxTroops = maxTroopFront
+                    // wave.M.U.forEach((unitSlot, i) =>
+                    //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                    //         attackerRangeTroops : attackerMeleeTroops, maxTroops))
                 })
+
+
+                if (!hasShieldMadiens) {
+                    let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
+                    attackInfo.RW.forEach((unitSlot, i) => {
+                        let attacker = i & 1 ?
+                            (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
+                            (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
+
+                        maxTroops -= assignUnit(unitSlot, attacker,
+                            Math.floor(maxTroops / 2))
+                    })
+                }
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 

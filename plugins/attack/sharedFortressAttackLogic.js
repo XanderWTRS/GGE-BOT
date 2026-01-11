@@ -10,7 +10,7 @@ if (isMainThread)
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig } = require("../../ggebot")
+const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
 const err = require('../../err.json')
 const units = require("../../items/units.json")
@@ -100,8 +100,10 @@ async function fortressHit(name, kid, type, level, options) {
         }
 
         const commander = await waitForCommanderAvailable(comList, commander =>
-            !((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true,
+            undefined,
             (a, b) => getCommanderStats(b).relicSpeedBonus - getCommanderStats(a).relicSpeedBonus)
+
+        const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
@@ -182,6 +184,18 @@ async function fortressHit(name, kid, type, level, options) {
                     wave.L.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
+
+                    if (!hasShieldMadiens) {
+                        let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
+                        attackInfo.RW.forEach((unitSlot, i) => {
+                            let attacker = i & 1 ?
+                                (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
+                                (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
+
+                            maxTroops -= assignUnit(unitSlot, attacker,
+                                Math.floor(maxTroops / 2))
+                        })
+                    }
                 })
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))

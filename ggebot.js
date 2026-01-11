@@ -228,17 +228,17 @@ events.once("load", async (_, r) => {
             return
 
         Object.assign(status, {
-            aquamarine: Math.floor(castleProd.aqua),
-            food: Math.floor(castleProd.food),
-            mead: Math.floor(castleProd.mead)
+            aquamarine: castleProd.aqua == 0 ? Math.floor(castleProd.aqua) : undefined,
+            food: castleProd.food == 0 ? Math.floor(castleProd.food) : undefined,
+            mead: Math.floor(castleProd.mead == 0 ? Math.floor(castleProd.mead) : undefined)
         })
         parentPort.postMessage([ActionType.StatusUser, status])
     })
 
     xtHandler.on("gcu", obj => {
         Object.assign(status, {
-            coin: Math.floor(obj.C1),
-            rubies: Math.floor(obj.C2),
+            coin: obj.C1 == 0 ? Math.floor(obj.C1) : undefined,
+            rubies: obj.C2 == 0 ? Math.floor(obj.C2) : undefined,
         })
         parentPort.postMessage([ActionType.StatusUser, status])
     })
