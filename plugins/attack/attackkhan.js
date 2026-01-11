@@ -25,7 +25,7 @@ if (isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default : 3
+                default: 3
             },
             {
                 type: "Text",
@@ -117,16 +117,16 @@ xtHandler.on("rpr", obj => {
 const minTroopCount = 100
 const eventID = 72
 events.on("eventStart", async eventInfo => {
-    if(eventInfo.EID != eventID)
+    if (eventInfo.EID != eventID)
         return
 
     if (eventInfo.EDID == -1) {
-        const eventDifficultyID = 
-            Number(eventsDifficulties.find(e => 
-                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID && 
+        const eventDifficultyID =
+            Number(eventsDifficulties.find(e =>
+                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID &&
                 e.eventID == eventID)
                 .difficultyID)
-                
+
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
 
@@ -211,8 +211,8 @@ events.on("eventStart", async eventInfo => {
                     const unitInfo = units.find(obj => unit.unitID == obj.wodID)
                     if (unitInfo == undefined)
                         continue
-                    
-                    if(unitInfo.wodID == 277)
+
+                    if (unitInfo.wodID == 277)
                         continue
 
                     if (unitInfo.ragePointBonus != undefined)
@@ -229,10 +229,10 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if (
                         unitInfo.toolCategory &&
-                    unitInfo.usageEventID  == undefined &&
-                    unitInfo.allowedToAttack  == undefined &&
-                    unitInfo.typ == 'Attack' &&
-                    unitInfo.amountPerWave == undefined
+                        unitInfo.usageEventID == undefined &&
+                        unitInfo.allowedToAttack == undefined &&
+                        unitInfo.typ == 'Attack' &&
+                        unitInfo.amountPerWave == undefined
                     ) {
                         if (unitInfo.wallBonus)
                             attackerWallTools.push([unitInfo, unit.ammount])
@@ -321,26 +321,24 @@ events.on("eventStart", async eventInfo => {
                     else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerBannerKhanTools
-                            if(pluginOptions.wavesTillChests >= index)
-                            {
+                            if (pluginOptions.wavesTillChests >= index) {
                                 tools = attackerNomadTools
-                                if(tools.length == 0)
-                                {
-                                    if(i == 0) {
+                                if (tools.length == 0) {
+                                    if (i == 0) {
                                         tools = attackerWallNomadTools
-                                        if(tools.length == 0)
+                                        if (tools.length == 0)
                                             tools = attackerShieldNomadTools
                                     }
-                                    else if(i == 1) {
+                                    else if (i == 1) {
                                         tools = attackerShieldNomadTools
-                                        if(tools.length == 0)
+                                        if (tools.length == 0)
                                             tools = attackerWallNomadTools
                                     }
-                                    if(i == 2) {
+                                    if (i == 2) {
                                         tools = attackerGateNomadTools
-                                        if(tools.length == 0)
+                                        if (tools.length == 0)
                                             tools = attackerWallNomadTools
-                                        if(tools.length == 0)
+                                        if (tools.length == 0)
                                             tools = attackerShieldNomadTools
                                     }
                                 }
@@ -356,31 +354,30 @@ events.on("eventStart", async eventInfo => {
                         maxTools = maxToolsFront
                         wave.M.T.forEach((unitSlot, i) =>
                             maxTools -= assignUnit(unitSlot, selectTool(2), maxTools))
-
-                        let maxTroops = maxTroopFlank
-
-                        wave.L.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                        maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                        maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
-                            maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
-                                attackerMeleeTroops : attackerRangeTroops, maxTroops))
                     }
+                    let maxTroops = maxTroopFlank
+
+                    wave.L.U.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    maxTroops = maxTroopFlank
+                    wave.R.U.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    maxTroops = maxTroopFront
+                    wave.M.U.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
+                            attackerMeleeTroops : attackerRangeTroops, maxTroops))
                 });
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach((unitSlot, i) => {
-                    let attacker = i & 1 ? 
-                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
+                    let attacker = i & 1 ?
+                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
                         Math.floor(maxTroops / 2))
-                    })
+                })
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
@@ -398,9 +395,9 @@ events.on("eventStart", async eventInfo => {
                 freeCommander(commander.lordID)
                 continue
             }
-            if(attackInfo.result != 0)
+            if (attackInfo.result != 0)
                 throw err[attackInfo.result]
-            
+
             console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
             freeCommander(commander.lordID)
