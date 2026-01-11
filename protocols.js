@@ -196,10 +196,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             AY2: Number(toY)
         }))
     })
-
-    return async () => {
-        await a
-        let [gaa, result] = await waitForResult("gaa", 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult("gaa", 1000 * 10, (obj, result) => {
             if (Number(result) != 0)
                 return true
 
@@ -224,6 +221,8 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
 
             return true
         })
+    return async () => {
+        const [gaa, result] = await waitObject
         gaa.result = result
         return Number(result) == 0 ? ServerGetAreaInfo(gaa) : { result }
     }
@@ -231,15 +230,15 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
 
 const clientGetAllianceInfluence = (allianceID) => {
     sendXT("gabgap", JSON.stringify({ AID: allianceID }))
-
-    return async () => {
-        let [obj, result] = await waitForResult("gabgap", 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult("gabgap", 1000 * 10, (obj, result) => {
             if (result != 0)
                 return false
             if (obj.AID != allianceID)
                 false
             return true
         })
+    return async () => {
+        const [obj, result] = await waitObject
 
         return { ammount: Number(obj.AMT), result: result }
     }
@@ -249,15 +248,15 @@ const clientGetPlayerInfluence = (playerID, influence) => {
     if (influence)
         command = "tpc"
     sendXT(command, JSON.stringify({ PID: playerID }))
-
-    return async () => {
-        let [obj, result] = await waitForResult(command, 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult(command, 1000 * 10, (obj, result) => {
             if (result != 0)
                 return false
             if (obj.PID != playerID)
                 false
             return true
         })
+    return async () => {
+        const [obj, result] = await waitObject
 
         return { ammount: influence ? Number(obj.CCA) : Number(obj.AMT), result: result }
     }
@@ -265,9 +264,8 @@ const clientGetPlayerInfluence = (playerID, influence) => {
 
 const clientGetPlayerEventPoints = (playerID) => {
     sendXT("pcc", JSON.stringify({ PID: playerID }))
-
-    return async () => {
-        let [obj, result] = await waitForResult("pcc", 1000 * 10, (obj, result) => {
+    
+    const waitObject = waitForResult("pcc", 1000 * 10, (obj, result) => {
             if (result != 0)
                 return false
             if (obj.PID != playerID)
@@ -275,6 +273,9 @@ const clientGetPlayerEventPoints = (playerID) => {
 
             return true
         })
+
+    return async () => {
+        const [obj, result] = await waitObject
 
         return { ammount: Number(obj.CCA), result: result }
     }
@@ -289,8 +290,9 @@ const StormInfo = e => ({
 })
 const clientGetStormIslandInfo = () => {
     sendXT("ssi", JSON.stringify({}))
+    const waitObject = waitForResult("ssi", 1000 * 10)
     return async () => {
-        let [obj, result] = await waitForResult("ssi", 1000 * 10)
+        const [obj, result] = await waitObject
 
         return StormInfo({ ...obj, result: result })
     }
@@ -312,8 +314,9 @@ const AlliancePointsList = e => ({
 //TODO: Probs best to add a lock or check if one of the users is within the alliance designated
 const clientGetAllianceMemberAquaPoints = AID => {
     sendXT("ama", { AID })
+    const waitObject = waitForResult("ama", 1000 * 10)
     return async () => {
-        let [obj, result] = await waitForResult("ama", 1000 * 10)
+        const [obj, result] = await waitObject
 
         return AlliancePointsList({ ...obj, result: result })
     }
@@ -455,18 +458,18 @@ const DetailedCastleList = e => ({
 const clientGetDetailedCastleList = () => {
     sendXT("dcl", JSON.stringify({ CD: 1 }))
 
+    const waitObject = waitForResult("dcl", 1000 * 10)
     return async () => {
-        let [obj, result] = await waitForResult("dcl", 1000 * 10)
-
+        const [obj, result] = await waitObject
         return DetailedCastleList({ ...obj, result: result })
     }
 }
 
 const clientGetUnitInventory = () => {
     sendXT("gui", JSON.stringify({}))
-
+    const waitObject = waitForResult("gui", 1000 * 10)
     return async () => {
-        let [obj, result] = await waitForResult("gui", 1000 * 10)
+        let [obj, result] = await waitObject
 
         return UnitInventory({ ...obj, result: result })
     }
@@ -503,8 +506,10 @@ const KingdomInfo = e => ({ //KPI
 const clientGetKingdomInfo = (sourceAreaID, sourceKingdomID, targetKingdomID, resources) => {
     sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
 
+    const waitObject = waitForResult("kgt", 1000 * 10)
+
     return async () => {
-        let [obj, result] = await waitForResult("kgt", 1000 * 10)
+        const [obj, result] = await waitObject
 
         return KingdomInfo({ ...obj.kpi, result: result })
     }
@@ -526,8 +531,10 @@ const ActiveQuests = e => ({
 const clientActiveQuestList = () => {
     sendXT("aqs", JSON.stringify({}))
 
+    const waitObject = waitForResult("aqs", 1000 * 10)
+
     return async () => {
-        let [obj, result] = await waitForResult("aqs", 1000 * 10)
+        const [obj, result] = await waitObject
 
         return ActiveQuests({ ...obj, result: result })
     }
@@ -537,8 +544,10 @@ const clientActiveQuestList = () => {
 const clientGetMinuteSkipKingdom = (skipType, kingdomID, kingdomSkipType) => {
     sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
 
+    const waitObject = waitForResult("msk", 1000 * 10)
+    
     return async () => {
-        let [obj, result] = await waitForResult("msk", 1000 * 10)
+        const [obj, result] = await waitObject
 
         return KingdomInfo({ ...obj.kpi, result: result })
     }
@@ -575,7 +584,7 @@ function isEmpty(obj) {
 }
 let _activeEventList = {}
 
-const getEventList = async () => { //Never got
+const getEventList = async () => {
     if (!isEmpty(_activeEventList))
         return _activeEventList
 
@@ -646,7 +655,7 @@ const permanentCastleData = []
 
 const getPermanentCastle = () => PermanentCastleData(permanentCastleData)
 
-xtHandler.on("gpc", (obj, result) => {
+xtHandler.on("gpc", obj => {
     obj.A.forEach(e => {
         const castleData = permanentCastleData.find(a => e.AID == a.AID && e.KID == a.KID)
         if(!castleData)
@@ -662,7 +671,7 @@ const getKingdomInfoList = async () => {
     if (!isEmpty(_kingdomInfoList))
         return KingdomInfo(_kingdomInfoList)
 
-    let [obj, result] = await waitForResult("kpi", 1000 * 10) //why?!?!?!
+    let [obj, result] = await waitForResult("kpi", 1000 * 10) //TODO: Remove?
 
     Object.assign(_kingdomInfoList, { ...obj, result })
 
@@ -680,8 +689,10 @@ const Feast = e => ({
 const clientStartFeast = (type, areaID, kingdomID) => {
     sendXT("bfs", JSON.stringify({ T: type, CID: areaID, KID: kingdomID, PO: -1, PWR: 0 }))
 
+    const waitObject = waitForResult("bfs", 1000 * 10)
+
     return async () => {
-        let [obj, result] = await waitForResult("bfs", 1000 * 10)
+        const [obj, result] = await waitObject
 
         return Feast({ ...obj, result: result })
     }
@@ -706,8 +717,7 @@ const Highscore = e => ({
 const clientGetHighscore = (LT, LID, SV) => {
     sendXT("hgh", JSON.stringify({ LT, LID, SV: `${SV}` }))
 
-    return async () => {
-        let [obj, result] = await waitForResult("hgh", 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult("hgh", 1000 * 10, (obj, result) => {
             if (obj.LT != LT)
                 return false
             if (obj.SV != SV)
@@ -716,6 +726,9 @@ const clientGetHighscore = (LT, LID, SV) => {
                 return false
             return true
         })
+
+    return async () => {
+        const [obj, result] = await waitObject
 
         return Highscore({ ...obj, result: result })
     }
@@ -773,13 +786,15 @@ const JoinOpenAlliance = e => ({
 const clientJoinOpenAlliance = AID => {
     sendXT("joa", JSON.stringify({ AID }))
 
-    return async () => {
-        let [obj, result] = await waitForResult("joa", 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult("joa", 1000 * 10, obj => {
             if (obj.gal.AID != AID)
                 return false
 
             return true
         })
+
+    return async () => {
+        const [obj, result] = await waitObject
 
         return JoinOpenAlliance({ ...obj, result: result })
     }
@@ -809,8 +824,7 @@ const JoinArea = e => ({
 const clientJoinArea = (x, y, kingdomID) => {
     sendXT("joa", JSON.stringify({ PX: x, PY: y, KID: kingdomID }))
 
-    return async () => {
-        let [obj, result] = await waitForResult("jaa", 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult("jaa", 1000 * 10, obj => {
             if (obj.KID != kingdomID)
                 return false
             if (obj.gca.A[1] != x)
@@ -820,6 +834,9 @@ const clientJoinArea = (x, y, kingdomID) => {
 
             return true
         })
+
+    return async () => {
+        let [obj, result] = await waitObject
 
         return JoinArea({ ...obj, result: result })
     }
@@ -834,14 +851,16 @@ const SearchPlayerName = e => ({
 const clientSearchPlayerName = (playerName) => {
     sendXT("wsp", JSON.stringify({ PN: playerName }))
 
-    return async () => {
-        try {
-            let [obj, result] = await waitForResult("wsp", 1000 * 10, (obj, result) => {
+    const waitObject = waitForResult("wsp", 1000 * 10, obj => {
                 if (obj.gaa.OI[0].N != playerName)
                     return false
 
                 return true
             })
+
+    return async () => {
+        try {
+            let [obj, result] = await waitObject
 
             return SearchPlayerName({ ...obj, result: result })
         }
@@ -865,16 +884,12 @@ const AllianceQuestPointCount = e => ({
 const clientAllianceQuestPointCount = () => {
     sendXT("aqpc", JSON.stringify({}))
 
-    return async () => {
-        try {
-            let [obj, result] = await waitForResult("aqpc", 1000 * 10)
+    const waitObject = waitForResult("aqpc", 1000 * 10)
 
-            return AllianceQuestPointCount({ ...obj, result: result })
-        }
-        catch (e) {
-            console.warn(e)
-            return { result: -1 }
-        }
+    return async () => {
+        const [obj, result] = await waitObject
+
+        return AllianceQuestPointCount({ ...obj, result: result })
     }
 }
 //loop:
@@ -1050,25 +1065,19 @@ const ReturningAttack = e => ({
 const clientGetAllianceByID = AID => {
     sendXT("ain", JSON.stringify({ AID }))
 
-    return async () => {
-        try {
-            let [obj, result] = await waitForResult("ain", 1000 * 10, obj => 
-                obj?.A.AID == AID)
+    const waitObject = waitForResult("ain", 1000 * 10, obj =>
+            obj?.A.AID == AID)
 
-            return Alliance({ ...obj.A, result: result })
-        }
-        catch (e) {
-            console.warn(e)
-            return { result: -1 }
-        }
+    return async () => {
+        let [obj, result] = await waitObject
+
+        return Alliance({ ...obj.A, result: result })
     }
 }
 
 const clientGetAllianceByName = name => {
     sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
-
-    return async () => {
-        let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
+    const waitObject = waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
             if (result != 0)
                 return false
 
@@ -1076,6 +1085,8 @@ const clientGetAllianceByName = name => {
                 return false
             return true
         })
+    return async () => {
+        let [obj, _2] = await waitObject
 
         let item = obj.L?.find(e => e[2][1].toLowerCase() == name.toLowerCase())
         if (item == undefined) {
