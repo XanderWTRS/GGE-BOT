@@ -1,7 +1,5 @@
 @echo off
 
-git config --unset credential.helper
-
 if not exist ".git"\ (
   git init -b main >NUL 2>&1
   git remote add origin https://github.com/darrenthebozz/GGE-BOT.git >NUL 2>&1
@@ -10,9 +8,15 @@ if not exist ".git"\ (
   git reset --hard >NUL 2>&1
   git clean -f -d >NUL 2>&1
   git pull origin main >NUL 2>&1
+  
+  git config --unset credential.helper
+
   git submodule deinit -f plugins-extra >NUL 2>&1
   git submodule init plugins-extra >NUL 2>&1
 )
+
+git config --unset credential.helper
+
 set GCM_INTERACTIVE="never"
 set GIT_TERMINAL_PROMPT=0
 gh auth status >NUL 2>&1
