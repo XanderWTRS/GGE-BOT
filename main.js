@@ -664,7 +664,7 @@ async function start() {
         }
         else {
           userDatabase.prepare('UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?') 
-            .run(undefined, undefined, uuid)
+            .run(null, null, uuid)
 
           loggedInUsers[uuid].forEach(({ws}) =>
             ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, 
