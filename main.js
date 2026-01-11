@@ -332,7 +332,7 @@ async function start() {
               client_secret: ggeConfig.discordClientSecret,
               code: request.query.code,
               grant_type: 'authorization_code',
-              redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.discordPort}`,
+              redirect_uri: `${request.protocol}://${request.hostname}:${ggeConfig.webPort}/discordAuth`,
               scope: 'identify',
             }).toString(),
             headers: {
