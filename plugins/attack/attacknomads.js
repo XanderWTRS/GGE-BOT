@@ -74,12 +74,9 @@ const getAreaCached = require('../../getmap')
 const minTroopCount = 100
 const eventID = 72
 
-events.once("load", async () => {
-    const sei = await getEventList()
-    const eventInfo = sei.E.find(e => e.EID == eventID)
-
-    if (eventInfo == undefined)
-        return console.warn(`${name} Event not running`)
+events.on("eventStart", async eventInfo => {
+    if(eventInfo.EID != eventID)
+        return
 
     if (eventInfo.EDID == -1) {
         const eventDifficultyID = 

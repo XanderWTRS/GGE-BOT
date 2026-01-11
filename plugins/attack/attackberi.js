@@ -64,12 +64,9 @@ const pretty = require('pretty-time')
 const minTroopCount = 100
 const eventID = 85
 
-events.once("load", async () => {
-    const sei = await getEventList()
-    const eventInfo = sei.E.find(e => e.EID == eventID)
-
-    if (eventInfo == undefined)
-        return console.warn(`${name} Event not running`)
+events.on("eventStart", async eventInfo => {
+    if(eventInfo.EID != eventID)
+        return
 
     const skipTarget = async (AI) => {
         while (AI.extraData[2] > 0) {

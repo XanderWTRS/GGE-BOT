@@ -214,8 +214,7 @@ events.on("unload", () => {
 const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js');
 let status = {}
 events.once("load", async (_, r) => {
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom);
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
     setInterval(() =>
         sendXT("dcl", JSON.stringify({ CD: 1 })),
         1000 * 60 * 5)
@@ -223,7 +222,7 @@ events.once("load", async (_, r) => {
     xtHandler.on("dcl", obj => {
         const castleProd = Types.DetailedCastleList(obj)
             .castles.find(a => a.kingdomID == KingdomID.stormIslands)
-            .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+            .areaInfo.find(a => a.areaID == sourceCastleArea?.extraData[0])
 
         if(!castleProd)
             return

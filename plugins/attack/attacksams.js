@@ -79,17 +79,15 @@ const minTroopCount = 100
 const eventID = 80
 let samsPoints = 0
 
-events.once("load", async () => {
-    const sei = await getEventList()
-    const eventInfo = sei.E.find(e => e.EID == eventID)
-
-    if (eventInfo == undefined)
-        return console.warn(`${name} Event not running`)
+events.on("eventStart", async eventInfo => {
+    if(eventInfo.EID != eventID)
+        return
 
     if (eventInfo.EDID == -1) {
         const eventDifficultyID = 
             Number(eventsDifficulties.find(e => 
-                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID && e.eventID == eventID)
+                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID && 
+                e.eventID == eventID)
                 .difficultyID)
                 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
