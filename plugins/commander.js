@@ -68,7 +68,7 @@ xtHandler.on("adi", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
 xtHandler.on("gli", (obj, r) => !r ? parseGLI(obj.C) : void 0)
 
 xtHandler.on("cat", obj => {
-    if (obj.A.M.TA[4] != playerInfo.playerID)
+    if (obj.A.M.OID != playerInfo.playerID)
         return
 
     useCommander(obj?.A?.UM?.L?.ID)
