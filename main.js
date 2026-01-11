@@ -352,8 +352,7 @@ async function start() {
             return response.send('Could not get discord id!')
           if (!guildId)
             return response.send('Could not get guild id!')
-          let userIsAdmin = client.guilds.cache.get(guildId)
-            .members?.cache.get(discordIdentifier.id)?.permissions?.has('Administrator')
+          let userIsAdmin = client.guilds.cache.get(guildId)?.members?.cache.get(discordIdentifier.id)?.permissions?.has('Administrator')
           if (userIsAdmin == undefined)
             return response.send('User isn\'t in guild')
           if (!userIsAdmin)
@@ -646,7 +645,7 @@ async function start() {
           throw "no discordUserId"
         let userIsAdmin = false
         try {
-          userIsAdmin = client.guilds.cache.get(row.discordGuildId).members.cache.get(row.discordUserId)
+          userIsAdmin = client.guilds.cache.get(row.discordGuildId)?.members.cache.get(row.discordUserId)
             .permissions.has("Administrator")
         } catch (e) {
           console.error(e)
