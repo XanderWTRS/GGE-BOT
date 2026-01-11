@@ -65,6 +65,12 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     const checkForLordIssues = () => {
         if (err[result] == "LORD_IS_USED")
             lordErrors++
+        if(err[result] == "MOVEMENT_HAS_NO_UNITS") {
+            console.error("Closing forcefully due to MOVEMENT_HAS_NO_UNITS error!")
+            parentPort.postMessage([ActionType.KillBot])
+            return
+        }
+
 
         if (lordErrors == 5) {
             console.error("Closing forcefully due to LORD_IS_USED errors!")
