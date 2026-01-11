@@ -1,5 +1,6 @@
 @echo off
-
+@REM Prevent run as admin issues
+cd /D "%~dp0"
 if not exist ".git"\ (
   git init -b main >NUL 2>&1
   git remote add origin https://github.com/darrenthebozz/GGE-BOT.git >NUL 2>&1
