@@ -14,7 +14,7 @@ if [ ! -d ".git" ]; then
   git config --unset credential.helper
   git submodule deinit -f plugins-extra
   git submodule init plugins-extra
-elif
+else
   git config --unset credential.helper
 fi
 
