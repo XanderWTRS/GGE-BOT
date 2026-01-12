@@ -187,7 +187,7 @@ const ServerGetAreaInfo = o => ({
  * This will give you at max a 100x100 chunk of the map
 */
 const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
-    let a = areaInfoLock(() => {
+    const waitObject = areaInfoLock(() => {
         sendXT("gaa", JSON.stringify({
             KID: Number(kingdomID),
             AX1: Number(fromX),
@@ -195,8 +195,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             AX2: Number(toX),
             AY2: Number(toY)
         }))
-    })
-    const waitObject = waitForResult("gaa", 1000 * 10, (obj, result) => {
+    return waitForResult("gaa", 1000 * 10, (obj, result) => {
             if (Number(result) != 0)
                 return true
 
@@ -221,6 +220,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
 
             return true
         })
+    })
     return async () => {
         const [gaa, result] = await waitObject
         gaa.result = result
