@@ -195,6 +195,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             AX2: Number(toX),
             AY2: Number(toY)
         }))
+    }).then(() => {
         return waitForResult("gaa", 1000 * 10, (obj, result) => {
             if (Number(result) != 0)
                 return true
@@ -223,6 +224,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
     })
     return async () => {
         const [gaa, result] = await waitObject
+        
         gaa.result = result
         return Number(result) == 0 ? ServerGetAreaInfo(gaa) : { result }
     }
@@ -917,6 +919,10 @@ let areaInfoLock = callback => new Promise(async (resolve, reject) => {
                 reject(e)
             }
         })
+
+    if(areaInfoCallbacks.length <= 0)
+        return
+
     if (kingdomLockInUse)
         return
 
@@ -952,6 +958,9 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
                 reject(e)
             }
         })
+
+    if(kingdomLockCallbacks.length <= 0)
+        return
 
     if (kingdomLockInUse)
         return

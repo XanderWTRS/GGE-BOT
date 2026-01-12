@@ -361,6 +361,7 @@ xtHandler.on("lli", async (obj,r) => {
     }
 
     if (r == 0) {
+        events.emit("earlyLoad")
         //Due to exploits that can break the client this is to give limited access again.
         const timer = setTimeout(() => {
             console.warn("Logged in (without event data)")

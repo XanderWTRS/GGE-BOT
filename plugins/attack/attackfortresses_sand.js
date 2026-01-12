@@ -21,8 +21,7 @@ const fortressHit = require('./sharedFortressAttackLogic.js')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const kid = KingdomID.burningSands
-const type = AreaType.fortress
 const level = 44
 
 events.on("load", () => 
-    fortressHit(name, kid, type, level, pluginOptions))
+    fortressHit(name, kid, level, pluginOptions))

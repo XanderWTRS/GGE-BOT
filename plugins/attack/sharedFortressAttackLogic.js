@@ -18,6 +18,7 @@ const pretty = require('pretty-time')
 const { getCommanderStats } = require('../../getEquipment.js')
 
 const minTroopCount = 100
+const type = AreaType.fortress
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -52,7 +53,7 @@ function spiralCoordinates(n) {
 
     return { x, y }
 }
-async function fortressHit(name, kid, type, level, options) {
+async function fortressHit(name, kid, level, options) {
     let pluginOptions = {}
     Object.assign(pluginOptions, options ?? {})
     Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
@@ -161,7 +162,6 @@ async function fortressHit(name, kid, type, level, options) {
 
                 attackerMeleeTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
                 attackerRangeTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
-
 
                 let allTroopCount = 0
 
