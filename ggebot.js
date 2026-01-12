@@ -60,8 +60,8 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
 
     func ??= _ => true
 
-    let timer;
-    let result;
+    let timer
+    let result
     const checkForLordIssues = () => {
         if (err[result] == "LORD_IS_USED")
             lordErrors++
@@ -70,7 +70,6 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             parentPort.postMessage([ActionType.KillBot])
             return
         }
-
 
         if (lordErrors == 5) {
             console.error("Closing forcefully due to LORD_IS_USED errors!")
@@ -87,7 +86,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             console.warn(`${key} Timed out`)
 
             reject(msg)
-        }, timeout)
+        }, timeout * (ggeConfig.timeoutMultiplier ?? 1))
     }
 
     const helperFunction = (data, _result) => {
