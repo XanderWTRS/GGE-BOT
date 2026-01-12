@@ -97,8 +97,10 @@ xtHandler.on("gam", async obj => {
 
             useCommander(lordID)
 
-            setTimeout(() => freeCommander(lordID),
+            if(o.M.TA[4] == playerInfo.playerID) {
+                setTimeout(() => freeCommander(lordID),
                 (o.M.TT - o.M.PT + 1) * 1000).unref()
+            }
         }
         catch (e) {
             console.warn(e)
