@@ -195,7 +195,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             AX2: Number(toX),
             AY2: Number(toY)
         }))
-    return waitForResult("gaa", 1000 * 10, (obj, result) => {
+        return waitForResult("gaa", 1000 * 10, (obj, result) => {
             if (Number(result) != 0)
                 return true
 
