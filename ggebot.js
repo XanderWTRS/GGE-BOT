@@ -6,6 +6,7 @@ const ActionType = require('./actions.json')
 const err = require('./err.json')
 const {DatabaseSync} = require('node:sqlite')
 const events = new EventEmitter()
+const ggeConfig = require("./ggeConfig.json")
 if (isMainThread)
     return
 const botConfig = workerData
