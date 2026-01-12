@@ -76,7 +76,12 @@ xtHandler.on("cat", obj => {
     setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID),
         (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
 })
-xtHandler.on("gam", (obj) => {
+xtHandler.on("gam", async obj => {
+    if (playerInfo.playerID == NaN) {
+        playerInfo.playerID = await new Promise(resolve => {
+            xtHandler.once("gpi", obj => resolve(Number(obj.PID)))
+        })
+    }
     for (let i = 0; i < obj.M.length; i++) {
         const o = obj.M[i]
         try {
