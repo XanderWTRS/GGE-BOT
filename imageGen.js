@@ -1,8 +1,8 @@
 const PImage = require("pureimage");
-const fs = require('fs');
+const fs = require('fs')
 const { getAsset } = require("./units.js")
-const { all_units } = require("./ids.js");
-const { Stream } = require("stream");
+const { all_units } = require("./ids.js")
+const { Stream } = require("stream")
 const ggeConfig = require("./ggeConfig.json")
 
 let wavePattern = {
@@ -69,19 +69,9 @@ let createLayout = ((GA) => {
   return passThroughStream
 })
 
-let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => new Promise(async (resolve2, reject2) => {
-  let resolve = (d) =>{
-    
-    // console.log(`end ${unit?.name}_${unit?.group}_${unit?.type}`)
-    resolve2(d)
-  }
-  let reject = (d) => {
-    
-    // console.log(`end fail ${unit?.name}_${unit?.group}_${unit?.type}`)
-    reject2(d)
-  }
+let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => 
+  new Promise(async (resolve, reject) => {
   try {
-    // console.log(`start ${unit?.name}_${unit?.group}_${unit?.type}`)
     let asset = await getAsset(`${unit?.name}_${unit?.group}_${unit?.type}`)
 
     asset.on("error", reject)

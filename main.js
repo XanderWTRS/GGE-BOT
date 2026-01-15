@@ -11,14 +11,14 @@ const {parseStringPromise} = require('xml2js')
 const { DatabaseSync } = require('node:sqlite')
 const { Worker } = require('node:worker_threads')
 const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
-const { I18n } = require('i18n')
-
 const ErrorType = require('./errors.json')
 const ActionType = require('./actions.json')
 
+const { I18n } = require('i18n')
+
 const i18n = new I18n({
   locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro'],
-  directory: path.join(__dirname, 'locales')
+  directory: path.join(__dirname, 'website', 'public', 'locales')
 })
 
 const clientOptions = { 
