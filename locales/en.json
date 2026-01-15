@@ -5,7 +5,7 @@
 	"couldntFindCertificate": "Could not find certificate! Falling back to HTTP mode.",
 	"couldntAccessFont": "Couldn't access font",
 	"couldntSetupDiscord": "Could not setup discord.",
-	"configurationsMissing:": "Following configurations are missing:",
+	"configurationsMissing": "Following configurations are missing:",
 	"missingDiscordID": "Could not get Discord id.",
 	"missingDiscordUserID": "Could not get Discord user id.",
 	"missingGuildID": "Could not get guild id.",
