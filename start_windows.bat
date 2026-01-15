@@ -26,6 +26,14 @@ if %ERRORLEVEL% EQU 0 (
 ) else (
   git pull origin main
 )
+
+cd website
+if not exist "build"\ (
+  call npm i
+  call npm run build
+)
+cd ..
+
 call npm i
 start http://127.0.0.1:3001
 node --no-warnings main.js

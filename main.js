@@ -387,7 +387,7 @@ async function start() {
     client.login(ggeConfig.discordToken)
   }
 
-  app.use(express.static('website'))
+  app.use(express.static('website/build'))
 
   async function createBot(uuid, user, messageBuffer, messageBufferCount) {
     messageBuffer ??= []

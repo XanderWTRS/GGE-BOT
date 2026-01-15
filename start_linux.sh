@@ -25,6 +25,13 @@ elif gh auth status >/dev/null 2>&1; then
   git pull origin main --recurse-submodules
 fi
 
+cd website
+if [ ! -d "build" ]; then
+  npm i
+  npm run build
+fi
+cd ..
+
 npm i
  
 if which xdg-open > /dev/null
