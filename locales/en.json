@@ -1,0 +1,18 @@
+{
+	"startBanner": "Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.",
+	"ggeConfigGenerated": "ggeConfig.json has been generated.",
+	"couldntFindPrivateKey": "Could not find privateKey! Falling back to HTTP mode.",
+	"couldntFindCertificate": "Could not find certificate! Falling back to HTTP mode.",
+	"couldntAccessFont": "Couldn't access font",
+	"couldntSetupDiscord": "Could not setup discord.",
+	"configurationsMissing:": "Following configurations are missing:",
+	"missingDiscordID": "Could not get Discord id.",
+	"missingDiscordUserID": "Could not get Discord user id.",
+	"missingGuildID": "Could not get guild id.",
+	"uuidInvalid": "UUID is not valid.",
+	"gameAccountSessionAlreadyInUse": "Game account session already in use.",
+	"failedToJoinEventServer" : "Failed to join event server.",
+	"noThreadWorker": "Thread worker not found.",
+	"couldntFindWebClientIndex" : "Couldn't find index of web client user.",
+	"started": "Started."
+}

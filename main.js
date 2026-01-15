@@ -11,9 +11,15 @@ const {parseStringPromise} = require('xml2js')
 const { DatabaseSync } = require('node:sqlite')
 const { Worker } = require('node:worker_threads')
 const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
+const { I18n } = require('i18n')
 
 const ErrorType = require('./errors.json')
 const ActionType = require('./actions.json')
+
+const i18n = new I18n({
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro'],
+  directory: path.join(__dirname, 'locales')
+})
 
 const clientOptions = { 
   intents: [
@@ -29,7 +35,7 @@ const clientOptions = {
 
 const client = new Client(clientOptions)
 
-console.log('Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.')
+console.info(i18n.__("startBanner"))
 
 const ggeConfigExample = `{
     "webPort" : "3001",
@@ -145,7 +151,7 @@ async function start() {
   }
   catch {
     await fs.writeFile('./ggeConfig.json', ggeConfigExample)
-    console.info('ggeConfig.json has been generated')
+    console.info(i18n.__('ggeConfigGenerated'))
   }
   const ggeConfig = JSON.parse((await fs.readFile('./ggeConfig.json')).toString())
 
@@ -161,9 +167,9 @@ async function start() {
   if (!(ggeConfig.privateKey || ggeConfig.cert)) {
     certFound = false
     if (!ggeConfig.privateKey)
-      console.warn('Could not find privateKey! Falling back to http mode')
+      console.warn(i18n.__("couldntFindPrivateKey"))
     if (!ggeConfig.cert)
-      console.warn('Could not find cert! Falling back to http mode')
+      console.warn(i18n.__("couldntFindCertificate"))
   }
   let hasDiscord = true
 
@@ -173,13 +179,13 @@ async function start() {
       await fs.access(ggeConfig.fontPath)
     }
     catch {
-      console.warn(`Couldn't access font ${ggeConfig.fontPath}`)
+      console.warn(`${i18n.__("couldntAccessFont")} ${ggeConfig.fontPath}`)
     }
   }
 
   if (!ggeConfig.discordToken || !ggeConfig.discordClientId) {
-    console.warn('Could not setup discord')
-    console.warn('Following configurations are missing:')
+    console.warn(i18n.__("couldntSetupDiscord"))
+    console.warn(i18n.__("configurationsMissing"))
     if (!ggeConfig.discordToken)
       console.warn('discordToken')
     if (!ggeConfig.discordClientId)
@@ -301,7 +307,7 @@ async function start() {
       if (crypto.pbkdf2Sync(json.password, row.passwordSalt, 600000, 64, 'sha256').compare(row.passwordHash) == 0)
         res.send(JSON.stringify({ id: 0, r: 0, uuid: row.uuid }))
       else
-        res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.'}))
+        res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.'})) //TODO: sort this out server side
     }
     else if (json.id == 1) {
       if (json.token != ggeConfig.signupToken)
@@ -350,14 +356,9 @@ async function start() {
           let discordIdentifier = await userResult.body.json()
           let guildId = request.query.guild_id
           if (!discordIdentifier.id)
-            return response.send('Could not get discord id!')
+            return response.send(i18n.__("missingDiscordID"))
           if (!guildId)
-            return response.send('Could not get guild id!')
-          let userIsAdmin = true//client.guilds.cache.get(guildId)?.members?.cache.get(discordIdentifier.id)?.permissions?.has('Administrator')
-          if (userIsAdmin == undefined)
-            return response.send('User isn\'t in guild')
-          if (!userIsAdmin)
-            return response.send('User is not admin!')
+            return response.send(i18n.__("missingGuildID"))
 
           let guild = client.guilds.cache.get(guildId)
           let channelData = guild.channels.cache.map(channel => {
@@ -371,14 +372,14 @@ async function start() {
             .substring(5, Infinity)
           let valid = loginCheck(uuid)
           if (!valid)
-            return response.send('uuid is not valid!')
+            return response.send(i18n.__("uuidInvalid"))
 
           userDatabase.prepare('UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?')
               .run(discordIdentifier.id, guildId, uuid)
           
           loggedInUsers[uuid].forEach(o =>
             o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]])))
-          return response.send('Successful!')
+          return response.send('Successful!') //close page instead
         })
       })
       resolve()
@@ -392,7 +393,7 @@ async function start() {
     messageBuffer ??= []
     messageBufferCount ??= 0
     if (user.id && botMap.get(user.id) != undefined)
-      throw Error('User already in use')
+      throw Error(i18n.__("gameAccountSessionAlreadyInUse"))
 
     let data = structuredClone(user)
 
@@ -501,7 +502,7 @@ async function start() {
           data.gameURL = 'ep-live-battle1-game.goodgamestudios.com'
         }
         else {
-          console.error('Couldn\'t find compatible event')
+          console.error(i18n.__("failedToJoinEventServer"))
           return await worker.terminate()
         }
         data.tempServerData = data3
@@ -582,8 +583,8 @@ async function start() {
     const worker = botMap.get(id)
 
     if (worker == undefined)
-      throw 'No worker found'
-    
+      throw i18n.__("noThreadWorker")
+
     botMap.delete(id)
     worker.terminate()
   }
@@ -612,15 +613,15 @@ async function start() {
       wss.emit('connection', socket, req)))
 
   wss.addListener('connection', (ws, req) => {
-    const refreshUsers = () => 
-        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]]))
-    
+    const refreshUsers = () =>
+      ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]]))
+
     let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith('uuid='))
       .substring(5, Infinity)
 
     if (!loginCheck(uuid))
       return ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
-    
+
     loggedInUsers[uuid] ??= []
     loggedInUsers[uuid].push({ ws })
 
@@ -641,36 +642,19 @@ async function start() {
       const row = userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid)
       try {
         if (!row.discordGuildId)
-          throw "no discordGuildId"
+          throw i18n.__("missingGuildID")
         if (!row.discordUserId)
-          throw "no discordUserId"
-        let userIsAdmin = false
-        try {
-          userIsAdmin = client.guilds.cache.get(row.discordGuildId)?.members.cache.get(row.discordUserId)
-            .permissions.has("Administrator")
-        } catch (e) {
-          console.error(e)
-        }
+          throw i18n.__("missingDiscordUserID")
 
-        if (true) {
-          let guild = client.guilds.cache.get(row.discordGuildId)
-          let channelData = guild.channels.cache.map(channel => {
-            if (guild.members.me.permissionsIn(channel)
-              .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
-              return { id: channel.id, name: channel.name }
+        let guild = client.guilds.cache.get(row.discordGuildId)
+        let channelData = guild.channels.cache.map(channel => {
+          if (guild.members.me.permissionsIn(channel)
+            .has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]))
+            return { id: channel.id, name: channel.name }
 
-            return undefined
-          }).filter((e) => e !== undefined)
-          ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
-        }
-        else {
-          userDatabase.prepare('UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?') 
-            .run(null, null, uuid)
-
-          loggedInUsers[uuid].forEach(({ws}) =>
-            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, 
-              [ggeConfig.discordClientId, undefined]])))
-        }
+          return undefined
+        }).filter((e) => e !== undefined)
+        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
       }
       catch (e) {
         ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, 
@@ -776,17 +760,16 @@ async function start() {
         return
       let index = loggedInUsers[uuid].findIndex((obj) => obj.ws == ws)
       if (index == -1)
-        throw Error('Couldn\'t find index of logged in user')
+        throw Error(i18n.__("couldntFindWebClientIndex"))
 
       loggedInUsers[uuid].splice(index, 1)
 
       if (loggedInUsers[uuid].length == 0)
-        if (!delete loggedInUsers[uuid])
-          throw 'Could not remove a user that logged off'
+        loggedInUsers[uuid] = undefined
     })
   })
 
-  console.info('Started')
+  console.info(i18n.__("started"))
 }
 
 start()
