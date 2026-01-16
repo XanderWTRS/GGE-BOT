@@ -1,8 +1,6 @@
 #!/bin/sh
 
 echo "Running Post Merge Hook"
-echo $GIT_DIR
-cd $GIT_DIR
 npm i
 cd website
 npm i
