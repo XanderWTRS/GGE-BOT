@@ -2,7 +2,6 @@
 @REM Prevent run as admin issues
 cd /D "%~dp0"
 
-git config pull.rebase true
 
 if not exist ".git"\ (
   git init -b main >NUL 2>&1
@@ -20,6 +19,8 @@ if not exist ".git"\ (
 ) else (
   git config --unset credential.helper
 )
+
+git config pull.rebase true
 
 set GCM_INTERACTIVE="never"
 set GIT_TERMINAL_PROMPT=0
