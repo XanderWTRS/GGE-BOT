@@ -9,7 +9,7 @@
 	"missingDiscordID": "Could not get Discord id.",
 	"missingDiscordUserID": "Could not get Discord user id.",
 	"missingGuildID": "Could not get guild id.",
-	"uuidInvalid": "UUID is not valid.",
+	"uuidInvalid": "User Identifier is not valid.",
 	"gameAccountSessionAlreadyInUse": "Game account session already in use.",
 	"failedToJoinEventServer" : "Failed to join event server.",
 	"noThreadWorker": "Thread worker not found.",

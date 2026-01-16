@@ -17,7 +17,7 @@ const ActionType = require('./actions.json')
 const { I18n } = require('i18n')
 
 const i18n = new I18n({
-  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro'],
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
   directory: path.join(__dirname, 'website', 'public', 'locales')
 })
 

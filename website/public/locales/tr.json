@@ -1,0 +1,18 @@
+{
+    "startBanner": "Sorunlarınızı Github Issues üzerinde paylaşmanız veya doğrudan Discord veya e-posta ile bana mesaj atmanız çok memnuniyetle karşılanır.",
+    "ggeConfigGenerated": "ggeConfig.json oluşturuldu.",
+    "couldntFindPrivateKey": "privateKey bulunamadı! HTTP moduna geçiliyor.",
+    "couldntFindCertificate": "Sertifika bulunamadı! HTTP moduna geçiliyor.",
+    "couldntAccessFont": "Fonta erişilemedi.",
+    "couldntSetupDiscord": "Discord kurulamadı.",
+    "configurationsMissing": "Aşağıdaki yapılandırmalar eksik:",
+    "missingDiscordID": "Discord ID alınamadı.",
+    "missingDiscordUserID": "Discord kullanıcı ID alınamadı.",
+    "missingGuildID": "Sunucu ID alınamadı.",
+    "uuidInvalid": "Geçersiz benzersiz kimlik numarası.",
+    "gameAccountSessionAlreadyInUse": "Oyun hesabı oturumu zaten kullanımda.",
+    "failedToJoinEventServer": "Etkinlik sunucusuna katılma başarısız.",
+    "noThreadWorker": "Çalıştırılacak Eylem Bulunamadı.",
+    "couldntFindWebClientIndex": "Kullanıcı Ara Yüzü Bulunamadı.",
+    "started": "Başladı"
+}
