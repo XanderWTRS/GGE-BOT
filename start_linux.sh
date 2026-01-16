@@ -10,11 +10,13 @@ if [ ! -d ".git" ]; then
   git fetch origin
   git reset --hard 
   git clean -f -d
-  git pull origin main
+  git config --local core.hooksPath .githooks/
   git config --unset credential.helper
+  git pull origin main
   git submodule deinit -f plugins-extra
   git submodule init plugins-extra
 else
+  git config --local core.hooksPath .githooks/
   git config --unset credential.helper
 fi
 
