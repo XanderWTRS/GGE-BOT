@@ -32,11 +32,9 @@ cd website
 if [ ! -d "build" ]; then
   npm i
   npm run build
-  cd ..
-  npm i
-else 
-  cd ..
 fi
+cd ..
+npm i
  
 if which xdg-open > /dev/null
 then
