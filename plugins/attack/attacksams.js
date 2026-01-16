@@ -118,6 +118,10 @@ xtHandler.on("pep", obj => {
     if (obj.EID != eventID)
         return
     samsPoints = Number(obj.OP[0])
+    
+    if(quit)
+        return
+
     if (samsPoints >= pluginOptions.samsScoreShutoff) {
         console.log(`[${name}] Shutting down reason: score reached.`)
         quit = true
@@ -125,6 +129,8 @@ xtHandler.on("pep", obj => {
 })
 events.on("eventStop", eventInfo => {
     if (eventInfo.EID != eventID)
+        return
+    if(quit)
         return
 
     console.log(`[${name}] Shutting down reason: Event ended.`)

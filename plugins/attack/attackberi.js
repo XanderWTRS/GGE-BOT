@@ -97,6 +97,9 @@ let quit = false
 events.on("eventStop", eventInfo => {
     if (eventInfo.EID != eventID)
         return
+    
+    if(quit)
+        return
 
     console.log(`[${name}] Shutting down reason: Event ended.`)
     quit = true
