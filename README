@@ -46,4 +46,4 @@ also find Token goto the ggeConfig and place it under discordToken.
   https://127.0.0.1:(webPort)/discordAuth
 Optionally if you are hosting for others:
   http/s://webaddress:(webPort)/discordAuth
-6. From here restart the bot and press the "Link Discord"
+6. From here restart the bot and press the "Link Discord".
