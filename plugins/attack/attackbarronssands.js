@@ -10,7 +10,7 @@ if (isMainThread)
                 type: "Checkbox",
                 label: "Use Coin",
                 key: "useCoin",
-                default: false
+                default: true
             },
             {
                 type: "Checkbox",
