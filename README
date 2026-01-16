@@ -26,13 +26,13 @@ Some info on the plugins:
   Khan does NOT replace your defence at the current becareful when running for too long.
 
 What you need to do to use (Windows 11): https://youtu.be/Gf9a-BU0R0Q
-  Goto release download the powershell file run it and it should be on your desktop
-  Then go in there and press start.bat
+  Goto release download the powershell file run it and it should be on your desktop.
+  Then go in there and press start.bat.
 
 What you need to do to use (Other OS):
-1. Install Git
-1. Grab the latest version of NodeJS
-4. Goto the directory of the bot in and run in the terminal
+1. Install Git.
+1. Grab the latest version of NodeJS.
+4. Goto the directory of the bot in and run in the terminal.
 5. ./start.sh
 
 For Discord: https://youtu.be/3-Oil6N4OCU
