@@ -1,0 +1,9 @@
+#!/bin/sh
+
+echo "Running Post Merge Hook"
+
+cd $GIT_DIR
+npm i
+cd website
+npm i
+npm start build
