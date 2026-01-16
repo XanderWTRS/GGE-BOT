@@ -4,4 +4,4 @@ echo "Running Post Merge Hook"
 npm i
 cd website
 npm i
-npm start build
+npm run build
