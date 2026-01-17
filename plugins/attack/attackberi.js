@@ -47,12 +47,13 @@ if (isMainThread)
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
-const { getCommanderStats } = require("../../getEquipment")
-const units = require("../../items/units.json")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require('../commander')
+const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require('../../ggebot')
+const { getCommanderStats } = require('../../getEquipment')
+const units = require('../../items/units.json')
 const pretty = require('pretty-time')
 const getAreaCached = require('../../getmap.js')
+const err = require('../../err.json')
 
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
@@ -267,6 +268,7 @@ events.on("eventStart", async eventInfo => {
                         attackerMeleeTroops.sort((a, b) => Number(a[0].meleeAttack) - Number(b[0].meleeAttack))
                         attackerRangeTroops.sort((a, b) => Number(a[0].rangeAttack) - Number(b[0].rangeAttack))
                     }
+                    else {
                         const selectTool = i => {
                             let tools = attackerBerimondTools
                             if (tools.length == 0) {
@@ -314,6 +316,7 @@ events.on("eventStart", async eventInfo => {
                         wave.M.U.forEach((unitSlot, i) =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
+                    }
                 })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach((unitSlot, i) => {

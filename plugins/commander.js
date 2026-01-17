@@ -3,7 +3,7 @@ const name = "commander"
 if (require('node:worker_threads').isMainThread)
     return module.exports = { name, hidden: true }
 
-const { xtHandler, playerInfo } = require('../ggebot')
+const { xtHandler, playerInfo, waitForResult } = require('../ggebot')
 const { Types } = require('../protocols.js')
 const EventEmitter = require('node:events')
 
@@ -29,6 +29,9 @@ function useCommander(LID) {
 }
 
 const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
+    if(commanders.length == 0) {
+        parseGLI((await waitForResult("gli", 1000 * 10))[0].C)
+    }
     let usableCommanders = commanders.map(e => new Types.Lord(e))
         .filter(e => ((!arr || arr.includes(e.lordPosition)) &&
             !usedCommanders.includes(e.lordID)))

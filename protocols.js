@@ -1,4 +1,4 @@
-const { waitForResult, sendXT, xtHandler, events } = require("./ggebot")
+const { waitForResult, sendXT, xtHandler, events, playerInfo } = require("./ggebot")
 const fs = require("fs/promises")
 const AreaType = Object.freeze({
     barron: 2,
@@ -604,7 +604,7 @@ function setEvent(obj, result) {
     obj.E.find(e => {
         if (_activeEventList.E?.find(a => a.EID == e.EID))
             return
-        
+
         // console.debug(`Event ${e.EID} has started`)
         events.emit("eventStart", e)
     })
