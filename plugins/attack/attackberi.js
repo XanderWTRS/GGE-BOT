@@ -223,6 +223,11 @@ events.on("eventStart", async eventInfo => {
                     attackerWallBerimondTools.reverse()
                     attackerShieldBerimondTools.reverse()
                 }
+                attackerWallTools.sort((a, b) =>
+                    Number(a[0].wallBonus) - Number(b[0].wallBonus))
+
+                attackerShieldTools.sort((a, b) =>
+                    Number(a[0].defRangeBonus) - Number(b[0].defRangeBonus))
 
                 attackerWallBerimondTools.push(...attackerWallTools)
                 attackerShieldBerimondTools.push(...attackerShieldTools)
