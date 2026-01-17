@@ -52,6 +52,7 @@ const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = requ
 const { getCommanderStats } = require("../../getEquipment")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
+const getAreaCached = require('../../getmap.js')
 
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
