@@ -300,6 +300,12 @@ events.on("eventStart", async eventInfo => {
                     attackerShieldNomadTools.reverse()
                 }
 
+                attackerWallTools.sort((a, b) =>
+                    Number(a[0].wallBonus) - Number(b[0].wallBonus))
+
+                attackerShieldTools.sort((a, b) =>
+                    Number(a[0].defRangeBonus) - Number(b[0].defRangeBonus))
+
                 attackerWallNomadTools.push(...attackerWallTools)
                 attackerShieldNomadTools.push(...attackerShieldTools)
 
