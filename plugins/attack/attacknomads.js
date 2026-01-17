@@ -32,6 +32,11 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
+                label: "Use event Wall Tools first",
+                key: "eventWallToolsfirst"
+            },
+            {
+                type: "Checkbox",
                 label: "Lowest value chests first",
                 key: "lowValueChests",
                 default: false
@@ -310,7 +315,7 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if(!pluginOptions.noChests) {
                         const selectTool = i => {
-                            let tools = attackerNomadTools
+                            let tools = pluginOptions.eventWallToolsfirst ? [] : attackerNomadTools
                             if (tools.length == 0) {
                                 if (i == 0) {
                                     tools = attackerWallNomadTools
