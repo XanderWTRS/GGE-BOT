@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "Running Pre Push Hook"
+npm update
+cd website
+npm update
