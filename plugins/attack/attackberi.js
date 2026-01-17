@@ -160,7 +160,7 @@ events.on("eventStart", async eventInfo => {
                     if(unitInfo.wodID == 277)
                         continue
                     
-                    else if (unitInfo.pointBonus) {
+                    else if (unitInfo.pointBonus && !pluginOptions.noEventTools) {
                         if (unitInfo.gateBonus)
                             attackerGateBerimondTools.push([unitInfo, unit.ammount])
                         else if (unitInfo.wallBonus)
