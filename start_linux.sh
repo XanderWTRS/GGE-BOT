@@ -30,11 +30,11 @@ fi
 
 cd website
 if [ ! -d "build" ]; then
-  npm update
+  npm install
   npm run build
 fi
 cd ..
-npm update
+npm install
  
 if which xdg-open > /dev/null
 then
