@@ -34,12 +34,12 @@ if %ERRORLEVEL% EQU 0 (
 
 cd website
 if not exist "build"\ (
-  call npm i
+  call npm update
   call npm run build
 )
 cd ..
 
-call npm i
+call npm update
 start http://127.0.0.1:3001
 node --no-warnings main.js
 pause
