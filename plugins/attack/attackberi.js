@@ -31,8 +31,8 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
-                label: "No chests",
-                key: "noChests",
+                label: "No event tools",
+                key: "noEventTools",
                 default: false
             },
             {
@@ -170,7 +170,7 @@ events.on("eventStart", async eventInfo => {
                         else if (!pluginOptions.reputation)
                             attackerBerimondTools.push([unitInfo, unit.ammount])
                     }
-                    else if (unitInfo.reputationBonus && pluginOptions.reputation) {
+                    else if (unitInfo.reputationBonus && pluginOptions.reputation && !pluginOptions.noEventTools) {
                         attackerBerimondTools.push([unitInfo, unit.ammount])
                     }
                     else if (
@@ -266,7 +266,6 @@ events.on("eventStart", async eventInfo => {
                         attackerMeleeTroops.sort((a, b) => Number(a[0].meleeAttack) - Number(b[0].meleeAttack))
                         attackerRangeTroops.sort((a, b) => Number(a[0].rangeAttack) - Number(b[0].rangeAttack))
                     }
-                    else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerBerimondTools
                             if (tools.length == 0) {
@@ -314,7 +313,6 @@ events.on("eventStart", async eventInfo => {
                         wave.M.U.forEach((unitSlot, i) =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
-                    }
                 })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach((unitSlot, i) => {
