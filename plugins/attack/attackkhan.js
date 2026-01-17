@@ -356,7 +356,7 @@ events.on("eventStart", async eventInfo => {
                     else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = pluginOptions.eventWallToolsfirst ? [] : attackerBannerKhanTools
-                            if (pluginOptions.wavesTillChests >= index) {
+                            if (pluginOptions.wavesTillChests <= index) {
                                 tools = attackerNomadTools
                                 if (tools.length == 0) {
                                     if (i == 0) {
