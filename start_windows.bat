@@ -2,7 +2,6 @@
 @REM Prevent run as admin issues
 cd /D "%~dp0"
 
-
 if not exist ".git"\ (
   git init -b main >NUL 2>&1
   git remote add origin https://github.com/darrenthebozz/GGE-BOT.git >NUL 2>&1
@@ -23,8 +22,6 @@ if not exist ".git"\ (
 
 git config pull.rebase true
 
-set GCM_INTERACTIVE="never"
-set GIT_TERMINAL_PROMPT=0
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   git pull origin main --recurse-submodules
@@ -36,10 +33,12 @@ cd website
 if not exist "build"\ (
   call npm install
   call npm run build
+  cd ..
+  call npm install
+) else (
+  cd ..
 )
-cd ..
 
-call npm install
 start http://127.0.0.1:3001
 node --no-warnings main.js
 pause

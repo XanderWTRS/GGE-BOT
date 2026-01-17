@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 URL="http://127.0.0.1:3001"
-export GCM_INTERACTIVE=never
-export GIT_TERMINAL_PROMPT=0
 
 if [ ! -d ".git" ]; then
   git init -b main 
@@ -32,9 +30,11 @@ cd website
 if [ ! -d "build" ]; then
   npm install
   npm run build
+  cd ..
+  npm install
+else
+  cd ..
 fi
-cd ..
-npm install
  
 if which xdg-open > /dev/null
 then
