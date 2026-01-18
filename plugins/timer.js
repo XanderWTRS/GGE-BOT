@@ -1,4 +1,4 @@
-const { isMainThread } = require('node:worker_threads')
+const { isMainThread, parentPort } = require('node:worker_threads')
 const name = "Timer"
 
 if (isMainThread) {
