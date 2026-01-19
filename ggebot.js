@@ -136,6 +136,15 @@ xtHandler.on("gal", obj => {
 
 xtHandler.on("gxp", obj => {
     playerInfo.level = obj.LVL + obj.LL
+    
+    if(!botConfig.externalEvent)
+        return
+
+    Object.assign(status, {
+        level: playerInfo.level
+    })
+    parentPort.postMessage([ActionType.StatusUser, status])
+
 })
 xtHandler.on("gpi", obj => {
     playerInfo.userID = Number(obj.UID)
@@ -229,7 +238,7 @@ events.once("load", async (_, r) => {
     if (!sourceCastleArea) {
         xtHandler.on("dcl", obj => {
             const castleProd = Types.DetailedCastleList(obj)
-                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo?.find(a => a.areaID == sourceCastleArea.extraData[0])
+                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
 
             if (!castleProd)
                 return

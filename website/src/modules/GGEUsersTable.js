@@ -161,6 +161,10 @@ export default function GGEUserTable(props) {
                                             <Typography>{status.aquamarine ?? ""}</Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
+                                            <Typography>{status.level ? "Level" : ""}</Typography>
+                                            <Typography>{status.level ?? ""}</Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
                                             <Typography>{status.mead ? "Mead" : ""}</Typography>
                                             <Typography>{status.mead ?? ""}</Typography>
                                         </Box>
