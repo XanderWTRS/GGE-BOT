@@ -44,14 +44,6 @@ clientReady.then(async client => {
         console.warn(`[${name}] ${e}`)
     }
 
-    let bannedOIDS = [
-        3077107,
-        3884741,
-        3712455,
-	    3712579,
-	    3712405
-    ]
-
     xtHandler.on("gam", func = obj => {
         obj.M.forEach(async (movement) => {
             let movementType = {
@@ -88,8 +80,6 @@ clientReady.then(async client => {
             let attackerName = attacker.N
             let attackerAlliance = attacker.AN
             let attackerArea = movement.M.SA[10]
-            if(bannedOIDS.includes(movement.M.SA[4]) && !botConfig.externalEvent) 
-                return
 
             let victimName = victim.N
             let victimArea = movement.M.TA[10]
