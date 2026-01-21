@@ -230,30 +230,49 @@ async function barronHit(name, type, kid, options) {
                 // Simulating: Selecting Units and filling waves (Cognitive processing ~100ms per wave/calculation)
                 await sleep(boxMullerRandom(200, 400, 1))
 
-                attackInfo.A.forEach(wave => {
+                // Get user options, defaulting to full attack if not set
+                const maxWaves = parseInt(pluginOptions.attackWaves) || 4;
+                const doLeft = pluginOptions.attackLeft !== false;
+                const doRight = pluginOptions.attackRight !== false;
+                const doMiddle = pluginOptions.attackMiddle !== false;
+                const doCourtyard = pluginOptions.attackCourtyard !== false;
+
+                attackInfo.A.forEach((wave, waveIndex) => {
+                    // Stop filling waves if we reached the user's limit
+                    if (waveIndex >= maxWaves) return;
+
                     const commanderStats = getCommanderStats(commander)
-                    const maxTroopFlank = getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
-                    const maxTroopFront = getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100
+                    // Subtract 1 as safety buffer to prevent ATTACK_TOO_MANY_UNITS
+                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100) - 1
+                    const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100) - 1
                     
                     let maxTroops = maxTroopFlank
 
-                    // if (!hasShieldMadiens) {
-                    wave.L.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    // }
-                    // maxTroops = maxTroopFlank
-                    // wave.R.U.forEach((unitSlot, i) =>
-                    //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                    //         attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    // maxTroops = maxTroopFront
-                    // wave.M.U.forEach((unitSlot, i) =>
-                    //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                    //         attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    if (doLeft) {
+                        // if (!hasShieldMadiens) {
+                        wave.L.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                        // }
+                    }
+
+                    if (doRight) {
+                        maxTroops = maxTroopFlank
+                        wave.R.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    }
+
+                    if (doMiddle) {
+                        maxTroops = maxTroopFront
+                        wave.M.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    }
                 })
 
 
-                if (!hasShieldMadiens) {
+                if (doCourtyard) {
                     let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                     attackInfo.RW.forEach((unitSlot, i) => {
                         let attacker = i & 1 ?

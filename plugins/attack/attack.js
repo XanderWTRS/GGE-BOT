@@ -10,13 +10,37 @@ if (isMainThread) {
                 type: "Text",
                 label: "Attack Delay (Seconds)",
                 key: "attackDelay",
-                default: "4.8"
+                default: "2.0"
             },
             {
                 type: "Text",
                 label: "Attack Delay Randomization (Seconds)",
                 key: "attackDelayRand",
-                default: "3"
+                default: "1.0"
+            },
+            {
+                type: "Text",
+                label: "Max Waves (1-4)",
+                key: "attackWaves",
+                default: "4"
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Left Flank",
+                key: "attackLeft",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Middle",
+                key: "attackMiddle",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Right Flank",
+                key: "attackRight",
+                default: true
             }
         ]
     }
@@ -199,25 +223,36 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
         attackTarget.A.push(wave)
     }
 
+    const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
+        (kid == 10 || e.areaID == sourceCastle.extraData[0]))?.unlockedHorses
+
     if (useCoin) {
-        const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
-            (kid == 10 || e.areaID == sourceCastle.extraData[0]))?.unlockedHorses
-            
-        attackTarget.HBW = unlockedHorses?.find(e => {
-            let horse = stables.find(a => e == a.wodID) 
-            return Number(horse.costFactorC1) > 0 && Number(horse.costFactorC2) == 0
+        let bestHorse = -1
+        let minSpeed = Infinity
+
+        unlockedHorses?.forEach(e => {
+            let horse = stables.find(a => e == a.wodID)
+            // Check for Gold Cost (>0) and Ruby Cost (==0)
+            if (horse && Number(horse.costFactorC1) > 0 && Number(horse.costFactorC2) == 0) {
+                 if (Number(horse.unitBoost) < minSpeed) {
+                    minSpeed = Number(horse.unitBoost)
+                    bestHorse = e
+                }
+            }
         })
-        attackTarget.PTT = 0
+        
+        if (bestHorse != -1) {
+            attackTarget.HBW = bestHorse
+            attackTarget.PTT = 0
+        } else {
+            console.warn(`[${name}] 'Use Coin' enabled but no gold horse found. Defaulting to walking.`)
+            attackTarget.HBW = -1
+            attackTarget.PTT = 1
+        }
     }
     else {
         attackTarget.HBW = -1
         attackTarget.PTT = 1
-    }
-    if(attackTarget.HBW == undefined)
-    {
-        attackTarget.HBW = -1
-        attackTarget.PTT = 0
-        console.warn(`[${name}] Couldn't find stable.`)
     }
     
     return attackTarget
@@ -273,11 +308,11 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     try {
                         // Human-like delay logic using Gaussian distribution
                         // Base delay from config + random gaussian variance
-                        const baseDelay = Number(pluginOptions.attackDelay ?? 4.8) * 1000
-                        const variance = Number(pluginOptions.attackDelayRand ?? 3) * 1000
+                        const baseDelay = Number(pluginOptions.attackDelay ?? 2.0)
+                        const variance = Number(pluginOptions.attackDelayRand ?? 1.0)
                         
                         // Generate a natural random delay. Skew 1 means normal distribution.
-                        const naturalDelay = boxMullerRandom(baseDelay, baseDelay + variance, 1)
+                        const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
                         const time = Date.now()
                         const deltaLastHitTime = lastHitTime - time
@@ -330,4 +365,4 @@ module.exports = {
     getMaxUnitsInReinforcementWave,
     boxMullerRandom,
     sleep
-} 
+}

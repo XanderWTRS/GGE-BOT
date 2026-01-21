@@ -14,9 +14,11 @@ import Typography from '@mui/material/Typography'
 
 import { ErrorType, ActionType, LogLevel } from "../types.js"
 import UserSettings from './userSettings'
+import { getTranslation } from '../translations.js'
 
 function Log(props) {
     const [currentLogs, setCurrentLogs] = React.useState([])
+// ... (Log component code remains mostly same, skipping for brevity in replace block targeting GGEUserTable)
 
     React.useEffect(() => {
         const logGrabber = msg => {
@@ -52,6 +54,8 @@ function Log(props) {
         </Paper>)
 }
 export default function GGEUserTable(props) {
+    const { language, setLanguage } = props;
+    const t = (key) => getTranslation(language, key);
     const user = {}
 
     const [openSettings, setOpenSettings] = React.useState(false)
@@ -84,6 +88,10 @@ export default function GGEUserTable(props) {
         }
 
         return <TableContainer component={Paper}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
+                <Button size="small" variant={language === 'tr' ? 'contained' : 'outlined'} onClick={() => setLanguage('tr')} sx={{ mr: 1 }}>TR</Button>
+                <Button size="small" variant={language === 'en' ? 'contained' : 'outlined'} onClick={() => setLanguage('en')}>EN</Button>
+            </Box>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
@@ -97,15 +105,15 @@ export default function GGEUserTable(props) {
                                 }}
                             />
                         </TableCell>
-                        <TableCell align="left">Name</TableCell>
-                        <TableCell align="left" padding='none'>Plugins</TableCell>
-                        <TableCell>Status</TableCell>
+                        <TableCell align="left">{t("Name")}</TableCell>
+                        <TableCell align="left" padding='none'>{t("Plugins")}</TableCell>
+                        <TableCell>{t("Status")}</TableCell>
                         <TableCell align='right' padding='none'>
                             <Button variant="contained"
                                 style={{ margin: "10px", maxHeight: '32px', minHeight: '32px' }}
                                 onClick={async () =>
                                     window.open(`https://discord.com/oauth2/authorize?client_id=${props.channelInfo[0]}&permissions=8&response_type=code&redirect_uri=${window.location.protocol === 'https:' ? "https" : "http"}%3A%2F%2F${window.location.hostname}%3A${window.location.port !== '' ? window.location.port : window.location.protocol === 'https:' ? "443" : "80"}%2FdiscordAuth&integration_type=0&scope=identify+guilds.join+bot`, "_blank")}
-                            >Link Discord</Button>
+                            >{t("Link Discord")}</Button>
                             <Button variant="contained" style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginRight: "10px" }} onClick={handleSettingsOpen}>+</Button>
                         </TableCell>
                     </TableRow>
@@ -186,18 +194,18 @@ export default function GGEUserTable(props) {
                                     <Button variant="text" onClick={() => {
                                         props.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, row]))
                                         handleLogOpen()
-                                    }}>LOGS</Button>
+                                    }}>{t("Logs")}</Button>
                                     <Button variant="text" onClick={() => {
                                         setSelectedUser(row)
                                         setOpenSettings(true)
-                                    }}>Settings</Button>
+                                    }}>{t("Settings")}</Button>
                                     <Button variant="contained"
                                         onClick={() => {
                                             row.state = !state
                                             props.ws.send(JSON.stringify([ErrorType.Success, ActionType.SetUser, row]))
                                             setState(!state)
                                         }}
-                                        style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginLeft: "10px" }}>{state ? "Stop" : "Start"}</Button>
+                                        style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginLeft: "10px" }}>{state ? t("Stop") : t("Start")}</Button>
                                 </TableCell>
                             </TableRow>)
                         }
@@ -213,7 +221,7 @@ export default function GGEUserTable(props) {
                         <TableCell align='right' padding='none'>
                             <Button variant="contained" style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', paddingLeft: "38px", paddingRight: "38px", margin: "10px" }} onClick={() => {
                                 props.ws.send(JSON.stringify([ErrorType.Success, ActionType.RemoveUser, props.rows.filter((e) => selected.includes(e.id))]))
-                            }}>Remove</Button>
+                            }}>{t("Remove")}</Button>
                         </TableCell>
                     </TableRow>
                 </TableBody>
@@ -233,7 +241,8 @@ export default function GGEUserTable(props) {
                     key={selectedUser.id}
                     closeBackdrop={handleSettingsClose}
                     plugins={props.plugins}
-                    channels={props.channelInfo[1]} />
+                    channels={props.channelInfo[1]}
+                    language={language} />
             </Backdrop>
             <Backdrop
             sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
