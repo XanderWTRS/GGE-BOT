@@ -313,6 +313,9 @@ async function barronHit(name, type, kid, options) {
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
                     return true
+                case "ATTACK_TOO_MANY_UNITS":
+                    console.warn(`[${name}] Math error (Too Many Units). Skipping this target to prevent crash.`)
+                    return true
                 case "CANT_START_NEW_ARMIES":
                 default:
                     throw e

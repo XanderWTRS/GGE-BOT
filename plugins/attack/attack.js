@@ -270,40 +270,47 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
         setImmediate(async () => {
             try {
                 do {
-                    // Human-like delay logic using Gaussian distribution
-                    // Base delay from config + random gaussian variance
-                    const baseDelay = Number(pluginOptions.attackDelay ?? 4.8) * 1000
-                    const variance = Number(pluginOptions.attackDelayRand ?? 3) * 1000
-                    
-                    // Generate a natural random delay. Skew 1 means normal distribution.
-                    const naturalDelay = boxMullerRandom(baseDelay, baseDelay + variance, 1)
+                    try {
+                        // Human-like delay logic using Gaussian distribution
+                        // Base delay from config + random gaussian variance
+                        const baseDelay = Number(pluginOptions.attackDelay ?? 4.8) * 1000
+                        const variance = Number(pluginOptions.attackDelayRand ?? 3) * 1000
+                        
+                        // Generate a natural random delay. Skew 1 means normal distribution.
+                        const naturalDelay = boxMullerRandom(baseDelay, baseDelay + variance, 1)
 
-                    const time = Date.now()
-                    const deltaLastHitTime = lastHitTime - time
-                    const deltaTimeTillTimeout = timeTillTimeout - time
+                        const time = Date.now()
+                        const deltaLastHitTime = lastHitTime - time
+                        const deltaTimeTillTimeout = timeTillTimeout - time
 
-                    if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
-                        const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
-                        if(timeTillNextHit > 0) {
-                            console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
-                            await sleep(timeTillNextHit)
+                        if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
+                            const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
+                            if(timeTillNextHit > 0) {
+                                console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
+                                await sleep(timeTillNextHit)
+                            }
+                            timeTillTimeout = Date.now() + napTime
+                            setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
                         }
-                        timeTillTimeout = Date.now() + napTime
-                        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
+
+                        lastHitTime = Date.now()
+                        setLastHitTime.run(lastHitTime, botConfig.id)
+
+                        if(!await (attacks.shift()()))
+                            continue
+                        
+                        await sleep(naturalDelay)
+                    } catch (innerError) {
+                        // Catch errors specific to the task but keep the loop running
+                        if (innerError !== "NO_MORE_TROOPS") {
+                             console.warn(`[${name}] Error processing attack:`, innerError)
+                        }
                     }
-
-                    lastHitTime = Date.now()
-                    setLastHitTime.run(lastHitTime, botConfig.id)
-
-                    if(!await (attacks.shift()()))
-                        continue
-                    
-                    await sleep(naturalDelay)
                 }
                 while (attacks.length > 0);
             }
             catch (e) {
-                console.warn(e)
+                console.warn(`[${name}] Critical loop error:`, e)
             }
             finally {
                 alreadyRunning = false
