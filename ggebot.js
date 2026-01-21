@@ -59,6 +59,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if (timeout == undefined) 
         reject(`waitForResult: No timeout specified`)
 
+    timeout *= 2.5
     func ??= _ => true
 
     let timer
