@@ -17,6 +17,7 @@ if (isMainThread) {
     return
 }
 
+const ActionType = require("../actions.json")
 const { botConfig, events } = require("../ggebot")
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 
