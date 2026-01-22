@@ -310,7 +310,7 @@ async function start() {
         res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.'})) //TODO: sort this out server side
     }
     else if (json.id == 1) {
-      if (json.token != ggeConfig.signupToken)
+      if (json.token != (ggeConfig.signupToken ?? ""))
         return res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid Sign up details.' }))
 
       const salt = crypto.randomBytes(256)
