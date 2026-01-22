@@ -189,12 +189,12 @@ async function barronHit(name, type, kid, options) {
                 let AI = sortedAreaInfo.splice(index, 1)[0]
                 
                 // Simulating: Clicking on target (Reaction time ~300ms-600ms)
-                await sleep(boxMullerRandom(300, 600, 1)) 
+                // await sleep(boxMullerRandom(300, 600, 1)) 
 
                 await skipTarget(AI)
 
                 // Simulating: Opening Attack Dialog (Animation wait ~400ms-800ms)
-                await sleep(boxMullerRandom(400, 800, 1))
+                // await sleep(boxMullerRandom(400, 800, 1))
 
                 const level = getLevel(AI.extraData[1], kid)
 
@@ -228,7 +228,7 @@ async function barronHit(name, type, kid, options) {
                     throw "NO_MORE_TROOPS"
                 
                 // Simulating: Selecting Units and filling waves (Cognitive processing ~100ms per wave/calculation)
-                await sleep(boxMullerRandom(200, 400, 1))
+                // await sleep(boxMullerRandom(200, 400, 1))
 
                 // Get user options, defaulting to full attack if not set
                 const maxWaves = parseInt(pluginOptions.attackWaves) || 4;
@@ -285,7 +285,7 @@ async function barronHit(name, type, kid, options) {
                 }
 
                 // Final hesitation before clicking "Attack" (Human verification/hesitation ~150ms-400ms)
-                await sleep(boxMullerRandom(150, 400, 1))
+                // await sleep(boxMullerRandom(150, 400, 1))
 
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
