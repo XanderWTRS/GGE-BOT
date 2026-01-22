@@ -16,7 +16,31 @@ if (isMainThread) {
                 type: "Text",
                 label: "Attack Delay Randomization (Seconds)",
                 key: "attackDelayRand",
-                default: "3"
+                default: "1.0"
+            },
+            {
+                type: "Text",
+                label: "Max Waves (1-4)",
+                key: "attackWaves",
+                default: "4"
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Left Flank",
+                key: "attackLeft",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Middle",
+                key: "attackMiddle",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Right Flank",
+                key: "attackRight",
+                default: true
             }
         ]
     }
@@ -199,29 +223,57 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
         attackTarget.A.push(wave)
     }
 
+    const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
+        (kid == 10 || e.areaID == sourceCastle.extraData[0]))?.unlockedHorses
+
     if (useCoin) {
-        const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
-            (kid == 10 || e.areaID == sourceCastle.extraData[0]))?.unlockedHorses
-            
-        attackTarget.HBW = unlockedHorses?.find(e => {
-            let horse = stables.find(a => e == a.wodID) 
-            return Number(horse.costFactorC1) > 0 && Number(horse.costFactorC2) == 0
+        let bestHorse = -1
+        let minSpeed = Infinity
+
+        unlockedHorses?.forEach(e => {
+            let horse = stables.find(a => e == a.wodID)
+            // Check for Gold Cost (>0) and Ruby Cost (==0)
+            if (horse && Number(horse.costFactorC1) > 0 && Number(horse.costFactorC2) == 0) {
+                 if (Number(horse.unitBoost) < minSpeed) {
+                    minSpeed = Number(horse.unitBoost)
+                    bestHorse = e
+                }
+            }
         })
-        attackTarget.PTT = 0
+        
+        if (bestHorse != -1) {
+            attackTarget.HBW = bestHorse
+            attackTarget.PTT = 0
+        } else {
+            console.warn(`[${name}] 'Use Coin' enabled but no gold horse found. Defaulting to walking.`)
+            attackTarget.HBW = -1
+            attackTarget.PTT = 1
+        }
     }
     else {
         attackTarget.HBW = -1
         attackTarget.PTT = 1
     }
-    if(attackTarget.HBW == undefined)
-    {
-        attackTarget.HBW = -1
-        attackTarget.PTT = 0
-        console.warn(`[${name}] Couldn't find stable.`)
-    }
     
     return attackTarget
 }
+
+// Box-Muller transform for Gaussian distribution (Human-like randomness)
+function boxMullerRandom(min, max, skew) {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+    while(v === 0) v = Math.random();
+    let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+
+    num = num / 10.0 + 0.5; // Translate to 0 -> 1
+    if (num > 1 || num < 0) num = boxMullerRandom(min, max, skew); // resample between 0 and 1 if out of range
+    num = Math.pow(num, skew); // Skew
+    num *= max - min; // Stretch to fill range
+    num += min; // offset to min
+    return num;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
 
 const randomIntFromInterval = (min, max) =>
     Math.floor(Math.random() * (max - min + 1) + min)
@@ -253,34 +305,47 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
         setImmediate(async () => {
             try {
                 do {
-                    const rndInt = randomIntFromInterval(1, Number(pluginOptions.attackDelayRand ?? 3)) * 1000
-                    let timeout = ms => new Promise(r => setTimeout(r, ms).unref())
-                    const time = Date.now()
-                    const deltaLastHitTime = lastHitTime - time
-                    const deltaTimeTillTimeout = timeTillTimeout - time
+                    try {
+                        // Human-like delay logic using Gaussian distribution
+                        // Base delay from config + random gaussian variance
+                        const baseDelay = Number(pluginOptions.attackDelay ?? 2.0)
+                        const variance = Number(pluginOptions.attackDelayRand ?? 1.0)
+                        
+                        // Generate a natural random delay. Skew 1 means normal distribution.
+                        const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
-                    if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
-                        const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
-                        if(timeTillNextHit > 0) {
-                            console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
-                            await timeout(timeTillNextHit)
+                        const time = Date.now()
+                        const deltaLastHitTime = lastHitTime - time
+                        const deltaTimeTillTimeout = timeTillTimeout - time
+
+                        if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
+                            const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
+                            if(timeTillNextHit > 0) {
+                                console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
+                                await sleep(timeTillNextHit)
+                            }
+                            timeTillTimeout = Date.now() + napTime
+                            setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
                         }
-                        timeTillTimeout = Date.now() + napTime
-                        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
+
+                        lastHitTime = Date.now()
+                        setLastHitTime.run(lastHitTime, botConfig.id)
+
+                        if(!await (attacks.shift()()))
+                            continue
+                        
+                        await sleep(naturalDelay)
+                    } catch (innerError) {
+                        // Catch errors specific to the task but keep the loop running
+                        if (innerError !== "NO_MORE_TROOPS") {
+                             console.warn(`[${name}] Error processing attack:`, innerError)
+                        }
                     }
-
-                    lastHitTime = Date.now()
-                    setLastHitTime.run(lastHitTime, botConfig.id)
-
-                    if(!await (attacks.shift()()))
-                        continue
-                    
-                    await timeout(Number((pluginOptions.attackDelay ?? 4.8) * 1000) + rndInt)
                 }
                 while (attacks.length > 0);
             }
             catch (e) {
-                console.warn(e)
+                console.warn(`[${name}] Critical loop error:`, e)
             }
             finally {
                 alreadyRunning = false
@@ -297,5 +362,7 @@ module.exports = {
     getTotalAmountToolsFront,
     getAmountSoldiersFlank,
     getAmountSoldiersFront,
-    getMaxUnitsInReinforcementWave
-} 
+    getMaxUnitsInReinforcementWave,
+    boxMullerRandom,
+    sleep
+}

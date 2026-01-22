@@ -9,7 +9,7 @@ if (isMainThread)
 
 const { getCommanderStats } = require("../../getEquipment")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave, boxMullerRandom, sleep } = require("./attack.js")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const getAreaCached = require('../../getmap.js')
@@ -155,6 +155,8 @@ async function barronHit(name, type, kid, options) {
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
+                const executionStartTime = Date.now() // Start timer for "human" interaction
+
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
@@ -185,7 +187,14 @@ async function barronHit(name, type, kid, options) {
                     return
 
                 let AI = sortedAreaInfo.splice(index, 1)[0]
+                
+                // Simulating: Clicking on target (Reaction time ~300ms-600ms)
+                // await sleep(boxMullerRandom(300, 600, 1)) 
+
                 await skipTarget(AI)
+
+                // Simulating: Opening Attack Dialog (Animation wait ~400ms-800ms)
+                // await sleep(boxMullerRandom(400, 800, 1))
 
                 const level = getLevel(AI.extraData[1], kid)
 
@@ -217,31 +226,53 @@ async function barronHit(name, type, kid, options) {
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
+                
+                // Simulating: Selecting Units and filling waves (Cognitive processing ~100ms per wave/calculation)
+                // await sleep(boxMullerRandom(200, 400, 1))
 
-                attackInfo.A.forEach(wave => {
+                // Get user options, defaulting to full attack if not set
+                const maxWaves = parseInt(pluginOptions.attackWaves) || 4;
+                const doLeft = pluginOptions.attackLeft !== false;
+                const doRight = pluginOptions.attackRight !== false;
+                const doMiddle = pluginOptions.attackMiddle !== false;
+                const doCourtyard = pluginOptions.attackCourtyard !== false;
+
+                attackInfo.A.forEach((wave, waveIndex) => {
+                    // Stop filling waves if we reached the user's limit
+                    if (waveIndex >= maxWaves) return;
+
                     const commanderStats = getCommanderStats(commander)
-                    const maxTroopFlank = getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
-                    const maxTroopFront = getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100
+                    // Subtract 1 as safety buffer to prevent ATTACK_TOO_MANY_UNITS
+                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100) - 1
+                    const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100) - 1
                     
                     let maxTroops = maxTroopFlank
 
-                    // if (!hasShieldMadiens) {
-                    wave.L.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    // }
-                    // maxTroops = maxTroopFlank
-                    // wave.R.U.forEach((unitSlot, i) =>
-                    //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                    //         attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    // maxTroops = maxTroopFront
-                    // wave.M.U.forEach((unitSlot, i) =>
-                    //     maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                    //         attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    if (doLeft) {
+                        // if (!hasShieldMadiens) {
+                        wave.L.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                        // }
+                    }
+
+                    if (doRight) {
+                        maxTroops = maxTroopFlank
+                        wave.R.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    }
+
+                    if (doMiddle) {
+                        maxTroops = maxTroopFront
+                        wave.M.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                    }
                 })
 
 
-                if (!hasShieldMadiens) {
+                if (doCourtyard) {
                     let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                     attackInfo.RW.forEach((unitSlot, i) => {
                         let attacker = i & 1 ?
@@ -253,6 +284,9 @@ async function barronHit(name, type, kid, options) {
                     })
                 }
 
+                // Final hesitation before clicking "Attack" (Human verification/hesitation ~150ms-400ms)
+                // await sleep(boxMullerRandom(150, 400, 1))
+
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
@@ -263,7 +297,11 @@ async function barronHit(name, type, kid, options) {
                         return false
                     return true
                 })
-                return { ...obj, result: r }
+                
+                const executionDuration = ((Date.now() - executionStartTime) / 1000).toFixed(2);
+                obj.executionDuration = executionDuration; // Pass it out
+
+                return { ...obj, result: r, executionDuration }
             })
             
             if (!attackInfo) {
@@ -273,7 +311,7 @@ async function barronHit(name, type, kid, options) {
             if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
             
-            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"} (Setup: ${attackInfo.executionDuration}s)`)
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -293,6 +331,9 @@ async function barronHit(name, type, kid, options) {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                    return true
+                case "ATTACK_TOO_MANY_UNITS":
+                    console.warn(`[${name}] Math error (Too Many Units). Skipping this target to prevent crash.`)
                     return true
                 case "CANT_START_NEW_ARMIES":
                 default:

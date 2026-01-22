@@ -519,11 +519,20 @@ async function start() {
       botMap.set(user.id, worker)
 
     const onTerminate = () => {
-      user = getSpecificUser(uuid, user)
       if (botMap.get(user.id) == worker) {
         botMap.set(user.id, undefined)
-        if (user.state == true)
-          createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
+        if (getSpecificUser(uuid, user).state == true) {
+          console.debug(`[${user.name}] ${i18n.__("restartDelay")}`)
+          setTimeout(() => {
+             // Re-fetch user state to ensure they didn't turn it off during the 10s wait
+             user = getSpecificUser(uuid, user)
+             if (user && user.state == true) {
+                 createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
+             } else {
+                 console.debug(`[${user.name}] ${i18n.__("restartCanceledReasonBotStoppedByUser")}`)
+             }
+          }, 10000)
+        }
       }
     }
 

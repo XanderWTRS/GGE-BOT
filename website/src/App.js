@@ -12,6 +12,7 @@ const darkTheme = createTheme({
 })
 
 function App() {
+  const [language, setLanguage] = React.useState('en'); // Default language
   let [users, setUsers] = React.useState([])
   let [usersStatus, setUsersStatus] = React.useState({})
   let [plugins, setPlugins] = React.useState([])
@@ -55,7 +56,7 @@ function App() {
   return (
     <div className="App">
       <ThemeProvider theme={darkTheme}>
-          <GGEUserTable ws={ws} plugins={plugins} rows={users} usersStatus={usersStatus} channelInfo={channelInfo} />
+          <GGEUserTable ws={ws} plugins={plugins} rows={users} usersStatus={usersStatus} channelInfo={channelInfo} language={language} setLanguage={setLanguage} />
       </ThemeProvider>
     </div>
   )

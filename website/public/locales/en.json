@@ -14,5 +14,7 @@
 	"failedToJoinEventServer" : "Failed to join event server.",
 	"noThreadWorker": "Thread worker not found.",
 	"couldntFindWebClientIndex" : "Couldn't find index of web client user.",
-	"started": "Started."
+	"started": "Started.",
+	"restartCanceledReasonBotStoppedByUser" : "Restart canceled reason: Bot was stopped by user.",
+	"restartDelay" : "Bot process exited. Waiting 10 seconds before restart to avoid spam..."
 }

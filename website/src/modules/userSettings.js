@@ -9,9 +9,12 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 
 import { ErrorType, ActionType } from "../types.js"
 import PluginsTable from './pluginsTable'
+import { getTranslation } from '../translations.js' // Import translation
 
 let lang = JSON.parse(await (await fetch(`${window.location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${window.location.port}/lang.json`)).text())
 
@@ -50,6 +53,9 @@ for (var key in _instances) {
 }
 
 export default function UserSettings(props) {
+    const { language } = props; // Get language from props
+    const t = (key) => getTranslation(language, key);
+
     props.selectedUser.name ??= ""
     const isNewUser = props.selectedUser.name === ""
     const [name, setName] = React.useState(props.selectedUser.name)
@@ -60,65 +66,64 @@ export default function UserSettings(props) {
 
     const pluginTable = React.useMemo(() => {
         return <PluginsTable plugins={props.plugins} userPlugins={plugins} channels={props.channels} 
-                    onChange={ e => setPlugins(e)}/>
-    }, [props.channels, props.plugins, plugins])
+                    onChange={ e => setPlugins(e)} language={language} /> // Pass language
+    }, [props.channels, props.plugins, plugins, language])
 
     return (
-        <div onClick={event => event.stopPropagation()}>
-            <Paper>
-                <div style={{color:"red", border:"red 2px solid"}}>
-                    <b>Warning</b>
-                    <br></br>
-                    <div style={{color:"white"}}>
-                    Using this software may violate the terms of service of the game or platform you are using. <br></br>Using this software could result in a permanent account ban, loss of in-game progress, and/or other penalties. <br></br> Proceed at your own risk
-                    </div>
-                </div>
-                
-                <FormGroup row={true} style={{ padding: "12px" }}>
-                    <TextField required label="Username" value={name} onChange={e => setName(e.target.value)} disabled={!isNewUser} />
-                    <TextField required label="Password" type='password' value={pass} onChange={e => setPass(e.target.value)} />
+        <div onClick={event => event.stopPropagation()} style={{ maxWidth: '90vw', width: '800px' }}>
+            <Paper sx={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <Box sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
+                    <FormGroup row={true} sx={{ mb: 2, gap: 2, display: 'flex', alignItems: 'center' }}>
+                        <TextField required size="small" label={t("Username")} value={name} onChange={e => setName(e.target.value)} disabled={!isNewUser} />
+                        <TextField required size="small" label={t("Password")} type='password' value={pass} onChange={e => setPass(e.target.value)} />
+                        
+                        <FormControl size="small" style={{width: "150px"}}>
+                            <InputLabel id="simple-select-label">{t("Server")}</InputLabel>
+                            <Select
+                                labelId="simple-select-label"
+                                id="simple-select"
+                                value={server}
+                                onChange={(newValue) => setServer(newValue.target.value)}
+                            >
+                                {
+                                    instances.map((server, i) => <MenuItem value={server.id} key={`Server${i}`}>{lang[server.instanceLocaId] + ' ' + server.instanceName}</MenuItem>)
+                                }
+                            </Select>
+                        </FormControl>
+                        <FormControlLabel sx={{ m: 0 }} control={<Checkbox size="small" />} checked={externalEvent} onChange={e => setExternalEvent(e.target.checked)} label={<Typography variant="body2">OR/BTH</Typography>} />
+                    </FormGroup>
                     
-                    <FormControl style={{width: "100px"}}>
-                        <InputLabel id="simple-select-label">Server</InputLabel>
-                        <Select
-                            labelId="simple-select-label"
-                            id="simple-select"
-                            value={server}
-                            onChange={(newValue) => setServer(newValue.target.value)}
-                        >
-                            {
-                                instances.map((server, i) => <MenuItem value={server.id} key={`Server${i}`}>{lang[server.instanceLocaId] + ' ' + server.instanceName}</MenuItem>)
-                            }
-                        </Select>
-                    </FormControl>
-                    <FormControlLabel style={{ margin: "auto", marginRight:"2px" }} control={<Checkbox/>} checked={externalEvent} onChange={e => setExternalEvent(e.target.checked)} label="OR/BTH" />
-                    {
-                        pluginTable
-                    }
-                    <Button variant="contained" style={{ margin: "10px", maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px' }}
+                    {pluginTable}
+                </Box>
+                
+                <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'flex-end', bgcolor: 'background.paper' }}>
+                    <Button variant="contained" color="primary"
+                        sx={{ minWidth: '100px' }}
                         onClick={async () => {
-                            try {
-                                props.selectedUser.name = name
-                                props.selectedUser.plugins = plugins
-                                props.selectedUser.externalEvent = externalEvent
-                                props.selectedUser.server = server
-                                
-                                if(pass)
-                                props.selectedUser.pass = pass
-                                else if(isNewUser)
-                                    return
+                            let obj = {
+                                name: name,
+                                pass: pass,
+                                server: server,
+                                plugins: plugins,
+                                externalEvent: externalEvent
+                            }
+                            if (!isNewUser) {
+                                obj.id = props.selectedUser.id
+                                if (pass === "") obj.pass = props.selectedUser.pass
+                            }
 
-                                props.ws.send(JSON.stringify([ErrorType.Success, isNewUser ? ActionType.AddUser : ActionType.SetUser, props.selectedUser]))
-                                props.closeBackdrop()
-                            }
-                            catch (e) {
-                                console.warn(e)
-                            }
+                            props.ws.send(JSON.stringify([
+                                ErrorType.Success,
+                                isNewUser ? ActionType.AddUser : ActionType.SetUser,
+                                obj
+                            ]))
+
+                            props.closeBackdrop()
                         }}
                     >
-                        Save
+                        {t("Save")}
                     </Button>
-                </FormGroup>
+                </Box>
             </Paper>
         </div>
     )

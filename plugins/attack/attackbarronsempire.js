@@ -6,6 +6,13 @@ if (isMainThread)
         name: name,
         description: "Hits Barrons",
         pluginOptions: [
+            { type: "Label", label: "Horse Settings" },
+            {
+                type: "Checkbox",
+                label: "Use Feather",
+                key: "useFeather",
+                default: false
+            },
             {
                 type: "Checkbox",
                 label: "Use Coin",
@@ -14,13 +21,40 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
-                label: "Use TimeSkips",
+                label: "Use Time Skips",
                 key: "useTimeSkips",
+                default: false
+            },
+            { type: "Label", label: "Attack Settings" },
+            {
+                type: "Checkbox",
+                label: "Attack Left Flank",
+                key: "attackLeft",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Middle",
+                key: "attackMiddle",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Right Flank",
+                key: "attackRight",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                label: "Attack Courtyard",
+                key: "attackCourtyard",
+                default: true
             },
             {
                 type: "Text",
-                label: "Com White List",
-                key: "commanderWhiteList"
+                label: "Max Waves",
+                key: "attackWaves",
+                default: ""
             }
         ]
     }
