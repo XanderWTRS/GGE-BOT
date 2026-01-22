@@ -231,7 +231,7 @@ async function barronHit(name, type, kid, options) {
                 // await sleep(boxMullerRandom(200, 400, 1))
 
                 // Get user options, defaulting to full attack if not set
-                const maxWaves = parseInt(pluginOptions.attackWaves)
+                let maxWaves = parseInt(pluginOptions.attackWaves)
                 if(maxWaves == undefined || isNaN(maxWaves))
                     maxWaves = Infinity
                 const doLeft = !!(pluginOptions.attackLeft ?? true)
