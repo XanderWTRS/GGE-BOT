@@ -102,14 +102,14 @@ export default function UserSettings(props) {
                         onClick={async () => {
                             let obj = {
                                 name: name,
-                                password: pass,
+                                pass: pass,
                                 server: server,
                                 plugins: plugins,
                                 externalEvent: externalEvent
                             }
                             if (!isNewUser) {
                                 obj.id = props.selectedUser.id
-                                if (pass === "") obj.password = props.selectedUser.password
+                                if (pass === "") obj.pass = props.selectedUser.pass
                             }
 
                             props.ws.send(JSON.stringify([
