@@ -376,7 +376,7 @@ xtHandler.on("lli", async (obj,r) => {
             console.warn("Logged in (without event data)")
             console.warn("Some features will not work.")
             events.emit("load")
-        }, 30 * 1000)
+        }, 30 * 1000 * (ggeConfig.timeoutMultiplier ?? 1))
 
         xtHandler.once("sei", () => {
             parentPort.postMessage([ActionType.Started])
