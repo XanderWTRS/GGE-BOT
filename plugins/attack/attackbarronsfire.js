@@ -52,6 +52,11 @@ if (isMainThread)
             },
             {
                 type: "Text",
+                label: "Com White List",
+                key: "commanderWhiteList"
+            },
+            {
+                type: "Text",
                 label: "Max Waves",
                 key: "attackWaves",
                 default: ""
