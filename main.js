@@ -519,18 +519,17 @@ async function start() {
       botMap.set(user.id, worker)
 
     const onTerminate = () => {
-      user = getSpecificUser(uuid, user)
       if (botMap.get(user.id) == worker) {
         botMap.set(user.id, undefined)
-        if (user.state == true) {
-          console.log(`[System] Bot process for ${user.name} exited. Waiting 10 seconds before restart to avoid spam...`)
+        if (getSpecificUser(uuid, user).state == true) {
+          console.debug(`[${user.name}] ${i18n.__("restartDelay")}`)
           setTimeout(() => {
              // Re-fetch user state to ensure they didn't turn it off during the 10s wait
-             let freshUser = getSpecificUser(uuid, user)
-             if (freshUser && freshUser.state == true) {
-                 createBot(uuid, freshUser, worker.messageBuffer, worker.messageBufferCount)
+             user = getSpecificUser(uuid, user)
+             if (user && user.state == true) {
+                 createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
              } else {
-                 console.log(`[System] Restart cancelled for ${user.name} (Bot was stopped by user).`)
+                 console.debug(`[${user.name}] ${i18n.__("restartCanceledReasonBotStoppedByUser")}`)
              }
           }, 10000)
         }
