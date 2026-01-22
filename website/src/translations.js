@@ -107,9 +107,9 @@ export const translations = {
         "Attack Barrons (Fire Peaks)": "Baron Saldırısı (Ateş Zirveleri)",
         "Attack Barrons (Glacier)": "Baron Saldırısı (Buzul)",
         "Attack Barrons (Burning Sands)": "Baron Saldırısı (Çöl)",
-        "Attack Fortress (Fire Peaks)": "Kale Saldırısı (Ateş)",
-        "Attack Fortress (Everwinter Glacier)": "Kale Saldırısı (Buzul)",
-        "Attack Fortress (Burning Sands)": "Kale Saldırısı (Çöl)",
+        "Attack Fortress (Fire Peaks)": "Ejder kulesi(ateş)",
+        "Attack Fortress (Everwinter Glacier)": "Ejder kulesi (buzul)",
+        "Attack Fortress (Burning Sands)": "Ejder kulesi (çöl)",
         "Attack Nomad Camps": "Göçebe Kampı Saldırısı",
         "Attack Samurai Camps": "Samuray Kampı Saldırısı",
         "Attack Beri Camps": "Beri Kampı Saldırısı",
@@ -129,7 +129,7 @@ export const translations = {
         "Res Send": "Kaynak Gönderimi",
         "Ressend": "Kaynak Gönderimi",
         "Sends Resources": "Otomatik kaynak transferi yapar",
-        "Feast": "Ziyafet",
+        "Feast": "Şenlik",
         "GetRegion": "Bölgeleri Topla",
         "Get Regions": "Bölgeleri Topla",
         "Mead replace": "Bal Şarabı/Onarım",
@@ -143,7 +143,8 @@ export const translations = {
         "Slash Commands": "Komutlar",
         "Alert": "Uyarı Sistemi",
         "Chat": "Sohbet",
-        "Aquaisland": "Su Adası"
+        "Aquaisland": "Su Adası",
+        "Auto Tix" : "Otomatik servet bileti"
     }
 };
 

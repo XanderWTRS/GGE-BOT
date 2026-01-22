@@ -231,11 +231,13 @@ async function barronHit(name, type, kid, options) {
                 // await sleep(boxMullerRandom(200, 400, 1))
 
                 // Get user options, defaulting to full attack if not set
-                const maxWaves = parseInt(pluginOptions.attackWaves) || 4;
-                const doLeft = pluginOptions.attackLeft !== false;
-                const doRight = pluginOptions.attackRight !== false;
-                const doMiddle = pluginOptions.attackMiddle !== false;
-                const doCourtyard = pluginOptions.attackCourtyard !== false;
+                const maxWaves = parseInt(pluginOptions.attackWaves)
+                if(maxWaves == undefined || isNaN(maxWaves))
+                    maxWaves = Infinity
+                const doLeft = !!(pluginOptions.attackLeft ?? true)
+                const doRight = !!(pluginOptions.attackRight ?? true)
+                const doMiddle = !!(pluginOptions.attackMiddle ?? true)
+                const doCourtyard = !!(pluginOptions.attackCourtyard ?? true)
 
                 attackInfo.A.forEach((wave, waveIndex) => {
                     // Stop filling waves if we reached the user's limit
