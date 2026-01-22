@@ -321,9 +321,9 @@ async function start() {
          .run(json.username, passwordHash, salt, uuid)
           res.send(JSON.stringify({ r: 0, uuid: uuid }))
       }
-      catch {
+      catch(e) {
           res.send(JSON.stringify({ r: 1 }))
-          console.error(err)
+          console.error(e)
       }
     }
   })
