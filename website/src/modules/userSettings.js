@@ -100,7 +100,25 @@ export default function UserSettings(props) {
                     <Button variant="contained" color="primary"
                         sx={{ minWidth: '100px' }}
                         onClick={async () => {
-                            // ... (save logic same)
+                            let obj = {
+                                name: name,
+                                password: pass,
+                                server: server,
+                                plugins: plugins,
+                                externalEvent: externalEvent
+                            }
+                            if (!isNewUser) {
+                                obj.id = props.selectedUser.id
+                                if (pass === "") obj.password = props.selectedUser.password
+                            }
+
+                            props.ws.send(JSON.stringify([
+                                ErrorType.Success,
+                                isNewUser ? ActionType.AddUser : ActionType.SetUser,
+                                obj
+                            ]))
+
+                            props.closeBackdrop()
                         }}
                     >
                         {t("Save")}
