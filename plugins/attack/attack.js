@@ -20,7 +20,7 @@ if (isMainThread) {
             },
             {
                 type: "Text",
-                label: "Max Waves (1-4)",
+                label: "Max Waves",
                 key: "attackWaves",
                 default: "4"
             },
