@@ -234,28 +234,31 @@ async function barronHit(name, type, kid, options) {
                 let maxWaves = parseInt(pluginOptions.attackWaves)
                 if(maxWaves == undefined || isNaN(maxWaves) || maxWaves == 0)
                     maxWaves = Infinity
-                const doLeft = !!(pluginOptions.attackLeft ?? true)
-                const doRight = !!(pluginOptions.attackRight ?? true)
-                const doMiddle = !!(pluginOptions.attackMiddle ?? true)
-                const doCourtyard = !!(pluginOptions.attackCourtyard ?? true)
+                
+                let doLeft = !!(pluginOptions.attackLeft ?? true)
+                let doRight = !!(pluginOptions.attackRight ?? true)
+                let doMiddle = !!(pluginOptions.attackMiddle ?? true)
+                let doCourtyard = !!(pluginOptions.attackCourtyard ?? true)
+
+                const commanderStats = getCommanderStats(commander)
+                // Subtract 1 as safety buffer to prevent ATTACK_TOO_MANY_UNITS
+                const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100) - 1
+                const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100) - 1
+
+                if(!(doLeft || doRight || doMiddle)) {
+                    doLeft = true
+                    doCourtyard ??= hasShieldMadiens ? false : true
+                }
 
                 attackInfo.A.forEach((wave, waveIndex) => {
-                    // Stop filling waves if we reached the user's limit
                     if (waveIndex >= maxWaves) return;
 
-                    const commanderStats = getCommanderStats(commander)
-                    // Subtract 1 as safety buffer to prevent ATTACK_TOO_MANY_UNITS
-                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100) - 1
-                    const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100) - 1
-                    
                     let maxTroops = maxTroopFlank
 
                     if (doLeft) {
-                        // if (!hasShieldMadiens) {
                         wave.L.U.forEach((unitSlot, i) =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                        // }
                     }
 
                     if (doRight) {
