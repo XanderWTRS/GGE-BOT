@@ -232,7 +232,7 @@ async function barronHit(name, type, kid, options) {
 
                 // Get user options, defaulting to full attack if not set
                 let maxWaves = parseInt(pluginOptions.attackWaves)
-                if(maxWaves == undefined || isNaN(maxWaves))
+                if(maxWaves == undefined || isNaN(maxWaves) || maxWaves == 0)
                     maxWaves = Infinity
                 const doLeft = !!(pluginOptions.attackLeft ?? true)
                 const doRight = !!(pluginOptions.attackRight ?? true)
