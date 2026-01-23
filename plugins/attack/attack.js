@@ -331,10 +331,10 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                         lastHitTime = Date.now()
                         setLastHitTime.run(lastHitTime, botConfig.id)
 
+                        await sleep(naturalDelay)
+
                         if(!await (attacks.shift()()))
                             continue
-                        
-                        await sleep(naturalDelay)
                     } catch (innerError) {
                         // Catch errors specific to the task but keep the loop running
                         if (innerError !== "NO_MORE_TROOPS") {
