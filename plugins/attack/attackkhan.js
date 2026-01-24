@@ -145,7 +145,7 @@ xtHandler.on("rpr", obj => {
         sendXT("lta", JSON.stringify({ AV: 0, EID: eventID }))
     }
 })
-
+let nomadsPoints = 0
 let quit = false
 xtHandler.on("pep", obj => {
     if (pluginOptions.nomadsScoreShutoff <= 0)

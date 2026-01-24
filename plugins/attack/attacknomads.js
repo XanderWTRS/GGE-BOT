@@ -82,7 +82,7 @@ const kid = KingdomID.greatEmpire
 const type = AreaType.nomadCamp
 const minTroopCount = 100
 const eventID = 72
-const nomadsPoints = 0
+let nomadsPoints = 0
 
 const skipTarget = async (AI) => {
     while (AI.extraData[2] > 0) {
