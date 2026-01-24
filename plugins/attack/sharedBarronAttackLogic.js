@@ -235,10 +235,10 @@ async function barronHit(name, type, kid, options) {
                 if(maxWaves == undefined || isNaN(maxWaves) || maxWaves == 0)
                     maxWaves = Infinity
                 
-                let doLeft = !!(pluginOptions.attackLeft ?? true)
-                let doRight = !!(pluginOptions.attackRight ?? true)
-                let doMiddle = !!(pluginOptions.attackMiddle ?? true)
-                let doCourtyard = !!(pluginOptions.attackCourtyard ?? true)
+                let doLeft = !!(pluginOptions.attackLeft)
+                let doRight = !!(pluginOptions.attackRight)
+                let doMiddle = !!(pluginOptions.attackMiddle)
+                let doCourtyard = !!(pluginOptions.attackCourtyard)
 
                 const commanderStats = getCommanderStats(commander)
                 // Subtract 1 as safety buffer to prevent ATTACK_TOO_MANY_UNITS
@@ -316,13 +316,14 @@ async function barronHit(name, type, kid, options) {
             if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
             
-            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"} (Setup: ${attackInfo.executionDuration}s)`)
+            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.debug(`(Setup: ${attackInfo.executionDuration}s)`)
             return true
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                                        await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
+                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
                         if (movementInfo.movement.movement.kingdomID != kid)
                             return
                         if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
@@ -394,10 +395,14 @@ async function barronHit(name, type, kid, options) {
 
     while (true) {
         let minimumTimeTillHit = Infinity
-        sortedAreaInfo.forEach(e => 
-            minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e)))
-
-        await new Promise(r => setTimeout(r, (Math.max(0, minimumTimeTillHit - Date.now()))).unref())
+        
+        sortedAreaInfo.forEach(e => {
+            if(!movements.find(a => a.x == e.x && a.y == e.y))
+                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
+        })
+        let time = (Math.max(0, minimumTimeTillHit - Date.now()))
+        console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next hit`)
+        await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());
     }

@@ -143,7 +143,7 @@ events.on("eventStart", async eventInfo => {
     if (eventInfo.EDID == -1) {
         const eventDifficultyID = 
             Number(eventsDifficulties.find(e => 
-                ((pluginOptions.eventDifficulty ?? 3) + 1) == e.difficultyTypeID && 
+                ((pluginOptions.eventDifficulty) + 1) == e.difficultyTypeID && 
                 e.eventID == eventID)
                 .difficultyID)
                 

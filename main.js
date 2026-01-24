@@ -402,11 +402,20 @@ async function start() {
       return row ? { discordGuildId: row.discordGuildId, discordUserId: row.discordUserId } : undefined
     }
     const discordData = discordCreds(uuid)
-    plugins.forEach(plugin =>
-      plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : undefined)
-    plugins.forEach(plugin => 
-      data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : undefined)
-
+    plugins.forEach(plugin => {
+      if(plugin.force) {
+        (data.plugins[plugin.key] ??= {}).state = true
+      }
+      if(data.plugins[plugin.key]?.state) {
+        data.plugins[plugin.key].filename = plugin.filename
+        plugin.pluginOptions.forEach(option => {
+          if(option.key == undefined || option.default != undefined || option.default != "")
+            return
+          
+          data.plugins[plugin.key][option.key] ??= option.default
+        })
+      }
+    })
     const instance = instances.find(e => Number(e.gameID) == data.server)
 
     data.gameURL ??= instance.gameURL

@@ -222,9 +222,9 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
         setupWave([0, 13], wave.R.U)
         attackTarget.A.push(wave)
     }
-
-    const unlockedHorses = getPermanentCastle().find(e => e.kingdomID == kid &&
-        (kid == 10 || e.areaID == sourceCastle.extraData[0]))?.unlockedHorses
+    const castleData = getPermanentCastle().find(e => e.kingdomID == kid &&
+        (kid == 10 || e.areaID == sourceCastle.extraData[0]))
+    const unlockedHorses = castleData?.unlockedHorses
 
     if (useCoin) {
         let bestHorse = -1
@@ -275,9 +275,6 @@ function boxMullerRandom(min, max, skew) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
 
-const randomIntFromInterval = (min, max) =>
-    Math.floor(Math.random() * (max - min + 1) + min)
-
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
 const attacks = []
 let alreadyRunning = false
@@ -308,13 +305,13 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     try {
                         // Human-like delay logic using Gaussian distribution
                         // Base delay from config + random gaussian variance
-                        const baseDelay = Number(pluginOptions.attackDelay ?? 4.8)
-                        const variance = Number(pluginOptions.attackDelayRand ?? 1.0)
+                        const baseDelay = parseInt(pluginOptions.attackDelay)
+                        const variance = parseInt(pluginOptions.attackDelayRand)
                         
                         // Generate a natural random delay. Skew 1 means normal distribution.
                         const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
-                        console.debug(naturalDelay)
+                        console.debug(`Attack delay :${naturalDelay}`)
 
                         const time = Date.now()
                         const deltaLastHitTime = lastHitTime - time
@@ -340,7 +337,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     } catch (innerError) {
                         // Catch errors specific to the task but keep the loop running
                         if (innerError !== "NO_MORE_TROOPS") {
-                             console.warn(`[${name}] Error processing attack:`, innerError)
+                             console.warn(`[${name}] Error processing attack: ${innerError}`)
                         }
                     }
                 }
