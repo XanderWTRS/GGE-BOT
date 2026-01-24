@@ -450,6 +450,7 @@ events.on("eventStart", async eventInfo => {
                     break
                 case "LORD_IS_USED":
                     useCommander(commander.lordID)
+                case "ATTACK_TOO_MANY_UNITS":
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
                 case "CANT_START_NEW_ARMIES":
