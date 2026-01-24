@@ -10,37 +10,13 @@ if (isMainThread) {
                 type: "Text",
                 label: "Attack Delay (Seconds)",
                 key: "attackDelay",
-                default: "4.8"
+                default: "4.0"
             },
             {
                 type: "Text",
                 label: "Attack Delay Randomization (Seconds)",
                 key: "attackDelayRand",
                 default: "1.0"
-            },
-            {
-                type: "Text",
-                label: "Max Waves",
-                key: "attackWaves",
-                default: "4"
-            },
-            {
-                type: "Checkbox",
-                label: "Attack Left Flank",
-                key: "attackLeft",
-                default: true
-            },
-            {
-                type: "Checkbox",
-                label: "Attack Middle",
-                key: "attackMiddle",
-                default: true
-            },
-            {
-                type: "Checkbox",
-                label: "Attack Right Flank",
-                key: "attackRight",
-                default: true
             }
         ]
     }

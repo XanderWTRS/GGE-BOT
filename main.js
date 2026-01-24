@@ -409,10 +409,11 @@ async function start() {
       if(data.plugins[plugin.key]?.state) {
         data.plugins[plugin.key].filename = plugin.filename
         plugin.pluginOptions?.forEach(option => {
-          if(option.key == undefined || option.default != undefined || option.default != "")
+          let objectValue = data.plugins[plugin.key][option.key]
+          if(option.key == undefined || ![, ""].includes(objectValue))
             return
           
-          data.plugins[plugin.key][option.key] ??= option.default
+          data.plugins[plugin.key][option.key] = option.default
         })
       }
     })
@@ -461,11 +462,22 @@ async function start() {
       }
       else {
         let data2 = structuredClone(user)
-        plugins.forEach(plugin => 
-          plugin.force ? (data2.plugins[plugin.key] ??= {}).state = true : undefined)
-        plugins.forEach(plugin => 
-          data2.plugins[plugin.key]?.state ? data2.plugins[plugin.key].filename = plugin.filename : undefined)
 
+        plugins.forEach(plugin => {
+          if (plugin.force) {
+            (data2.plugins[plugin.key] ??= {}).state = true
+          }
+          if (data2.plugins[plugin.key]?.state) {
+            data2.plugins[plugin.key].filename = plugin.filename
+            plugin.pluginOptions?.forEach(option => {
+              let objectValue = data.plugins[plugin.key][option.key]
+              if (option.key == undefined || ![, ""].includes(objectValue))
+                return
+
+              data2.plugins[plugin.key][option.key] = option.default
+            })
+          }
+        })
         data2.plugins = []
         data2.externalEvent = false
 
@@ -742,8 +754,21 @@ async function start() {
               if (!restartedUser) {
                 let data = structuredClone(user)
 
-                plugins.forEach(plugin => plugin.force ? (data.plugins[plugin.key] ??= {}).state = true : void 0)
-                plugins.forEach(plugin => data.plugins[plugin.key]?.state ? data.plugins[plugin.key].filename = plugin.filename : void 0)
+                plugins.forEach(plugin => {
+                  if (plugin.force) {
+                    (data.plugins[plugin.key] ??= {}).state = true
+                  }
+                  if (data.plugins[plugin.key]?.state) {
+                    data.plugins[plugin.key].filename = plugin.filename
+                    plugin.pluginOptions?.forEach(option => {
+                      let objectValue = data.plugins[plugin.key][option.key]
+                      if (option.key == undefined || ![, ""].includes(objectValue))
+                        return
+
+                      data.plugins[plugin.key][option.key] = option.default
+                    })
+                  }
+                })
                 worker.postMessage([ActionType.SetPluginOptions, data])
               }
             }

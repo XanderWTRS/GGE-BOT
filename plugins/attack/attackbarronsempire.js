@@ -17,7 +17,7 @@ if (isMainThread)
                 type: "Checkbox",
                 label: "Use Coin",
                 key: "useCoin",
-                default: false
+                default: true
             },
             {
                 type: "Checkbox",
@@ -30,25 +30,25 @@ if (isMainThread)
                 type: "Checkbox",
                 label: "Attack Left Flank",
                 key: "attackLeft",
-                default: true
+                default: false
             },
             {
                 type: "Checkbox",
                 label: "Attack Middle",
                 key: "attackMiddle",
-                default: true
+                default: false
             },
             {
                 type: "Checkbox",
                 label: "Attack Right Flank",
                 key: "attackRight",
-                default: true
+                default: false
             },
             {
                 type: "Checkbox",
                 label: "Attack Courtyard",
                 key: "attackCourtyard",
-                default: true
+                default: false
             },
             {
                 type: "Text",
@@ -58,8 +58,7 @@ if (isMainThread)
             {
                 type: "Text",
                 label: "Max Waves",
-                key: "attackWaves",
-                default: ""
+                key: "attackWaves"
             }
         ]
     }
