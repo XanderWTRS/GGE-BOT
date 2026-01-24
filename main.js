@@ -408,7 +408,7 @@ async function start() {
       }
       if(data.plugins[plugin.key]?.state) {
         data.plugins[plugin.key].filename = plugin.filename
-        plugin.pluginOptions.forEach(option => {
+        plugin.pluginOptions?.forEach(option => {
           if(option.key == undefined || option.default != undefined || option.default != "")
             return
           
