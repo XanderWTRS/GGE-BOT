@@ -241,9 +241,8 @@ async function barronHit(name, type, kid, options) {
                 let doCourtyard = !!(pluginOptions.attackCourtyard)
 
                 const commanderStats = getCommanderStats(commander)
-                // Subtract 1 as safety buffer to prevent ATTACK_TOO_MANY_UNITS
-                const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100) - 1
-                const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100) - 1
+                const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
+                const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
 
                 if(!(doLeft || doRight || doMiddle)) {
                     doLeft = true

@@ -272,7 +272,7 @@ events.once("load", async () => {
                     if(i > 4)
                         return
                     const commanderStats = getCommanderStats(commander)
-                    const maxTroopFlank = getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
+                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
                     
                     let maxTroops = maxTroopFlank
 

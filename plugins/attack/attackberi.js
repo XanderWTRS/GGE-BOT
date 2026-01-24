@@ -239,8 +239,8 @@ events.on("eventStart", async eventInfo => {
 
                     const desiredToolCount = attackerBerimondTools.length == 0 ? 20 : 10
                     const commanderStats = getCommanderStats(commander)
-                    const maxTroopFront = getAmountSoldiersFront(level) * 1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100
-                    const maxTroopFlank = getAmountSoldiersFlank(level) * 1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100
+                    const maxTroopFront = getAmountSoldiersFront(level) * Math.ceil(1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)
+                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
 
                     let maxTools = maxToolsFlank
                     if (index == 0) {
