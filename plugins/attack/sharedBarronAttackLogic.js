@@ -154,7 +154,7 @@ async function barronHit(name, type, kid, options) {
         const commander = await waitForCommanderAvailable(comList)
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
-            const attackInfo = await waitToAttack(async () => {
+            const attackSentInfo = await waitToAttack(async () => {
                 const executionStartTime = Date.now() // Start timer for "human" interaction
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
@@ -305,18 +305,20 @@ async function barronHit(name, type, kid, options) {
                 const executionDuration = ((Date.now() - executionStartTime) / 1000).toFixed(2);
                 obj.executionDuration = executionDuration; // Pass it out
 
-                return { ...obj, result: r, executionDuration }
+                return { ...obj, attackInfo, result: r, executionDuration }
             })
             
-            if (!attackInfo) {
+            if (!attackSentInfo) {
                 freeCommander(commander.lordID)
                 return false
             }
-            if(attackInfo.result != 0) 
-                throw err[attackInfo.result]
+            if(attackSentInfo.result != 0) {
+                console.debug(`${JSON.stringify(attackSentInfo)}`)
+                throw err[attackSentInfo.result]
+            }
             
-            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
-            console.debug(`(Setup: ${attackInfo.executionDuration}s)`)
+            console.info(`[${name}] Hitting target C${attackSentInfo.AAM.UM.L.VIS + 1} ${attackSentInfo.AAM.M.TA[1]}:${attackSentInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackSentInfo.AAM.M.TT - attackSentInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.debug(`(Setup: ${attackSentInfo.executionDuration}s)`)
             return true
         } catch (e) {
             freeCommander(commander.lordID)
