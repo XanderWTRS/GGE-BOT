@@ -402,7 +402,7 @@ async function start() {
       return row ? { discordGuildId: row.discordGuildId, discordUserId: row.discordUserId } : undefined
     }
     const discordData = discordCreds(uuid)
-     .forEach(plugin => {
+     plugins.forEach(plugin => {
       if(plugin.force) {
         (data.plugins[plugin.key] ??= {}).state = true
       }
