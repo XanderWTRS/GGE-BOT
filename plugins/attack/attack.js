@@ -314,7 +314,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                         // Generate a natural random delay. Skew 1 means normal distribution.
                         const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
-                        console.log(naturalDelay)
+                        console.debug(naturalDelay)
 
                         const time = Date.now()
                         const deltaLastHitTime = lastHitTime - time
