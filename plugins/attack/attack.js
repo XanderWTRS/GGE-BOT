@@ -308,11 +308,13 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     try {
                         // Human-like delay logic using Gaussian distribution
                         // Base delay from config + random gaussian variance
-                        const baseDelay = Number(pluginOptions.attackDelay ?? 2.0)
+                        const baseDelay = Number(pluginOptions.attackDelay ?? 4.8)
                         const variance = Number(pluginOptions.attackDelayRand ?? 1.0)
                         
                         // Generate a natural random delay. Skew 1 means normal distribution.
                         const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
+
+                        console.log(naturalDelay)
 
                         const time = Date.now()
                         const deltaLastHitTime = lastHitTime - time
