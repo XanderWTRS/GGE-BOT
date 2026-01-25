@@ -621,7 +621,19 @@ async function start() {
 
   const users = getUser()
   for (let i = 0; i < users.length; i++) {
-    const user = users[i]
+    let user = users[i]
+    let keyRemoved = false
+    for (const key of Object.keys(user.plugins)) {
+      const pluginFile = plugins.find(e => e.key == key)
+      if(pluginFile != undefined)
+        continue
+      keyRemoved = true
+      delete user.plugins[key]
+    }
+
+    if(keyRemoved) {
+      user = changeUser(user.uuid, user)
+    }
 
     if (user.state != 0)
       createBot(user.uuid, user)
