@@ -10,42 +10,16 @@ if (isMainThread)
                 label: "Com White List",
                 key: "commanderWhiteList"
             },
-            {
-                type: "Checkbox",
-                label: "Easy forts only",
-                key: "easyfortsonly",
-                default: false
-            },
-            {
-                type: "Checkbox",
-                label: "Add worser forts",
-                key: "addworserforts",
-                default: false
-            },
-            {
-                type: "Checkbox",
-                label: "Use Coin",
-                key: "useCoin",
-                default: false
-            },
-            {
-                type: "Checkbox",
-                label: "Buy Coins",
-                key: "buycoins",
-                default: false
-            },
-            {
-                type: "Checkbox",
-                label: "Buy Deco",
-                key: "buydeco",
-                default: false
-            },
-            {
-                type: "Checkbox",
-                label: "Buy XP",
-                key: "buyxp",
-                default: false
-            }]
+            { type: "Checkbox", label: "Attack Level 40", key: "allowLvl40", default: false },
+            { type: "Checkbox", label: "Attack Level 50", key: "allowLvl50", default: false },
+            { type: "Checkbox", label: "Attack Level 60", key: "allowLvl60", default: false },
+            { type: "Checkbox", label: "Attack Level 70", key: "allowLvl70", default: true },
+            { type: "Checkbox", label: "Attack Level 80", key: "allowLvl80", default: true },
+            { type: "Checkbox", label: "Use Coin", key: "useCoin", default: false },
+            { type: "Checkbox", label: "Buy Coins", key: "buycoins", default: false },
+            { type: "Checkbox", label: "Buy Deco", key: "buydeco", default: false },
+            { type: "Checkbox", label: "Buy XP", key: "buyxp", default: false }
+        ]
     }
 
 const { getCommanderStats } = require("../../getEquipment")
@@ -101,14 +75,17 @@ const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
-    let allowedLevels = [
-        9,
-        8,
-        7,
-        14,
-        13,
-        12,
-    ]
+  
+    let allowedLevels = [];
+    
+    if (pluginOptions["allowLvl40"]) allowedLevels.push(10);
+    if (pluginOptions["allowLvl50"]) allowedLevels.push(11);
+    if (pluginOptions["allowLvl60"]) allowedLevels.push(7, 12);
+    if (pluginOptions["allowLvl70"]) allowedLevels.push(8, 13);
+    if (pluginOptions["allowLvl80"]) allowedLevels.push(9, 14);
+
+  
+    if (allowedLevels.length === 0) allowedLevels = [8, 9, 13, 14]
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => e.type == AreaType.externalKingdom);
@@ -140,11 +117,6 @@ events.once("load", async () => {
             }
         }
     })
-    if (pluginOptions["easyfortsonly"])
-        allowedLevels = [9, 8, 7]
-
-    if (pluginOptions["addworserforts"])
-        allowedLevels.push(11, 10)
     
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
