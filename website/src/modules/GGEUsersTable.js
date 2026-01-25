@@ -89,7 +89,7 @@ export default function GGEUserTable(props) {
 
         return <TableContainer component={Paper}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
-                <Button size="small" variant={language === 'tr' ? 'contained' : 'outlined'} onClick={() => setLanguage('de')} sx={{ mr: 1 }}>DE</Button>
+                <Button size="small" variant={language === 'de' ? 'contained' : 'outlined'} onClick={() => setLanguage('de')} sx={{ mr: 1 }}>DE</Button>
                 <Button size="small" variant={language === 'tr' ? 'contained' : 'outlined'} onClick={() => setLanguage('tr')} sx={{ mr: 1 }}>TR</Button>
                 <Button size="small" variant={language === 'en' ? 'contained' : 'outlined'} onClick={() => setLanguage('en')}>EN</Button>
             </Box>
