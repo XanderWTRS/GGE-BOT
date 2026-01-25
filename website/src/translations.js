@@ -41,6 +41,11 @@ export const translations = {
         "Attack Beri Camps": "Attack Beri Camps",
         "Attack Khan": "Attack Khan",
         "Attack Aqua Forts": "Attack Aqua Forts",
+        "Attack Level 40": "Attack Level 40",
+        "Attack Level 50": "Attack Level 50",
+        "Attack Level 60": "Attack Level 60",
+        "Attack Level 70": "Attack Level 70",
+        "Attack Level 80": "Attack Level 80",
         "Hits Barrons": "Hits Barrons",
         "Attack": "Attack",
         "Handles Hits": "Handles Hits",
@@ -115,6 +120,11 @@ export const translations = {
         "Attack Beri Camps": "Beri Kampı Saldırısı",
         "Attack Khan": "Han Saldırısı",
         "Attack Aqua Forts": "Ada Saldırısı", // İsim güncellendi
+        "Attack Level 40": "Seviye 40'a saldır",
+        "Attack Level 50": "Seviye 50'ye saldır",
+        "Attack Level 60": "Seviye 60'a saldır",
+        "Attack Level 70": "Seviye 70'e saldır",
+        "Attack Level 80": "Seviye 80'a saldır",
         "Hits Barrons": "Baronlara otomatik saldırır",
         "Hits fortresses": "NPC Kalelerine otomatik saldırır",
         "Hits Aqua Forts": "Adalara otomatik saldırır",
@@ -162,7 +172,7 @@ export const translations = {
         "Server": "Server",
         "Plugins": "Plugins",
         "System": "System",
-        // Plugin Optionen
+        // Plugin Options
         "Horse Settings": "Pferde-Einstellungen",
         "Attack Settings": "Angriffseinstellungen",
         "Use Feather": "Federn verwenden",
@@ -175,7 +185,7 @@ export const translations = {
         "Max Waves": "Maximale Wellen",
         "Attack Delay (Seconds)": "Angriffsverzögerung (Sekunden)",
         "Attack Delay Randomization (Seconds)": "Zufällige Angriffsverzögerung (Sekunden)",
-        // Plugin Namen & Beschreibungen
+        // Plugin Names & Descriptions
         "Attack Barrons (Great Empire)": "Raubritter angreifen (Großes Imperium)",
         "Attack Barrons (Fire Peaks)": "Raubritter angreifen (Brennende Gipfel)",
         "Attack Barrons (Glacier)": "Raubritter angreifen (Immerwinter-Gletscher)",
@@ -188,6 +198,11 @@ export const translations = {
         "Attack Beri Camps": "Greift Berimond-Lager an",
         "Attack Khan": "Greift das Khanlager an",
         "Attack Aqua Forts": "Greift Sturmtürme an",
+        "Attack Level 40": "Level 40 angreifen",
+        "Attack Level 50": "Level 50 angreifen",
+        "Attack Level 60": "Level 60 angreifen",
+        "Attack Level 70": "Level 70 angreifen",
+        "Attack Level 80": "Level 80 angreifen",
         "Hits Barrons": "Greift Raubritter an",
         "Attack": "Angriff",
         "Handles Hits": "Verarbeitet Angriffe",

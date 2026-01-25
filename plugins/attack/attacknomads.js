@@ -26,11 +26,6 @@ if (isMainThread)
                 default : 3
             },
             {
-                type: "Text",
-                label: "Com White List",
-                key: "commanderWhiteList"
-            },
-            {
                 type: "Checkbox",
                 label: "Use event Wall Tools first",
                 key: "eventWallToolsfirst"
@@ -52,6 +47,11 @@ if (isMainThread)
                 label: "Use Coin",
                 key: "useCoin",
                 default: false
+            },
+            {
+                type: "Text",
+                label: "Com White List",
+                key: "commanderWhiteList"
             },
             {
                 type: "Text",
