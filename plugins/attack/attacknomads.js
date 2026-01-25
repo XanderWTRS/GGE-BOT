@@ -278,7 +278,7 @@ events.on("eventStart", async eventInfo => {
 
                     const desiredToolCount = attackerNomadTools.length == 0 ? 20 : 10
                     const commanderStats = getCommanderStats(commander)
-                    const maxTroopFront = getAmountSoldiersFront(level) * Math.ceil(1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)
+                    const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
                     const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
 
                     let maxTools = maxToolsFlank
@@ -370,10 +370,12 @@ events.on("eventStart", async eventInfo => {
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
-                        Math.floor(maxTroops / 2))
+                        Math.floor(maxTroops / 2) - 1)
                     })
 
-                await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
+                //await areaInfoLock(() => 
+                    sendXT("cra", JSON.stringify(attackInfo))
+                //)
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)

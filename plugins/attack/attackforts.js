@@ -128,7 +128,18 @@ events.once("load", async () => {
             if(!movements.find(e => e.x == targetAttack.x && e.y == targetAttack.y)) movements.push(targetAttack)
         })
     })
+    movementEvents.on("return", movementInfo => {
+        const sourceAttack = movementInfo.movement.movement.sourceAttack
+        if(kid != movementInfo.movement.movement.kingdomID ||
+           type != sourceAttack.type)
+           return
 
+        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack.y)
+        if(index == -1)
+            return
+        movements.splice(index, 1)
+    })
+    //Gotta detect cooling down towers
     const sendHit = async () => {
         let comList = undefined
         if (![, ""].includes(pluginOptions.commanderWhiteList)) {
