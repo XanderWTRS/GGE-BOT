@@ -4,7 +4,6 @@ const relicEffects = require("./items/relicEffects.json")
 
 let getCommanderStats = (com, isPvP) => {
     let commanderEffects = {}
-    com.
     com.EQ.forEach(equipment => {
         equipment[5].forEach(([id, _, effectValues]) => {
             if(!Array.isArray(effectValues))
