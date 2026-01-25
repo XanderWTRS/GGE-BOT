@@ -5,22 +5,29 @@ if (isMainThread)
     return module.exports = {
         name: name,
         pluginOptions: [
+
+            { type: "Label", label: "Easy Forts", md: 2 },
+            { type: "Checkbox", label: "Attack Level 60", key: "allowLvl60Easy", default: true },
+            { type: "Checkbox", label: "Attack Level 70", key: "allowLvl70Easy", default: true },
+            { type: "Checkbox", label: "Attack Level 80", key: "allowLvl80Easy", default: true },
+            { type: "", md: 3},
+            { type: "Label", label: "Hard Forts", md: 2 },
+            { type: "Checkbox", label: "Attack Level 40", key: "allowLvl40", default: false },
+            { type: "Checkbox", label: "Attack Level 50", key: "allowLvl50", default: false },
+            { type: "Checkbox", label: "Attack Level 60", key: "allowLvl60", default: false },
+            { type: "Checkbox", label: "Attack Level 70", key: "allowLvl70", default: false },
+            { type: "Checkbox", label: "Attack Level 80", key: "allowLvl80", default: false },
+
+            { type: "Label", label: "Other" },
+            { type: "Checkbox", label: "Buy Coins", key: "buycoins", default: true },
+            { type: "Checkbox", label: "Buy Deco", key: "buydeco", default: false },
+            { type: "Checkbox", label: "Buy XP", key: "buyxp", default: false },
+            { type: "Checkbox", label: "Use Coin", key: "useCoin", default: false },
             {
                 type: "Text",
                 label: "Com White List",
                 key: "commanderWhiteList"
-            },
-            { type: "Checkbox", label: "Attack Level 40", key: "allowLvl40", default: false },
-            { type: "Checkbox", label: "Attack Level 50", key: "allowLvl50", default: false },
-            { type: "Checkbox", label: "Attack Level 60", key: "allowLvl60", default: false },
-            { type: "Checkbox", label: "Attack Level 70", key: "allowLvl70", default: true },
-            { type: "Checkbox", label: "Attack Level 80", key: "allowLvl80", default: true },
-            { type: "Text", label: "Minutes per Hit", key: "minutesPerHit", default: "5" },
-            { type: "Text", label: "Travel Time per Field", key: "travelSpeedFactor", default: "0.33" },
-            { type: "Checkbox", label: "Use Coin", key: "useCoin", default: false },
-            { type: "Checkbox", label: "Buy Coins", key: "buycoins", default: false },
-            { type: "Checkbox", label: "Buy Deco", key: "buydeco", default: false },
-            { type: "Checkbox", label: "Buy XP", key: "buyxp", default: false }
+            }
         ]
     }
 
@@ -64,12 +71,19 @@ const type = AreaType.stormTower
 
 events.once("load", async () => {
     let allowedLevels = [];
-    if (pluginOptions["allowLvl40"]) allowedLevels.push(10);
-    if (pluginOptions["allowLvl50"]) allowedLevels.push(11);
-    if (pluginOptions["allowLvl60"]) allowedLevels.push(7, 12);
-    if (pluginOptions["allowLvl70"]) allowedLevels.push(8, 13);
-    if (pluginOptions["allowLvl80"]) allowedLevels.push(9, 14);
-    if (allowedLevels.length === 0) allowedLevels = [8, 9, 13, 14];
+    
+    if (pluginOptions["allowLvl40"]) allowedLevels.push(10)
+    if (pluginOptions["allowLvl50"]) allowedLevels.push(11)
+    if (pluginOptions["allowLvl60"]) allowedLevels.push(12)
+    if (pluginOptions["allowLvl70"]) allowedLevels.push(13)
+    if (pluginOptions["allowLvl80"]) allowedLevels.push(14)
+
+    if (pluginOptions["allowLvl60Easy"]) allowedLevels.push(7)
+    if (pluginOptions["allowLvl70Easy"]) allowedLevels.push(8)
+    if (pluginOptions["allowLvl80Easy"]) allowedLevels.push(9)
+
+  
+    if (allowedLevels.length === 0) allowedLevels = [7, 8, 9, 13, 14]
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => e.type == AreaType.externalKingdom);
