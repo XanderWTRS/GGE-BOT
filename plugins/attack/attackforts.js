@@ -173,7 +173,7 @@ events.once("load", async () => {
            type != sourceAttack.type)
            return
 
-        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack)
+        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack.y)
         if(index == -1)
             return
         movements.splice(index, 1)

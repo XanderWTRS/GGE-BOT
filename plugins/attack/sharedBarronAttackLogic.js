@@ -134,7 +134,7 @@ async function barronHit(name, type, kid, options) {
            type != sourceAttack.type)
            return
 
-        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack)
+        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack.y)
         if(index == -1)
             return
 
@@ -177,7 +177,7 @@ async function barronHit(name, type, kid, options) {
                     Object.assign(oldAreaInfo, areaInfo)
                     towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[2] * 1000)
 
-                    if (!options.useTimeSkips && towerTime.get(oldAreaInfo) - Date.now() > 0)
+                    if (!options.useTimeSkips && towerTime.get(oldAreaInfo) - timeSinceEpoch > 0)
                         continue
 
                     index = i
@@ -284,14 +284,16 @@ async function barronHit(name, type, kid, options) {
                             (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                         maxTroops -= assignUnit(unitSlot, attacker,
-                            Math.floor(maxTroops / 2))
+                            Math.floor(maxTroops / 2) - 1)
                     })
                 }
 
                 // Final hesitation before clicking "Attack" (Human verification/hesitation ~150ms-400ms)
                 // await sleep(boxMullerRandom(150, 400, 1))
 
-                await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
+                //await areaInfoLock(() => 
+                    sendXT("cra", JSON.stringify(attackInfo))
+                //)
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)

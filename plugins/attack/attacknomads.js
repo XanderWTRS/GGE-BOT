@@ -370,10 +370,12 @@ events.on("eventStart", async eventInfo => {
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
-                        Math.floor(maxTroops / 2))
+                        Math.floor(maxTroops / 2) - 1)
                     })
 
-                await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
+                //await areaInfoLock(() => 
+                    sendXT("cra", JSON.stringify(attackInfo))
+                //)
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
