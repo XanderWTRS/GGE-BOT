@@ -74,24 +74,30 @@ events.once("load", async () => {
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => e.type == AreaType.externalKingdom);
         
+    // --- RESSOURCEN MONITOR & AUTO-BUY ---
     xtHandler.on("dcl", obj => {
-        const castleProd = Types.DetailedCastleList(obj)
-            .castles.find(a => a.kingdomID == kid)
-            .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+        const castleProd = Types.DetailedCastleList(obj).castles.find(a => a.kingdomID == kid).areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
         if (!castleProd) return;
 
+        // Aqua Tracker (Zählt nur Gewinne)
         if (lastAquaAmount !== -1 && castleProd.aqua > lastAquaAmount) {
             sessionAquaFarmed += (castleProd.aqua - lastAquaAmount);
         }
-        lastAquaAmount = castleProd.aqua;
-
-        if (pluginOptions["buycoins"] && castleProd.aqua >= 500000) {
-            castleProd.aqua -= 500000;
-            sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-        }
+        
+        // Auto-Buy Walbucht (PID 3113 = 100k Aqua)
         if (pluginOptions["buydeco"] && castleProd.aqua >= 100000) {
             castleProd.aqua -= 100000;
             sendXT("sbp", JSON.stringify({ "PID": 3113, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+            console.info(`[${name}] Buying Walbucht (100k Aqua). Session total farmed: ${sessionAquaFarmed}`);
+        }
+
+        // Referenzwert für nächstes Mal speichern (nach Kauf!)
+        lastAquaAmount = castleProd.aqua;
+
+        // Auto-Buy Münzen (500k)
+        if (pluginOptions["buycoins"] && castleProd.aqua >= 500000) {
+            castleProd.aqua -= 500000;
+            sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
         }
     })
 
@@ -116,8 +122,7 @@ events.once("load", async () => {
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
-        const commander = await waitForCommanderAvailable(comList, undefined, 
-            (a, b) => getCommanderStats(b).relicLootBonus - getCommanderStats(a).relicLootBonus)
+        const commander = await waitForCommanderAvailable(comList, undefined, (a, b) => getCommanderStats(b).relicLootBonus - getCommanderStats(a).relicLootBonus)
 
         try {
             const attackResult = await waitToAttack(async () => {
@@ -132,31 +137,30 @@ events.once("load", async () => {
                     const areaInfo = sortedAreaInfo[i]
                     if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y)) continue
 
-                    let cooldown = towerTime.get(areaInfo) - timeSinceEpoch
+                    let cooldown = (towerTime.get(areaInfo) || 0) - timeSinceEpoch
                     if (cooldown > 0) continue
 
                     Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo[0])
+                    
                     if(!allowedLevels.includes(areaInfo.extraData[2])) continue
+                    
+                    const hitsLeft = areaInfo.extraData[4];
+                    if (hitsLeft <= 0) continue; 
 
-                    // --- REISEZEIT-PRÜFUNG ÜBER UI-WERTE ---
+                    // Reisezeit-Check
                     const dist = Math.sqrt(Math.pow(sourceCastleArea.x - areaInfo.x, 2) + Math.pow(sourceCastleArea.y - areaInfo.y, 2));
-                    
-                    const speedFactor = Number(pluginOptions["travelSpeedFactor"] || 0.33);
-                    const minsPerHit = Number(pluginOptions["minutesPerHit"] || 5);
-                    
-                    const estTravelMin = dist * speedFactor;
-                    const hitsLeft = areaInfo.extraData[4]; 
-                    const maxAllowedMin = hitsLeft * minsPerHit; 
-
-                    console.info(`[${name}] Tower ${areaInfo.x}:${areaInfo.y} | Dist: ${Math.round(dist)} | Hits: ${hitsLeft} | Est. Travel: ${Math.round(estTravelMin)}m`);
+                    const estTravelMin = Math.round(dist * Number(pluginOptions["travelSpeedFactor"] || 0.33));
+                    const maxAllowedMin = hitsLeft * Number(pluginOptions["minutesPerHit"] || 5);
 
                     if (estTravelMin > maxAllowedMin) {
-                        console.info(`[${name}] Skip: Too far (${Math.round(estTravelMin)}m > Limit ${Math.round(maxAllowedMin)}m)`);
+                        console.info(`[${name}] Skip ${areaInfo.x}:${areaInfo.y} | Too far (${estTravelMin}m > Limit ${maxAllowedMin}m)`);
                         continue; 
                     }
 
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[5] * 1000)
-                    if(areaInfo.extraData[3] > 0) continue
+                    // Prüfen ob brennt/besetzt
+                    if(areaInfo.extraData[3] > 0) {
+                        continue;
+                    }
 
                     index = i
                     break
@@ -184,8 +188,7 @@ events.once("load", async () => {
                 if ((attackerRangeTroops.reduce((a, b) => a + b[1], 0) + attackerMeleeTroops.reduce((a, b) => a + b[1], 0)) < minTroopCount)
                     throw "NO_MORE_TROOPS";
 
-                attackInfo.A.forEach((wave, i) => {
-                    if(i > 4) return
+                attackInfo.A.forEach((wave) => {
                     const commanderStats = getCommanderStats(commander)
                     const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
                     let maxTroops = maxTroopFlank
@@ -194,17 +197,21 @@ events.once("load", async () => {
                     wave.R.U.forEach((unitSlot) => maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ? attackerRangeTroops : attackerMeleeTroops, maxTroops))
                 })
 
+                const finalDist = Math.sqrt(Math.pow(sourceCastleArea.x - AI.x, 2) + Math.pow(sourceCastleArea.y - AI.y, 2));
+                const finalEstMin = Math.round(finalDist * Number(pluginOptions["travelSpeedFactor"] || 0.33));
+
                 await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     return result != 0 || (obj?.AAM?.M?.KID == kid)
                 })
-                return {...obj, result: r}
+
+                return {x: AI.x, y: AI.y, travel: finalEstMin, result: r}
             })
             
             if (!attackResult) { freeCommander(commander.lordID); return false; }
             if(attackResult.result != 0) throw err[attackResult.result]
 
-            console.info(`[${name}] Attack launched! Session Aqua total: +${sessionAquaFarmed}`);
+            console.info(`[${name}] Hitting target ${attackResult.x}:${attackResult.y} | Est. Travel: ${attackResult.travel}min | Session total: +${sessionAquaFarmed}`);
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -235,7 +242,9 @@ events.once("load", async () => {
         sortedAreaInfo.sort((a, b) => {
             if ((a.extraData[2] % 10) > (b.extraData[2] % 10)) return -1
             if ((a.extraData[2] % 10) < (b.extraData[2] % 10)) return 1
-            return a.extraData[4] - b.extraData[4] 
+            let hA = a.extraData[4] || 99;
+            let hB = b.extraData[4] || 99;
+            return hA - hB;
         })
         while (await sendHit());
     }
@@ -244,12 +253,12 @@ events.once("load", async () => {
         let minimumTimeTillHit = Infinity
         for (let i = 0; i < sortedAreaInfo.length; i++) {
             const areaInfo = sortedAreaInfo[i]
-            if (!allowedLevels.includes(areaInfo.extraData[2])) continue
+            if (!allowedLevels.includes(areaInfo.extraData[2]) || areaInfo.extraData[4] <= 0) continue
             if (!movements.find(m => m.x == areaInfo.x && m.y == areaInfo.y))
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(areaInfo))
         }
         let waitTime = Math.max(20000, minimumTimeTillHit - Date.now())
-        console.info(`[${name}] Status: +${sessionAquaFarmed} Aqua. Next check in ${Math.round(waitTime/1000)}s...`);
+        console.info(`[${name}] Next check in ${Math.round(waitTime/1000)}s...`);
         await new Promise(r => setTimeout(r, waitTime).unref())
         while (await sendHit());
     }
