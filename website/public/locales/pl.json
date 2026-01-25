@@ -1,5 +1,5 @@
 {
-	"startBanner": "Placing your issues on Github Issues or messaging me directly on Discord or email would be greatly appreciated.",
+	"startBanner": "Zostawianie swoich uwag na Github Issues lub pisanie do mnie bezpośrednio na Discordzie lub emailu byłoby mile widziane..",
 	"ggeConfigGenerated": "ggeConfig.json został wygenerowany.",
 	"couldntFindPrivateKey": "Nie można znaleźć privateKey! Przełączanie na tryb HTTP.",
 	"couldntFindCertificate": "Nie można znaleźć certyfikatu! Przełączanie na tryb HTTP.",
