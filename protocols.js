@@ -72,6 +72,8 @@ const spendSkip = (time) => {
         return undefined
     }
 
+    console.debug(`[Protocol] Using skip ${skip[0][0]}`)
+
     return skip[0][0]
 }
 
