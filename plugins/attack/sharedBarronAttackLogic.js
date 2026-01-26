@@ -78,8 +78,8 @@ async function barronHit(name, type, kid, options) {
         return (0 | Math.floor(1.9 * Math.pow(Math.abs(victorys), .555))) + n
     }
     let pluginOptions = {}
-    Object.assign(pluginOptions, options ?? {})
     Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
+    Object.assign(pluginOptions, options ?? {})
     
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
