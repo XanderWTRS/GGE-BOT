@@ -246,7 +246,8 @@ async function barronHit(name, type, kid, options) {
 
                 if(!(doLeft || doRight || doMiddle)) {
                     doLeft = true
-                    doCourtyard ??= hasShieldMadiens ? false : true
+                    if(!doCourtyard)
+                        doCourtyard = hasShieldMadiens ? false : true
                 }
 
                 attackInfo.A.forEach((wave, waveIndex) => {
