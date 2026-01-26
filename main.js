@@ -46,7 +46,8 @@ const ggeConfigExample = `{
     "discordToken" : "",
     "discordClientId" : "",
     "discordClientSecret" : "",
-    "timeoutMultiplier" : 1
+    "timeoutMultiplier" : 1,
+    "debug" : false
 }`
 
 const loggedInUsers = {}

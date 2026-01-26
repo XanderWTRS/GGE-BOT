@@ -30,7 +30,7 @@ if (!botConfig.internalWorker) {
     console.info = msg => mngLog(msg, 0)
     console.warn = msg => mngLog(msg, 1)
     console.error = msg => mngLog(msg, 2)
-    console.debug = _console.debug
+    console.debug = ggeConfig.debug ? _console.debug : _ => {}
     console.trace = _console.trace
 }
 
