@@ -138,7 +138,7 @@ async function fortressHit(name, kid, level, options) {
 
                 let AI = sortedAreaInfo.splice(index, 1)[0]
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions.useCoin)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []

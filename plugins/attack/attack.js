@@ -98,7 +98,7 @@ function assignUnit(unitSlot, units, maxUnits) {
 
     return unitAmmount
 }
-function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) {
+function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) {
     const attackTarget = {
         SX: sourceCastle.x,
         SY: sourceCastle.y,
@@ -202,7 +202,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
         (kid == 10 || e.areaID == sourceCastle.extraData[0]))
     const unlockedHorses = castleData?.unlockedHorses
 
-    if (useCoin) {
+    if (options.useCoin && !options.useFeather) {
         let bestHorse = -1
         let minSpeed = Infinity
 
@@ -221,14 +221,14 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, useCoin) 
             attackTarget.HBW = bestHorse
             attackTarget.PTT = 0
         } else {
-            console.warn(`[${name}] 'Use Coin' enabled but no gold horse found. Defaulting to walking.`)
+            console.warn(`[${name}] 'Use Coin' enabled but no coin horse found. Defaulting to walking.`)
             attackTarget.HBW = -1
-            attackTarget.PTT = 1
+            attackTarget.PTT = 0
         }
     }
     else {
         attackTarget.HBW = -1
-        attackTarget.PTT = 1
+        attackTarget.PTT = options.useFeather ? 1 : 0
     }
     
     return attackTarget

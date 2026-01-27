@@ -50,6 +50,12 @@ if (isMainThread)
             },
             {
                 type: "Checkbox",
+                label: "Use Feather",
+                key: "useFeather",
+                default: false
+            },
+            {
+                type: "Checkbox",
                 label: "Use Coin",
                 key: "useCoin",
                 default: false
@@ -223,7 +229,7 @@ events.on("eventStart", async eventInfo => {
                 await skipTarget(AI)
 
                 const level = Number(eventAutoScalingCamps.find(obj => AI[9] == obj.eventAutoScalingCampID).camplevel)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions.useCoin)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []

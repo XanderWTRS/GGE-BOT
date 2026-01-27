@@ -23,6 +23,12 @@ if (isMainThread)
             { type: "Checkbox", label: "Buy Coins", key: "buycoins", default: true },
             { type: "Checkbox", label: "Buy Deco", key: "buydeco", default: false },
             { type: "Checkbox", label: "Buy XP", key: "buyxp", default: false },
+            {
+                type: "Checkbox",
+                label: "Use Feather",
+                key: "useFeather",
+                default: false
+            },
             { type: "Checkbox", label: "Use Coin", key: "useCoin", default: false },
             {
                 type: "Text",
@@ -230,7 +236,7 @@ events.once("load", async () => {
                 }
                 const level = toLevel[AI.extraData[2]]
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions.useCoin)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
                 attackInfo.LP = 3
                 const attackerMeleeTroops = []
