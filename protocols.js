@@ -463,7 +463,7 @@ const DetailedCastleList = e => ({
 const clientGetDetailedCastleList = () => {
     sendXT("dcl", JSON.stringify({ CD: 1 }))
 
-    const waitObject = waitForResult("dcl", 1000 * 10)
+    const waitObject = waitForResult("dcl", 1000 * 60)
     return async () => {
         const [obj, result] = await waitObject
         return DetailedCastleList({ ...obj, result: result })
