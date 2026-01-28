@@ -15,11 +15,12 @@ import Typography from '@mui/material/Typography'
 import { ErrorType, ActionType } from "../types.js"
 import PluginsTable from './pluginsTable'
 import { getTranslation } from '../translations.js' // Import translation
+import settings from '../settings.json'
 
-let lang = JSON.parse(await (await fetch(`${window.location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${window.location.port}/lang.json`)).text())
+let lang = JSON.parse(await (await fetch(`${window.location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${settings.port ?? window.location.port}/lang.json`)).text())
 
 let servers = new DOMParser()
-    .parseFromString(await (await fetch(`${window.location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${window.location.port}/1.xml`)).text(),"text/xml")
+    .parseFromString(await (await fetch(`${window.location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${settings.port ?? window.location.port}/1.xml`)).text(), "text/xml")
 let instances = []
 let _instances = servers.getElementsByTagName("instance")
 
@@ -49,12 +50,12 @@ for (var key in _instances) {
         }
     }
     if(instanceLocaId)
-    instances.push({id: obj.getAttribute("value"),server,zone,instanceLocaId,instanceName})
+        instances.push({id: obj.getAttribute("value"),server,zone,instanceLocaId,instanceName})
 }
 
 export default function UserSettings(props) {
-    const { language } = props; // Get language from props
-    const t = (key) => getTranslation(language, key);
+    const { cookies } = props // Get language from props
+    const t = key => getTranslation(cookies.lang, key)
 
     props.selectedUser.name ??= ""
     const isNewUser = props.selectedUser.name === ""
@@ -66,8 +67,8 @@ export default function UserSettings(props) {
 
     const pluginTable = React.useMemo(() => {
         return <PluginsTable plugins={props.plugins} userPlugins={plugins} channels={props.channels} 
-                    onChange={ e => setPlugins(e)} language={language} /> // Pass language
-    }, [props.channels, props.plugins, plugins, language])
+                    onChange={ e => setPlugins(e)} cookies={cookies} /> // Pass language
+    }, [props.channels, props.plugins, plugins, cookies])
 
     return (
         <div onClick={event => event.stopPropagation()} style={{ maxWidth: '90vw', width: '800px' }}>

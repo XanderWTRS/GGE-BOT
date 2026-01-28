@@ -11,10 +11,13 @@ import Backdrop from '@mui/material/Backdrop'
 import Checkbox from '@mui/material/Checkbox'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
 
 import { ErrorType, ActionType, LogLevel } from "../types.js"
 import UserSettings from './userSettings'
 import { getTranslation } from '../translations.js'
+import settings from '../settings.json'
 
 function Log(props) {
     const [currentLogs, setCurrentLogs] = React.useState([])
@@ -53,9 +56,50 @@ function Log(props) {
             </div>
         </Paper>)
 }
+function Language(props) {
+    const [anchorEl, setAnchorEl] = React.useState(null) 
+    const { cookies, setCookie } = props
+    const open = Boolean(anchorEl)
+    const handleClick = event => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    return (
+        <>
+            <Button
+                id="basic-button"
+                aria-controls={open ? 'basic-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? 'true' : undefined}
+                onClick={handleClick}
+            >
+                {cookies.lang}
+            </Button>
+            <Menu
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                slotProps={{
+                    list: {
+                        'aria-labelledby': 'basic-button',
+                    },
+                }}
+            >
+                <MenuItem onClick={() => {setCookie("lang", 'en', { maxAge: 31536000}); handleClose() }}>EN</MenuItem>
+                <MenuItem onClick={() => {setCookie("lang", 'pl', { maxAge: 31536000}); handleClose() }}>PL</MenuItem>
+                <MenuItem onClick={() => {setCookie("lang", 'de', { maxAge: 31536000}); handleClose() }}>DE</MenuItem>
+                <MenuItem onClick={() => {setCookie("lang", 'tr', { maxAge: 31536000}); handleClose() }}>TR</MenuItem>
+            </Menu>
+        </>
+    )
+}
 export default function GGEUserTable(props) {
-    const { language, setLanguage } = props;
-    const t = (key) => getTranslation(language, key);
+    const { cookies, setCookie } = props
+    const t = key => getTranslation(cookies.lang, key)
     const user = {}
 
     const [openSettings, setOpenSettings] = React.useState(false)
@@ -88,12 +132,6 @@ export default function GGEUserTable(props) {
         }
 
         return <TableContainer component={Paper}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
-                <Button size="small" variant={language === 'pl' ? 'contained' : 'outlined'} onClick={() => setLanguage('pl')} sx={{ mr: 1 }}>PL</Button>
-                <Button size="small" variant={language === 'de' ? 'contained' : 'outlined'} onClick={() => setLanguage('de')} sx={{ mr: 1 }}>DE</Button>
-                <Button size="small" variant={language === 'tr' ? 'contained' : 'outlined'} onClick={() => setLanguage('tr')} sx={{ mr: 1 }}>TR</Button>
-                <Button size="small" variant={language === 'en' ? 'contained' : 'outlined'} onClick={() => setLanguage('en')}>EN</Button>
-            </Box>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
@@ -111,12 +149,13 @@ export default function GGEUserTable(props) {
                         <TableCell align="left" padding='none'>{t("Plugins")}</TableCell>
                         <TableCell>{t("Status")}</TableCell>
                         <TableCell align='right' padding='none'>
-                            <Button variant="contained"
+                            <Language cookies={cookies} setCookie={setCookie}/>
+                            <Button
                                 style={{ margin: "10px", maxHeight: '32px', minHeight: '32px' }}
                                 onClick={async () =>
-                                    window.open(`https://discord.com/oauth2/authorize?client_id=${props.channelInfo[0]}&permissions=8&response_type=code&redirect_uri=${window.location.protocol === 'https:' ? "https" : "http"}%3A%2F%2F${window.location.hostname}%3A${window.location.port !== '' ? window.location.port : window.location.protocol === 'https:' ? "443" : "80"}%2FdiscordAuth&integration_type=0&scope=identify+guilds.join+bot`, "_blank")}
+                                    window.open(`https://discord.com/oauth2/authorize?client_id=${props.channelInfo[0]}&permissions=8&response_type=code&redirect_uri=${window.location.protocol === 'https:' ? "https" : "http"}%3A%2F%2F${window.location.hostname}%3A${(settings.port ?? window.location.port) !== '' ? (settings.port ?? window.location.port) : window.location.protocol === 'https:' ? "443" : "80"}%2FdiscordAuth&integration_type=0&scope=identify+guilds.join+bot`, "_blank")}
                             >{t("Link Discord")}</Button>
-                            <Button variant="contained" style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginRight: "10px" }} onClick={handleSettingsOpen}>+</Button>
+                            <Button style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginRight: "10px" }} onClick={handleSettingsOpen}>+</Button>
                         </TableCell>
                     </TableRow>
                 </TableHead>
@@ -244,7 +283,7 @@ export default function GGEUserTable(props) {
                     closeBackdrop={handleSettingsClose}
                     plugins={props.plugins}
                     channels={props.channelInfo[1]}
-                    language={language} />
+                    cookies={cookies} />
             </Backdrop>
             <Backdrop
             sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}

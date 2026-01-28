@@ -2,8 +2,10 @@ import './App.css'
 import GGEUserTable from './modules/GGEUsersTable'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import * as React from 'react'
+import { useCookies } from 'react-cookie'
 import { ErrorType, GetErrorTypeName, ActionType, User } from "./types.js"
 import ReconnectingWebSocket from "reconnecting-websocket"
+import settings from './settings.json'
 
 const darkTheme = createTheme({
   palette: {
@@ -12,21 +14,21 @@ const darkTheme = createTheme({
 })
 
 function App() {
-  const [language, setLanguage] = React.useState('en'); // Default language
+  const [cookies, setCookie] = useCookies(['lang']) // Default language
+  cookies.lang ??= "en"
   let [users, setUsers] = React.useState([])
   let [usersStatus, setUsersStatus] = React.useState({})
   let [plugins, setPlugins] = React.useState([])
   let [channelInfo, setChannelInfo] = React.useState([])
   let ws = React.useMemo(() => {
     const usersStatus = {}
-    const ws = new ReconnectingWebSocket(`${window.location.protocol === 'https:' ? "wss" : "ws"}://${window.location.hostname}:${window.location.port}`,[], {WebSocket: WebSocket, minReconnectionDelay: 3000 })
+    const ws = new ReconnectingWebSocket(`${window.location.protocol === 'https:' ? "wss" : "ws"}://${window.location.hostname}:${settings.port ?? window.location.port}`,[], {WebSocket: WebSocket, minReconnectionDelay: 3000 })
     
     ws.addEventListener("message", (msg) => {
       let [err, action, obj] = JSON.parse(msg.data.toString())
       if(err)
         console.error(GetErrorTypeName(err))
 
-  
       switch (Number(action)) {
         case ActionType.GetUUID:
           if(err === ErrorType.Unauthenticated)
@@ -56,7 +58,7 @@ function App() {
   return (
     <div className="App">
       <ThemeProvider theme={darkTheme}>
-          <GGEUserTable ws={ws} plugins={plugins} rows={users} usersStatus={usersStatus} channelInfo={channelInfo} language={language} setLanguage={setLanguage} />
+          <GGEUserTable ws={ws} plugins={plugins} rows={users} usersStatus={usersStatus} channelInfo={channelInfo} cookies={cookies} setCookie={setCookie}/>
       </ThemeProvider>
     </div>
   )

@@ -25,8 +25,8 @@ import Grid from '@mui/material/Grid'
 import { getTranslation } from '../translations.js'
 
 export default function PluginsTable(props) {
-    const { language } = props;
-    const t = (key) => getTranslation(language, key);
+    const { cookies } = props;
+    const t = (key) => getTranslation(cookies.lang, key);
 
     const userPlugins = props.userPlugins ?? {}
     const array_chunks = (array, chunk_size) => Array(Math.ceil(array.length / chunk_size)).fill().map((_, index) => index * chunk_size).map(begin => array.slice(begin, begin + chunk_size))
