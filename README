@@ -5,17 +5,6 @@ Special Thanks:
   xLukaZ (For German translation)
   wojts8 (For Polish translation)
 
-Extra Plugins (Not Public):
-  Berimond Kingdom
-  Barracks
-  Small BtH/OR automation
-  Flee (Expermimental)
-  Grab Tools (Blacksmith, Nomads, Samurai)
-  Help requests
-  Grand Tornament (Reroll at selected time)
-  Affluence Ticket spender
-  Birded players slash commands
-
 DISCLAIMER: Use this at your own risk.
 We are not affiliated with GoodGameStudios.
 
@@ -52,3 +41,14 @@ also find Token goto the ggeConfig and place it under discordToken.
 Optionally if you are hosting for others:
   http/s://webaddress:(webPort)/discordAuth
 6. From here restart the bot and press the "Link Discord".
+
+Extra Plugins (Not Public):
+  Berimond Kingdom
+  Barracks
+  Small BtH/OR automation
+  Flee (Expermimental)
+  Grab Tools (Blacksmith, Nomads, Samurai)
+  Help requests
+  Grand Tornament (Reroll at selected time)
+  Affluence Ticket spender
+  Birded players slash commands
