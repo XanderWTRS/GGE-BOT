@@ -163,21 +163,19 @@ async function barronHit(name, type, kid, options) {
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
-                    const oldAreaInfo = sortedAreaInfo[i]
+                    const areaInfo = sortedAreaInfo[i]
                     
-                    if(movements.find(e => e.x == oldAreaInfo.x && e.y == oldAreaInfo.y))
+                    if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
 
-                    let time = towerTime.get(oldAreaInfo) - timeSinceEpoch
+                    let time = towerTime.get(areaInfo) - timeSinceEpoch
                     if (!options.useTimeSkips && time > 0)
                         continue
 
-                    const areaInfo = (await ClientCommands.getAreaInfo(kid, oldAreaInfo.x, oldAreaInfo.y, oldAreaInfo.x, oldAreaInfo.y)()).areaInfo[0]
+                    Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo[0])
+                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
-                    Object.assign(oldAreaInfo, areaInfo)
-                    towerTime.set(oldAreaInfo, timeSinceEpoch + oldAreaInfo.extraData[2] * 1000)
-
-                    if (!options.useTimeSkips && towerTime.get(oldAreaInfo) - timeSinceEpoch > 0)
+                    if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
                         continue
 
                     index = i

@@ -130,7 +130,7 @@ async function fortressHit(name, kid, level, options) {
                             kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo[0])
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
-                    if (towerTime.get(areaInfo) - timeSinceEpoch > 0)
+                    if (areaInfo.extraData[2] > 0)
                         continue
 
                     index = i
