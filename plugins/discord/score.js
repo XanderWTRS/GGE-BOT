@@ -320,7 +320,7 @@ async function getAllianceEventRank(interaction, LT) {
         await Promise.all(promises)
     }
     else {
-        await commonGetFunc(5)
+        await commonGetFunc(LT != 30 ? 5 : 4)
     }
 
     members.forEach(e => {
