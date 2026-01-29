@@ -59,7 +59,7 @@ async function fortressHit(name, kid, level, options) {
     Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
 
     options.useCoin = true
-    options.usefeather = true
+    options.useFeather = true
     
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
