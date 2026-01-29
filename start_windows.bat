@@ -21,7 +21,8 @@ if not exist ".git"\ (
 )
 
 git config pull.rebase true
-
+echo "Last commit message:"
+git show --format=%s -s
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   git pull origin main --recurse-submodules

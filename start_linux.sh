@@ -19,6 +19,8 @@ else
 fi
 
 git config pull.rebase true
+echo "Last commit message:"
+git show --format=%s -s
 
 if ! command -v gh >/dev/null 2>&1; then
   git pull origin main 
