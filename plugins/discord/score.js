@@ -170,7 +170,7 @@ async function getAllianceEventRank(interaction, LT) {
 
     let commonGetFunc = async (j) => {
         for (let i = 1; i <= j; i++) {
-            sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `` }))
+            sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: LT == 30 ? `1` : `` }))
             let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
