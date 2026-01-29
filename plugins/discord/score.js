@@ -216,6 +216,41 @@ async function getAllianceEventRank(interaction, LT) {
         }
     }
     let lootTable = []
+    if (LT == 30) {
+        let promises = members.map(async e => {
+            if (e.R) {
+                if (!lootTable.every(a => a[0] != e.N))
+                    return
+                lootTable.push([e.N, -1])
+                return
+            }
+            sendXT("hgh", JSON.stringify({ LT: LT, SV: `${e.N}` }))
+            try {
+                let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
+                    if (result != 0)
+                        return false
+
+                    if (obj.LT != LT || obj.SV != `${e.N}`)
+                        return false
+                    return true
+                })
+
+                obj.L.forEach(e => {
+                    if (e[2].AID != AID)
+                        return
+                    if (!lootTable.every(a => a[0] != e[2].N))
+                        return
+                    lootTable.push([e[2].N, e[1]])
+                })
+            } catch (a) {
+                if (!lootTable.every(a => a[0] != e.N))
+                    return
+                lootTable.push([e.N, -1])
+            }
+        })
+
+        await Promise.all(promises)
+    }
     if (LT == 2) {
         let promises = members.map(async e => {
             if (e.R) {
@@ -320,7 +355,7 @@ async function getAllianceEventRank(interaction, LT) {
         await Promise.all(promises)
     }
     else {
-        await commonGetFunc(LT != 30 ? 5 : 4)
+        await commonGetFunc(5)
     }
 
     members.forEach(e => {
