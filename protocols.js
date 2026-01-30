@@ -50,7 +50,7 @@ xtHandler.on("sce", (obj) => {
 })
 
 const spendSkip = (time) => {
-    time = (Math.max(time, 60 * 10 / 2)) / 60 * 2
+    time = (Math.max(time, 60 * 60 * 30)) / 60 * 2
     let skip = Object.entries(skips)
         .filter(e => e[1] > 0)
         .filter(e => MinuteSkipType[e[0]] <= time)
