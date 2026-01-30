@@ -1,1 +1,20 @@
-{}
+{
+	"startBanner": "سيكون من دواعي سروري أن تقوموا بوضع مشاكلكم على قسم المشاكل في موقع GitHub أو مراسلتي مباشرة على Discord أو البريد الإلكتروني.",
+	"ggeConfigGenerated": "تم إنشاء ملف ggeConfig.json.",
+	"couldntFindPrivateKey": "لم يتم العثور على المفتاح الخاص! جارٍ الرجوع إلى وضع HTTP.",
+	"couldntFindCertificate": "تعذر العثور على الشهادة! جارٍ الرجوع إلى وضع HTTP.",
+	"couldntAccessFont": "تعذر الوصول إلى الخط",
+	"couldntSetupDiscord": "تعذر إعداد برنامج ديسكورد.",
+	"configurationsMissing": "التكوينات التالية مفقودة:",
+	"missingDiscordID": "تعذر الحصول على معرف ديسكورد .",
+	"missingDiscordUserID": "تعذر الحصول على معرف مستخدم ديسكورد.",
+	"missingGuildID": "تعذر الحصول على معرف النقابة.",
+	"uuidInvalid": "معرّف المستخدم غير صالح.",
+	"gameAccountSessionAlreadyInUse": "جلسة حساب اللعبة قيد الاستخدام بالفعل.",
+	"failedToJoinEventServer" : "فشل الانضمام إلى خادم الأحداث.",
+	"noThreadWorker": "لم يتم العثور على عامل الخيط.",
+	"couldntFindWebClientIndex" : "تعذر العثور على فهرس مستخدم عميل الويب.",
+	"started": "بدأ.",
+	"restartCanceledReasonBotStoppedByUser" : "سبب إلغاء إعادة التشغيل: تم إيقاف البوت بواسطة المستخدم.",
+	"restartDelay" : "انتهى عمل البوت. جارٍ الانتظار 10 ثوانٍ قبل إعادة التشغيل لتجنب السبام "
+}
