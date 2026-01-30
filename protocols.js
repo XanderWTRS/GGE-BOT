@@ -50,10 +50,10 @@ xtHandler.on("sce", (obj) => {
 })
 
 const spendSkip = (time) => {
-    time = (Math.max(time, 60 * 60 * 30)) / 60 * 2
+    time = (Math.max(time, 60 * 60)) / 60
     let skip = Object.entries(skips)
         .filter(e => e[1] > 0)
-        .filter(e => MinuteSkipType[e[0]] <= time)
+        .filter(e => MinuteSkipType[e[0]] <= time * 2)
         .sort((a, b) => MinuteSkipType[b[0]] - MinuteSkipType[a[0]])
         .sort((a, b) => {
             if (a[1] >= 999 && b[1] >= 999)
