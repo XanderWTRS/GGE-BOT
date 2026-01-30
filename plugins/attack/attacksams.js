@@ -72,6 +72,7 @@ const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.jso
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
     botConfig.plugins["attack"] ?? {})
+const err = require('../../err.json')
 
 const kid = 0
 const type = AreaType.samCamp
@@ -284,7 +285,7 @@ events.on("eventStart", async eventInfo => {
 
                     const desiredToolCount = attackerSamuraiTools.length == 0 ? 20 : 10
                     const commanderStats = getCommanderStats(commander)
-                    const const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
+                    const maxTroopFront = getAmountSoldiersFront(level) * Math.ceil(1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)
                     const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
 
                     let maxTools = maxToolsFlank
