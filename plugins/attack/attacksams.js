@@ -159,10 +159,19 @@ events.on("eventStart", async eventInfo => {
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => AreaType.mainCastle == e.type);
-    let gaa = await getAreaCached(kid,
-        sourceCastleArea.x - 50, sourceCastleArea.y - 50,
-        sourceCastleArea.x + 50, sourceCastleArea.y + 50)
-
+    let error = false
+    let gaa
+    do {
+        try {
+            gaa = await getAreaCached(kid,
+                sourceCastleArea.x - 50, sourceCastleArea.y - 50,
+                sourceCastleArea.x + 50, sourceCastleArea.y + 50)
+            error = false
+        } catch (e) {
+            console.error(e)
+            error = true
+        }
+    } while (error);
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
         .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
             Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
