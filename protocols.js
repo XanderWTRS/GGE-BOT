@@ -19,23 +19,23 @@ const HighscoreType = Object.freeze({
     honour: 5
 });
 const MinuteSkipType = Object.freeze({
-    MS0: 1,
-    MS1: 5,
-    MS2: 10,
-    MS3: 30,
-    MS4: 60,
-    MS5: 60 * 5,
-    MS6: 60 * 24,
+    MS1: 1,
+    MS2: 5,
+    MS3: 10,
+    MS4: 30,
+    MS5: 60,
+    MS6: 60 * 5,
+    MS7: 60 * 24,
 });
 
 const skips = {
-    MS0: 0,
     MS1: 0,
     MS2: 0,
     MS3: 0,
     MS4: 0,
     MS5: 0,
     MS6: 0,
+    MS7: 0,
 };
 
 xtHandler.on("sce", (obj) => {
