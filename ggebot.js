@@ -88,7 +88,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
         timer = setTimeout(() => {
             xtHandler.removeListener(key, helperFunction)
             const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
-            
+            result = -1
             console.warn(`${key} Timed out`)
 
             reject(msg)
