@@ -11,8 +11,7 @@ if (isMainThread)
                 type: "Text",
                 label: "Com White List",
                 key: "commanderWhiteList"
-            },
-            { type: "Checkbox", label: "Use Dogs", key: "useDogs", default: false },
+            }
         ]
     }
 

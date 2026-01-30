@@ -18,6 +18,7 @@ const pretty = require('pretty-time')
 const { getCommanderStats } = require('../../getEquipment.js')
 
 const minTroopCount = 100
+const minTroopCountCY = 500
 const type = AreaType.fortress
 
 function spiralCoordinates(n) {
@@ -143,8 +144,7 @@ async function fortressHit(name, kid, level, options) {
 
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
-                const attackerMeleeTroops = []
-                const attackerRangeTroops = []
+                const attackerTroops = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
                     const unit = sourceCastle.unitInventory[i]
@@ -154,24 +154,23 @@ async function fortressHit(name, kid, level, options) {
 
                     if (unitInfo.fightType == 0) {
                         if(kid == KingdomID.firePeaks && 
-                            unitInfo.wodID == 277 && !pluginOptions.useDogs)
+                            unitInfo.wodID == 277 && !hasShieldMadiens)
                             continue
-                        if (unitInfo.role == "melee")
-                            attackerMeleeTroops.push([unitInfo, unit.ammount])
-                        else if (unitInfo.role == "ranged")
-                            attackerRangeTroops.push([unitInfo, unit.ammount])
+                        
+                        if(!unitInfo.role)
+                            continue
+
+                        attackerTroops.push([unitInfo, unit.ammount])
                     }
                 }
 
-                attackerMeleeTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
-                attackerRangeTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
+                attackerTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
 
                 let allTroopCount = 0
 
-                attackerRangeTroops.forEach(e => allTroopCount += e[1])
-                attackerMeleeTroops.forEach(e => allTroopCount += e[1])
+                attackerTroops.forEach(e => allTroopCount += e[1])
 
-                if (allTroopCount < minTroopCount)
+                if (allTroopCount < minTroopCount + (hasShieldMadiens ? 0 : minTroopCountCY))
                     throw "NO_MORE_TROOPS"
 
                 attackInfo.A.forEach((wave, i) => {
@@ -184,26 +183,15 @@ async function fortressHit(name, kid, level, options) {
 
                     let maxTroops = maxTroopFlank
 
-                    let willUseDogs = false
-                    if(attackerMeleeTroops[0] && attackerMeleeTroops[0].wodID == 277 && hasShieldMadiens)
-                        willUseDogs = true
-
                     wave.L.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, (attackerRangeTroops.length <= 0 || willUseDogs) ?
-                            attackerMeleeTroops : attackerRangeTroops, maxTroops))
-
-                    if (!hasShieldMadiens) {
-                        let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
-                        attackInfo.RW.forEach((unitSlot, i) => {
-                            let attacker = i & 1 ?
-                                (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
-                                (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
-
-                            maxTroops -= assignUnit(unitSlot, attacker,
-                                Math.floor(maxTroops / 2) - 1)
-                        })
-                    }
+                        maxTroops -= assignUnit(unitSlot, attackerTroops, maxTroops))
                 })
+
+                if (!hasShieldMadiens) {
+                    let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
+                    attackInfo.RW.forEach((unitSlot, i) =>
+                        maxTroops -= assignUnit(unitSlot, attackerTroops, maxTroops))
+                }
 
                 //await areaInfoLock(() => 
                     sendXT("cra", JSON.stringify(attackInfo))
