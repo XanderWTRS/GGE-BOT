@@ -93,6 +93,7 @@ function Language(props) {
                 <MenuItem onClick={() => {setCookie("lang", 'pl', { maxAge: 31536000}); handleClose() }}>PL</MenuItem>
                 <MenuItem onClick={() => {setCookie("lang", 'de', { maxAge: 31536000}); handleClose() }}>DE</MenuItem>
                 <MenuItem onClick={() => {setCookie("lang", 'tr', { maxAge: 31536000}); handleClose() }}>TR</MenuItem>
+                <MenuItem onClick={() => {setCookie("lang", 'ar', { maxAge: 31536000}); handleClose() }}>AR</MenuItem>
             </Menu>
         </>
     )

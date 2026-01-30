@@ -154,7 +154,7 @@ export const translations = {
         "Alert": "Uyarı Sistemi",
         "Chat": "Sohbet",
         "Aquaisland": "Su Adası",
-        "Auto Tix" : "Otomatik servet bileti"
+        "Auto Tix": "Otomatik servet bileti"
     },
     de: {
         "Name": "Name",
@@ -308,9 +308,88 @@ export const translations = {
         "Sends Resources": "Wysyła zasoby",
         "Repair for Mead": "Uzupełnia miód pitny na zamku",
         "Get Regions": "Wyszukuje regiony"
+    },
+    ar: {
+        "Name": "الاسم",
+        "Description": "الوصف",
+        "Status": "الحالة",
+        "Start": "بدء",
+        "Stop": "توقف",
+        "Settings": "الاعدادات",
+        "Save": "حفظ",
+        "Remove": "حذف",
+        "Logs": "السجل",
+        "Link Discord": "رابط ديسكورد",
+        "Username": "اسم المستخدم",
+        "Password": "كلمة المرور",
+        "Server": "السيرفر",
+        "Plugins": "الإضافات",
+        "System": "النظام",
+        // Plugin Options
+        "Horse Settings": "اعدادات الاحصنة",
+        "Attack Settings": "اعدادات الهجوم",
+        "Use Feather": "استعمال الريش",
+        "Use Coin": "استعمال العملات",
+        "Use Time Skips": "استعمال تخطيات الوقت",
+        "Attack Left Flank": "الهجوم على الجناح الأيسر",
+        "Attack Middle": "الهجوم على الوسط",
+        "Attack Right Flank": "الهجوم على الجناح الأيمن",
+        "Attack Courtyard": "Attack Courtyard", // Yeni
+        "Max Waves": "أقصى موجات",
+        "Attack Delay (Seconds)": "تأخير الهجوم (بالثواني)",
+        "Attack Delay Randomization (Seconds)": "عشوائية تأخير الهجوم (بالثواني)",
+        // Plugin Names & Descriptions
+        "Attack Barrons (Great Empire)": "هجوم اللصوص (الإمبراطورية العظمى)",
+        "Attack Barrons (Fire Peaks)": "هجوم اللصوص (القمم النارية)",
+        "Attack Barrons (Glacier)": "هجوم اللصوص (الجليد الازلي)", // Düzeltildi
+        "Attack Barrons (Burning Sands)": "هجوم اللصوص (الرمال الحارقة)",
+        "Attack Fortress (Fire Peaks)": "الهجوم على الحصون (قمم النار)",
+        "Attack Fortress (Everwinter Glacier)": "الهجوم على الحصون (الجليد الازلي)",
+        "Attack Fortress (Burning Sands)": "الهجوم على الحصون (الرمال الحارقة)",
+        "Attack Nomad Camps": "مهاجمة معسكرات البدو",
+        "Attack Samurai Camps": "مهاجمة معسكرات الساموراي",
+        "Attack Beri Camps": "مهاجمة معسكرات بيريموند",
+        "Attack Khan": "الهجوم على الخان",
+        "Attack Aqua Forts": "مهاجمة الجزر",
+        "Attack Level 40": "الهجوم مستوى 40",
+        "Attack Level 50": "الهجوم مستوى 50",
+        "Attack Level 60": "الهجوم مستوى 60",
+        "Attack Level 70": "الهجوم مستوى 70",
+        "Attack Level 80": "الهجوم مستوى 80",
+        "Hits Barrons": "ضرب اللصوص",
+        "Attack": "هجوم",
+        "Handles Hits": "يتعامل مع الضربات",
+        "commander": "قائد",
+        "Commander": "قائد",
+        "Res Send": "إرسال الموارد",
+        "Ressend": "مرسل الموارد",
+        "Feast": "وليمة",
+        "GetRegion": "الحصول على المناطق",
+        "Get Regions": "الحصول على المناطق",
+        "Mead replace": "اصلاح الشراب",
+        "MeadRep": "اصلاح الشراب",
+        "Timer": "مؤقت",
+        "Discord": "بوت ديسكورد",
+        "Outgoing": "Outgoing",
+        "Fortress": "الحصون",
+        "Aqua Tower": "ابراج الجزر",
+        "Slash Commands": "اوامر سلاش",
+        "Alert": "تنبيه",
+        "Chat": "الدردشة",
+        "Aquaisland": "جزر الزبرجد",
+        // Descriptions (English defaults)
+        "Hits fortresses": "ضرب الحصون",
+        "Hits Aqua Forts": "ضرب حصون الزبرجد",
+        "Hits Nomad Camps": "ضرب معسكرات البدو",
+        "Hits Samurai Camps": "ضرب معسكرات الساموراي",
+        "Hits Beri Camps": "ضرب معسكرات بيريموند",
+        "Hits Khan Camps": "ضرب معسكرات خان",
+        "Sends Resources": "ارسال الموارد",
+        "Repair for Mead": "",
+        "Get Regions": "الحصول على المناطق"
     }
 };
-   
+
 
 export const getTranslation = (lang, key) => {
     return translations[lang][key] || key;
