@@ -9,7 +9,8 @@ async function getAreaCached(kid, fromX, fromY, toX, toY) {
     
     if(!response) {
         response = await ClientCommands.getAreaInfo(kid,fromX,fromY,toX,toY)()
-        myCache.set(key, response, 60)
+        if(response == 0)
+            myCache.set(key, response, 60)
     }
     return response
 }
