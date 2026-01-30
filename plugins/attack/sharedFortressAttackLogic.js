@@ -154,7 +154,7 @@ async function fortressHit(name, kid, level, options) {
 
                     if (unitInfo.fightType == 0) {
                         if(kid == KingdomID.firePeaks && 
-                            unitInfo.wodID == 277)
+                            unitInfo.wodID == 277 && !pluginOptions.useDogs)
                             continue
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
@@ -184,9 +184,13 @@ async function fortressHit(name, kid, level, options) {
 
                     let maxTroops = maxTroopFlank
 
+                    let willUseDogs = false
+                    if(attackerMeleeTroops[0] && attackerMeleeTroops[0].wodID == 277 && hasShieldMadiens)
+                        willUseDogs = true
+
                     wave.L.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                        maxTroops -= assignUnit(unitSlot, (attackerRangeTroops.length <= 0 || willUseDogs) ?
+                            attackerMeleeTroops : attackerRangeTroops, maxTroops))
 
                     if (!hasShieldMadiens) {
                         let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
