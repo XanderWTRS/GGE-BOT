@@ -1,5 +1,5 @@
 const { isMainThread } = require('node:worker_threads')
-const name = "Fortress Hit"
+const name = "Barron"
 
 if (isMainThread)
     return module.exports = {

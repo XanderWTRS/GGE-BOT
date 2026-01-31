@@ -405,12 +405,13 @@ async function start() {
     }
     const discordData = discordCreds(uuid)
     plugins.forEach(plugin => {
+      data.plugins[plugin.key] = {}
       if (plugin.force) {
-        (data.plugins[plugin.key] ??= {}).state = true
+        data.plugins[plugin.key].state = true
       }
+      data.plugins[plugin.key].name = plugin.name
       if (data.plugins[plugin.key]?.state) {
         data.plugins[plugin.key].filename = plugin.filename
-        data.plugins[plugin.key].name = plugin.name
         plugin.pluginOptions?.forEach(option => {
           let objectValue = data.plugins[plugin.key][option.key]
           if (option.key == undefined || ![, ""].includes(objectValue))
@@ -467,12 +468,13 @@ async function start() {
         let data2 = structuredClone(user)
 
         plugins.forEach(plugin => {
+          data2.plugins[plugin.key] ??= {}
           if (plugin.force) {
-            (data2.plugins[plugin.key] ??= {}).state = true
+            data2.plugins[plugin.key].state = true
           }
+          data2.plugins[plugin.key].name = plugin.name
           if (data2.plugins[plugin.key]?.state) {
             data2.plugins[plugin.key].filename = plugin.filename
-            data2.plugins[plugin.key].name = plugin.name
             plugin.pluginOptions?.forEach(option => {
               let objectValue = data.plugins[plugin.key][option.key]
               if (option.key == undefined || ![, ""].includes(objectValue))
@@ -771,12 +773,13 @@ async function start() {
                 let data = structuredClone(user)
 
                 plugins.forEach(plugin => {
+                  data.plugins[plugin.key] ??= {}
                   if (plugin.force) {
-                    (data.plugins[plugin.key] ??= {}).state = true
+                    data.plugins[plugin.key].state = true
                   }
+                  data.plugins[plugin.key].name = plugin.name
                   if (data.plugins[plugin.key]?.state) {
                     data.plugins[plugin.key].filename = plugin.filename
-                    data.plugins[plugin.key].name = plugin.name
                     plugin.pluginOptions?.forEach(option => {
                       let objectValue = data.plugins[plugin.key][option.key]
                       if (option.key == undefined || ![, ""].includes(objectValue))
