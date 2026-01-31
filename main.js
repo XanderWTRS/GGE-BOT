@@ -234,8 +234,8 @@ async function start() {
     catch {
       needLang = true
     }
-    if (needLang) {
-      const response = await fetch('https://empire-html5.goodgamestudios.com/config/languages/4018/en.json')
+    if (needLang) { // https://empire-html5.goodgamestudios.com/default/config/country/latest/country.xml
+      const response = await fetch('https://empire-html5.goodgamestudios.com/config/languages/latest/en.json')
       const str = await response.text()
 
       await fs.writeFile('./lang.json', str)
