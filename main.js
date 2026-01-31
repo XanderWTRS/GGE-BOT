@@ -331,8 +331,10 @@ async function start() {
   })
 
   if (hasDiscord) {
+    client.login(ggeConfig.discordToken)
     await new Promise(resolve => {
       client.once(Events.ClientReady, () => {
+        resolve()
         app.get('/discordAuth', async (request, response) => {
           const tokenResponseData = await undici.request('https://discord.com/api/oauth2/token', {
             method: 'POST',
@@ -384,9 +386,7 @@ async function start() {
           return response.send('Successful!') //close page instead
         })
       })
-      resolve()
     })
-    client.login(ggeConfig.discordToken)
   }
 
   app.use(express.static('website/build'))
