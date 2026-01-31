@@ -67,6 +67,12 @@ if (isMainThread)
                 default: false
             },
             {
+                type: "Checkbox",
+                label: "Use Food",
+                key: "useFood",
+                default: true
+            },
+            {
                 type: "Text",
                 label: "Nomad score shutoff",
                 key: "nomadsScoreShutoff"
@@ -275,7 +281,9 @@ events.on("eventStart", async eventInfo => {
                     else if (unitInfo.fightType == 0) {
                         if(troopBlackList.includes(unitInfo.wodID))
                             continue
-                        
+                        if(unitInfo.foodSupply && !pluginOptions.useFood)
+                            continue
+
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
                         else if (unitInfo.role == "ranged")

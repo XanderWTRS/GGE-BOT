@@ -55,6 +55,12 @@ if (isMainThread)
                 default: false
             },
             {
+                type: "Checkbox",
+                label: "Use Food",
+                key: "useFood",
+                default: true
+            },
+            {
                 type: "Text",
                 label: "Com White List",
                 key: "commanderWhiteList"
@@ -238,6 +244,8 @@ events.on("eventStart", async eventInfo => {
                             attackerShieldTools.push([unitInfo, unit.ammount])
                     }
                     else if (unitInfo.fightType == 0) {
+                        if(unitInfo.foodSupply && !pluginOptions.useFood)
+                            continue
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
                         else if (unitInfo.role == "ranged")
