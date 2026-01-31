@@ -118,21 +118,21 @@ events.once("load", async () => {
             if (castleProd.aqua > 500000) {
                 castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`[${name}] Buying Coins`)
+                console.info(`Buying Coins`)
             }
         }
         if (pluginOptions["buydeco"]) {
             if (castleProd.aqua > 500000) {
                 castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`[${name}] Buying Deco`)
+                console.info(`Buying Deco`)
             }
         }
         if (pluginOptions["buyxp"]) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 10000
                 sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`[${name}] Got XP`)
+                console.info(`Got XP`)
             }
         }
     })
@@ -301,7 +301,7 @@ events.once("load", async () => {
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
 
-            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -402,7 +402,7 @@ events.once("load", async () => {
         }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next possible fortress hit`)
+        console.info(`Waiting ${Math.round(time / 1000)} for next possible fortress hit`)
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

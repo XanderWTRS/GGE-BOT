@@ -31,7 +31,7 @@ if (isMainThread) {
 
 const { events, botConfig } = require("../ggebot")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const { ClientCommands, getResourceCastleList, KingdomID, AreaType } = require("../protocols.js")
 const feastFoodReduction = pluginOptions.feastFoodReduction ? Number(pluginOptions.feastFoodReduction): 150000
 const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood): 150000
@@ -65,8 +65,8 @@ events.once("load", async () => {
     })
 
     if (feasts > 0)
-        console.log(`[${name}] Feasted ${feastFoodReduction * feasts} food`)
+        console.log(`Feasted ${feastFoodReduction * feasts} food`)
     else {
-        console.log(`[${name}] Not enough food to feast`)
+        console.log(`Not enough food to feast`)
     }
 })

@@ -17,7 +17,7 @@ if (isMainThread)
 
 const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const { clientReady } = require('./discord')
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 let movements = []
 clientReady.then(async client => {

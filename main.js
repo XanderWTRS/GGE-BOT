@@ -404,17 +404,18 @@ async function start() {
       return row ? { discordGuildId: row.discordGuildId, discordUserId: row.discordUserId } : undefined
     }
     const discordData = discordCreds(uuid)
-     plugins.forEach(plugin => {
-      if(plugin.force) {
+    plugins.forEach(plugin => {
+      if (plugin.force) {
         (data.plugins[plugin.key] ??= {}).state = true
       }
-      if(data.plugins[plugin.key]?.state) {
+      if (data.plugins[plugin.key]?.state) {
         data.plugins[plugin.key].filename = plugin.filename
         plugin.pluginOptions?.forEach(option => {
           let objectValue = data.plugins[plugin.key][option.key]
-          if(option.key == undefined || ![, ""].includes(objectValue))
+          if (option.key == undefined || ![, ""].includes(objectValue))
             return
-          
+
+          data.plugins[plugin.key].name = option.name
           data.plugins[plugin.key][option.key] = option.default
         })
       }
@@ -437,7 +438,7 @@ async function start() {
         }
 
         worker.on('message', func)
-        
+
         if (alreadyStarted)
           return worker.postMessage([ActionType.GetExternalEvent])
 
@@ -475,7 +476,8 @@ async function start() {
               let objectValue = data.plugins[plugin.key][option.key]
               if (option.key == undefined || ![, ""].includes(objectValue))
                 return
-
+              
+              data2.plugins[plugin.key].name = option.name
               data2.plugins[plugin.key][option.key] = option.default
             })
           }
@@ -779,6 +781,7 @@ async function start() {
                       if (option.key == undefined || ![, ""].includes(objectValue))
                         return
 
+                      data.plugins[plugin.key].name = option.name
                       data.plugins[plugin.key][option.key] = option.default
                     })
                   }

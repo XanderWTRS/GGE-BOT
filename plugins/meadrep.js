@@ -30,7 +30,7 @@ events.once("load", async () => {
     let resourceCastleList = await getResourceCastleList()
 
     if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-        return console.warn(`[${name}] refusing to run without Storm Islands unlocked`)
+        return console.warn(`refusing to run without Storm Islands unlocked`)
 
     let checkMead = async () => {
         let dcl = await ClientCommands.getDetailedCastleList()()
@@ -49,20 +49,20 @@ events.once("load", async () => {
         let hoursTillRefill = Math.max(0, meadLossPerHour - hoursLeftTillRefilMandatory)
 
         if (meadLossPerHour == Infinity || isNaN(meadLossPerHour))
-            return console.log(`[${name}] Will never need to send mead`)
+            return console.log(`Will never need to send mead`)
 
         if (stormAreaInfo.getProductionData.maxAmmountMead / stormAreaInfo.getProductionData.MeadConsumptionRate < hoursLeftTillRefilWarning)
-            console.warn(`[${name}] Please aim above ${hoursLeftTillRefilWarning} hours I won't work well under that`)
+            console.warn(`Please aim above ${hoursLeftTillRefilWarning} hours I won't work well under that`)
 
         if (resource?.remainingTime >= (stormAreaInfo.mead - (resourceMead ? resourceMead.count : 0)) / stormAreaInfo.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
-            console.log(`[${name}] Using ${Math.floor(resource.remainingTime / 60 / 30)} 30 minute skips`)
+            console.log(`Using ${Math.floor(resource.remainingTime / 60 / 30)} 30 minute skips`)
             for (let i = 0; i < resource.remainingTime / 60 / 30; i++) {
                 await ClientCommands.getMinuteSkipKingdom("MS3", targetKingdomID, KingdomSkipType.sendResource)()
             }
             resource.remainingTime = 0
         }
         else
-            console.log(`[${name}] Don't need to send mead for another ${Math.round(hoursTillRefill)} hours`)
+            console.log(`Don't need to send mead for another ${Math.round(hoursTillRefill)} hours`)
 
 
         setTimeout(async () => {
@@ -84,9 +84,9 @@ events.once("load", async () => {
                 [["MEAD", ammount]]
             )()
             if (info.result == 0)
-                console.log(`[${name}] Sent ${ammount} mead to ${KingdomID[targetKingdomID]}`)
+                console.log(`Sent ${ammount} mead to ${KingdomID[targetKingdomID]}`)
             else
-                console.log(`[${name}] Failed to send ${ammount} mead to ${KingdomID[targetKingdomID]}`)
+                console.log(`Failed to send ${ammount} mead to ${KingdomID[targetKingdomID]}`)
             setTimeout(checkMead, sendResTimeout)
 
         }, Math.min(hoursTillRefill * 60 * 60 * 1000, 2147483647))

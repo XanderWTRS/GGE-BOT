@@ -221,7 +221,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
             attackTarget.HBW = bestHorse
             attackTarget.PTT = 0
         } else {
-            console.warn(`[${name}] 'Use Coin' enabled but no coin horse found. Defaulting to walking.`)
+            console.warn(`'Use Coin' enabled but no coin horse found. Defaulting to walking.`)
             attackTarget.HBW = -1
             attackTarget.PTT = 0
         }
@@ -251,7 +251,7 @@ function boxMullerRandom(min, max, skew) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const attacks = []
 let alreadyRunning = false
 const napTime = 1000 * 60 * 60 * 2
@@ -296,7 +296,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                         if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
                             const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
                             if(timeTillNextHit > 0) {
-                                console.log(`[${name}] Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
+                                console.log(`Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
                                 await sleep(timeTillNextHit)
                             }
                             timeTillTimeout = Date.now() + napTime
@@ -313,14 +313,14 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     } catch (innerError) {
                         // Catch errors specific to the task but keep the loop running
                         if (innerError !== "NO_MORE_TROOPS") {
-                             console.warn(`[${name}] Error processing attack: ${innerError}`)
+                             console.warn(`Error processing attack: ${innerError}`)
                         }
                     }
                 }
                 while (attacks.length > 0);
             }
             catch (e) {
-                console.warn(`[${name}] Critical loop error:`, e)
+                console.warn(`Critical loop error:`, e)
             }
             finally {
                 alreadyRunning = false

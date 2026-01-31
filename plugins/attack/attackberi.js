@@ -109,7 +109,7 @@ events.on("eventStop", eventInfo => {
     if(quit)
         return
 
-    console.log(`[${name}] Shutting down reason: Event ended.`)
+    console.log(`Shutting down reason: Event ended.`)
     quit = true
 })
 events.on("eventStart", async eventInfo => {
@@ -363,7 +363,7 @@ events.on("eventStart", async eventInfo => {
                 throw err[attackInfo.result]
 
 
-            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {

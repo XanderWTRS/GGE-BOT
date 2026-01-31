@@ -318,7 +318,7 @@ async function barronHit(name, type, kid, options) {
                 throw err[attackSentInfo.result]
             }
             
-            console.info(`[${name}] Hitting target C${attackSentInfo.AAM.UM.L.VIS + 1} ${attackSentInfo.AAM.M.TA[1]}:${attackSentInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackSentInfo.AAM.M.TT - attackSentInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`Hitting target C${attackSentInfo.AAM.UM.L.VIS + 1} ${attackSentInfo.AAM.M.TA[1]}:${attackSentInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackSentInfo.AAM.M.TT - attackSentInfo.AAM.M.PT))), 's') + " till impact"}`)
             console.debug(`(Setup: ${attackSentInfo.executionDuration}s)`)
             return true
         } catch (e) {
@@ -341,7 +341,7 @@ async function barronHit(name, type, kid, options) {
                 case "TIMED_OUT":
                     return true
                 case "ATTACK_TOO_MANY_UNITS":
-                    console.warn(`[${name}] Math error (Too Many Units). Skipping this target to prevent crash.`)
+                    console.warn(`Math error (Too Many Units). Skipping this target to prevent crash.`)
                     return true
                 case "CANT_START_NEW_ARMIES":
                 default:
@@ -403,7 +403,7 @@ async function barronHit(name, type, kid, options) {
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`[${name}] Waiting ${Math.round(time / 1000)} for next hit`)
+        console.info(`Waiting ${Math.round(time / 1000)} for next hit`)
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

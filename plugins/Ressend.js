@@ -28,7 +28,7 @@ events.once("load", async () => {
 
         let kingdomInfoList = await getKingdomInfoList()
         if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-            return console.warn(`[${name}] refusing to run without Storm Islands unlocked`)
+            return console.warn(`refusing to run without Storm Islands unlocked`)
 
         kingdoms:
         for (let i = 0; i < dcl.castles.length; i++) {
@@ -68,7 +68,7 @@ events.once("load", async () => {
 
                 stormAreaInfo.wood -= maxWoodToSend
                 stormAreaInfo.stone -= maxStoneToSend
-                console.log(`[${name}] Sent ${JSON.stringify(G)} to ${KingdomID[kingdom.kingdomID]}`)
+                console.log(`Sent ${JSON.stringify(G)} to ${KingdomID[kingdom.kingdomID]}`)
             }            
         }
     }

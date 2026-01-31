@@ -60,7 +60,7 @@ async function refreshCommands() {
     await clientPromise
     const rest = new REST().setToken(ggeConfig.discordToken)
     if (commands.size == 0)
-        return console.warn(`[${name}] No commands`)
+        return console.warn(`No commands`)
     
     await rest.put(
         Routes.applicationGuildCommands(

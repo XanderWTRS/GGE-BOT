@@ -7,13 +7,22 @@ const err = require('./err.json')
 const {DatabaseSync} = require('node:sqlite')
 const events = new EventEmitter()
 const ggeConfig = require("./ggeConfig.json")
+const { getCallSites } = require('node:util')
+
 if (isMainThread)
     return
+
 const botConfig = workerData
 
 const _console = console
 
-function mngLog(msg,logLevel) {
+function mngLog(msg, logLevel) {
+    let scriptName = require('path').basename(getCallSites()[0].scriptName).slice(0, -3)
+    let plugin = botConfig.plugins[scriptName]
+    let name = plugin?.name ?? scriptName
+    
+    msg = `[${name}] ${msg}`
+
     _console.log(`[${botConfig.name}] ${msg}`)
     const now = new Date()
     let hours = now.getHours()
@@ -55,6 +64,7 @@ function sendXT(cmdName, paramObj) {
  */
 
 let lordErrors = 0
+let tooManyUnits = 0
 const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if (timeout == undefined) 
         reject(`waitForResult: No timeout specified`)
@@ -67,8 +77,15 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     const checkForLordIssues = () => {
         if (err[result] == "LORD_IS_USED")
             lordErrors++
+        if (err[result] == "ATTACK_TOO_MANY_UNITS")
+            tooManyUnits++
         if (lordErrors == 5) {
             console.error("Closing forcefully due to LORD_IS_USED errors!")
+            parentPort.postMessage([ActionType.KillBot])
+            return
+        }
+        if (tooManyUnits == 12) {
+            console.error("Closing forcefully due to ATTACK_TOO_MANY_UNITS errors!")
             parentPort.postMessage([ActionType.KillBot])
             return
         }

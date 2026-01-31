@@ -24,7 +24,7 @@ const { clientReady } = require('./discord')
 const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
 const { getKingdomInfoList, KingdomID } = require('../../protocols.js')
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 addToWhiteList(25)
 let aquaMapObjects = []
 let needSort = false
@@ -69,7 +69,7 @@ events.once("load", async (_, r) => {
         let kingdomInfoList = await getKingdomInfoList()
     
         if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-            return console.warn(`[${name}] refusing to run without Storm Islands unlocked`)
+            return console.warn(`refusing to run without Storm Islands unlocked`)
 
     setInterval(async () => {
         let currentDate = Date.now()

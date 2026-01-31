@@ -66,6 +66,6 @@ if (isMainThread)
 const { botConfig, events } = require("../../ggebot")
 const { KingdomID, AreaType } = require('../../protocols.js')
 const commonAttack = require('./sharedBarronAttackLogic.js')
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 events.on("load", () => commonAttack(name, AreaType.barron, KingdomID.firePeaks, pluginOptions))

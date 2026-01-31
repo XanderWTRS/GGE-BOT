@@ -145,9 +145,9 @@ xtHandler.on("rpr", obj => {
 
     if (obj.PCRP >= campRageNeeded) {
         if (rage > campRageNeeded)
-            console.warn(`[${name}] Rage is higher than expected`)
+            console.warn(`Rage is higher than expected`)
 
-        console.info(`[${name}] Rage trigger`)
+        console.info(`Rage trigger`)
         sendXT("lta", JSON.stringify({ AV: 0, EID: eventID }))
     }
 })
@@ -165,7 +165,7 @@ xtHandler.on("pep", obj => {
         return
 
     if (nomadsPoints >= pluginOptions.nomadsScoreShutoff) {
-        console.log(`[${name}] Shutting down reason: Score reached.`)
+        console.log(`Shutting down reason: Score reached.`)
         quit = true
     }
 })
@@ -176,7 +176,7 @@ events.on("eventStop", eventInfo => {
     if(quit)
         return
 
-    console.log(`[${name}] Shutting down reason: Event ended.`)
+    console.log(`Shutting down reason: Event ended.`)
     quit = true
 })
 events.on("eventStart", async eventInfo => {
@@ -441,7 +441,7 @@ events.on("eventStart", async eventInfo => {
             if (attackInfo.result != 0)
                 throw err[attackInfo.result]
 
-            console.info(`[${name}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {

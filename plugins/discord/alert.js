@@ -23,7 +23,7 @@ const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
 const { clientReady } = require('./discord')
 const { createLayout } = require("../../imageGen.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 let movements = []
 clientReady.then(async client => {
@@ -33,7 +33,7 @@ clientReady.then(async client => {
      channelAlert = await client.channels.fetch(pluginOptions.channelID)
     }
     catch (e) {
-        console.warn(`[${name}] ${e}`)
+        console.warn(`${e}`)
     }
     let channelAquaAlert
     try {
@@ -41,7 +41,7 @@ clientReady.then(async client => {
             channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
     }
     catch (e) {
-        console.warn(`[${name}] ${e}`)
+        console.warn(`${e}`)
     }
 
     xtHandler.on("gam", func = obj => {
