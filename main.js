@@ -410,12 +410,12 @@ async function start() {
       }
       if (data.plugins[plugin.key]?.state) {
         data.plugins[plugin.key].filename = plugin.filename
+        data.plugins[plugin.key].name = plugin.name
         plugin.pluginOptions?.forEach(option => {
           let objectValue = data.plugins[plugin.key][option.key]
           if (option.key == undefined || ![, ""].includes(objectValue))
             return
 
-          data.plugins[plugin.key].name = option.name
           data.plugins[plugin.key][option.key] = option.default
         })
       }
@@ -472,12 +472,12 @@ async function start() {
           }
           if (data2.plugins[plugin.key]?.state) {
             data2.plugins[plugin.key].filename = plugin.filename
+            data2.plugins[plugin.key].name = plugin.name
             plugin.pluginOptions?.forEach(option => {
               let objectValue = data.plugins[plugin.key][option.key]
               if (option.key == undefined || ![, ""].includes(objectValue))
                 return
               
-              data2.plugins[plugin.key].name = option.name
               data2.plugins[plugin.key][option.key] = option.default
             })
           }
@@ -776,12 +776,12 @@ async function start() {
                   }
                   if (data.plugins[plugin.key]?.state) {
                     data.plugins[plugin.key].filename = plugin.filename
+                    data.plugins[plugin.key].name = plugin.name
                     plugin.pluginOptions?.forEach(option => {
                       let objectValue = data.plugins[plugin.key][option.key]
                       if (option.key == undefined || ![, ""].includes(objectValue))
                         return
 
-                      data.plugins[plugin.key].name = option.name
                       data.plugins[plugin.key][option.key] = option.default
                     })
                   }
