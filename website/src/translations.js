@@ -314,79 +314,97 @@ export const translations = {
         "Description": "الوصف",
         "Status": "الحالة",
         "Start": "بدء",
-        "Stop": "توقف",
-        "Settings": "الاعدادات",
+        "Stop": "إيقاف",
+        "Settings": "الإعدادات",
         "Save": "حفظ",
         "Remove": "حذف",
         "Logs": "السجل",
-        "Link Discord": "رابط ديسكورد",
+        "Link Discord": "ربط ديسكورد",
         "Username": "اسم المستخدم",
         "Password": "كلمة المرور",
         "Server": "السيرفر",
         "Plugins": "الإضافات",
         "System": "النظام",
-        // Plugin Options
-        "Horse Settings": "اعدادات الاحصنة",
-        "Attack Settings": "اعدادات الهجوم",
-        "Use Feather": "استعمال الريش",
-        "Use Coin": "استعمال العملات",
-        "Use Time Skips": "استعمال تخطيات الوقت",
-        "Attack Left Flank": "الهجوم على الجناح الأيسر",
-        "Attack Middle": "الهجوم على الوسط",
-        "Attack Right Flank": "الهجوم على الجناح الأيمن",
-        "Attack Courtyard": "Attack Courtyard", // Yeni
-        "Max Waves": "أقصى موجات",
+
+        // إعدادات الإضافات
+        "Horse Settings": "إعدادات الأحصنة",
+        "Attack Settings": "إعدادات الهجوم",
+        "Use Feather": "استخدام الريش",
+        "Use Coin": "استخدام العملات",
+        "Use Time Skips": "تخطي الوقت",
+        "Attack Left Flank": "الهجوم من الجناح الأيسر",
+        "Attack Middle": "الهجوم من الوسط",
+        "Attack Right Flank": "الهجوم من الجناح الأيمن",
+        "Attack Courtyard": "الهجوم على الفناء",
+        "Max Waves": "أقصى عدد موجات",
         "Attack Delay (Seconds)": "تأخير الهجوم (بالثواني)",
-        "Attack Delay Randomization (Seconds)": "عشوائية تأخير الهجوم (بالثواني)",
-        // Plugin Names & Descriptions
-        "Attack Barrons (Great Empire)": "هجوم اللصوص (الإمبراطورية العظمى)",
-        "Attack Barrons (Fire Peaks)": "هجوم اللصوص (القمم النارية)",
-        "Attack Barrons (Glacier)": "هجوم اللصوص (الجليد الازلي)", // Düzeltildi
-        "Attack Barrons (Burning Sands)": "هجوم اللصوص (الرمال الحارقة)",
-        "Attack Fortress (Fire Peaks)": "الهجوم على الحصون (قمم النار)",
-        "Attack Fortress (Everwinter Glacier)": "الهجوم على الحصون (الجليد الازلي)",
-        "Attack Fortress (Burning Sands)": "الهجوم على الحصون (الرمال الحارقة)",
+        "Attack Delay Randomization (Seconds)": "تأخير عشوائي للهجوم (بالثواني)",
+
+        // أسماء الإضافات
+        "Attack Barrons (Great Empire)": "مهاجمة اللصوص (الإمبراطورية)",
+        "Attack Barrons (Fire Peaks)": "مهاجمة اللصوص (قمم النار)",
+        "Attack Barrons (Glacier)": "مهاجمة اللصوص (الجليد الأبدي)",
+        "Attack Barrons (Burning Sands)": "مهاجمة اللصوص (الصحراء الحارقة)",
+
+        "Attack Fortress (Fire Peaks)": "مهاجمة الحصون (قمم النار)",
+        "Attack Fortress (Everwinter Glacier)": "مهاجمة الحصون (الجليد الأبدي)",
+        "Attack Fortress (Burning Sands)": "مهاجمة الحصون (الصحراء)",
+
         "Attack Nomad Camps": "مهاجمة معسكرات البدو",
         "Attack Samurai Camps": "مهاجمة معسكرات الساموراي",
         "Attack Beri Camps": "مهاجمة معسكرات بيريموند",
-        "Attack Khan": "الهجوم على الخان",
-        "Attack Aqua Forts": "مهاجمة الجزر",
-        "Attack Level 40": "الهجوم مستوى 40",
-        "Attack Level 50": "الهجوم مستوى 50",
-        "Attack Level 60": "الهجوم مستوى 60",
-        "Attack Level 70": "الهجوم مستوى 70",
-        "Attack Level 80": "الهجوم مستوى 80",
-        "Hits Barrons": "ضرب اللصوص",
-        "Attack": "هجوم",
-        "Handles Hits": "يتعامل مع الضربات",
-        "commander": "قائد",
-        "Commander": "قائد",
+        "Attack Khan": "مهاجمة معسكر الخان",
+        "Attack Aqua Forts": "مهاجمة جزر العاصفة",
+
+        "Attack Level 40": "مهاجمة مستوى 40",
+        "Attack Level 50": "مهاجمة مستوى 50",
+        "Attack Level 60": "مهاجمة مستوى 60",
+        "Attack Level 70": "مهاجمة مستوى 70",
+        "Attack Level 80": "مهاجمة مستوى 80",
+
+        "Hits Barrons": "يهاجم اللصوص تلقائيًا",
+        "Attack": "الهجوم",
+        "Handles Hits": "إدارة الهجمات",
+
+        "commander": "القائد",
+        "Commander": "القائد",
+
         "Res Send": "إرسال الموارد",
-        "Ressend": "مرسل الموارد",
-        "Feast": "وليمة",
-        "GetRegion": "الحصول على المناطق",
-        "Get Regions": "الحصول على المناطق",
-        "Mead replace": "اصلاح الشراب",
-        "MeadRep": "اصلاح الشراب",
-        "Timer": "مؤقت",
+        "Ressend": "إعادة إرسال الموارد",
+
+        "Feast": "الوليمة",
+
+        "GetRegion": "جمع المناطق",
+        "Get Regions": "جمع المناطق",
+
+        "Mead replace": "إصلاح باستخدام الشراب",
+        "MeadRep": "إصلاح الشراب",
+
+        "Timer": "المؤقت",
+
         "Discord": "بوت ديسكورد",
-        "Outgoing": "Outgoing",
+        "Outgoing": "الرسائل الصادرة",
+
         "Fortress": "الحصون",
-        "Aqua Tower": "ابراج الجزر",
-        "Slash Commands": "اوامر سلاش",
+        "Aqua Tower": "أبراج العاصفة",
+
+        "Slash Commands": "أوامر الدردشة",
         "Alert": "تنبيه",
         "Chat": "الدردشة",
-        "Aquaisland": "جزر الزبرجد",
-        // Descriptions (English defaults)
-        "Hits fortresses": "ضرب الحصون",
-        "Hits Aqua Forts": "ضرب حصون الزبرجد",
-        "Hits Nomad Camps": "ضرب معسكرات البدو",
-        "Hits Samurai Camps": "ضرب معسكرات الساموراي",
-        "Hits Beri Camps": "ضرب معسكرات بيريموند",
-        "Hits Khan Camps": "ضرب معسكرات خان",
-        "Sends Resources": "ارسال الموارد",
-        "Repair for Mead": "",
-        "Get Regions": "الحصول على المناطق"
+
+        "Aquaisland": "جزر العاصفة",
+
+        // أوصاف
+        "Hits fortresses": "يهاجم الحصون تلقائيًا",
+        "Hits Aqua Forts": "يهاجم جزر العاصفة",
+        "Hits Nomad Camps": "يهاجم معسكرات البدو",
+        "Hits Samurai Camps": "يهاجم معسكرات الساموراي",
+        "Hits Beri Camps": "يهاجم معسكرات بيريموند",
+        "Hits Khan Camps": "يهاجم معسكر الخان",
+
+        "Sends Resources": "يرسل الموارد تلقائيًا",
+        "Repair for Mead": "إصلاح باستخدام الشراب",
+        "Get Regions": "جمع المناطق"
     }
 };
 
