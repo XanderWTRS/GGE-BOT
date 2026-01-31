@@ -320,12 +320,12 @@ events.on("eventStart", async eventInfo => {
                 attackerWallNomadTools.push(...attackerWallTools)
                 attackerShieldNomadTools.push(...attackerShieldTools)
 
+                const commanderStats = getCommanderStats(commander)
                 attackInfo.A.forEach((wave, index) => {
                     const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                     const maxToolsFront = getTotalAmountToolsFront(level)
 
                     const desiredToolCount = attackerNomadTools.length == 0 ? 20 : 10
-                    const commanderStats = getCommanderStats(commander)
                     const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
                     const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
 
@@ -395,20 +395,21 @@ events.on("eventStart", async eventInfo => {
                         maxTools = maxToolsFront
                         wave.M.T.forEach((unitSlot, i) =>
                             maxTools -= assignUnit(unitSlot, selectTool(2), maxTools))
-                    }
-                    let maxTroops = maxTroopFlank
 
-                    wave.L.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    maxTroops = maxTroopFlank
-                    wave.R.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
-                            attackerRangeTroops : attackerMeleeTroops, maxTroops))
-                    maxTroops = maxTroopFront
-                    wave.M.U.forEach((unitSlot, i) =>
-                        maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
-                            attackerMeleeTroops : attackerRangeTroops, maxTroops))
+                        let maxTroops = maxTroopFlank
+
+                        wave.L.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                        maxTroops = maxTroopFlank
+                        wave.R.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
+                                attackerRangeTroops : attackerMeleeTroops, maxTroops))
+                        maxTroops = maxTroopFront
+                        wave.M.U.forEach((unitSlot, i) =>
+                            maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
+                                attackerMeleeTroops : attackerRangeTroops, maxTroops))
+                    }
                 });
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach((unitSlot, i) => {
