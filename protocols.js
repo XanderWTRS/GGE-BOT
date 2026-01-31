@@ -1,5 +1,8 @@
-const { waitForResult, sendXT, xtHandler, events, playerInfo } = require("./ggebot")
+const { waitForResult, sendXT, xtHandler, events, playerInfo, botConfig } = require("./ggebot")
 const fs = require("fs/promises")
+
+;(botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}).name = "Protocols";
+
 const AreaType = Object.freeze({
     barron: 2,
     outpost: 4,

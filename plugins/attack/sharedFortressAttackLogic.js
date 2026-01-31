@@ -1,5 +1,5 @@
 const { isMainThread } = require('node:worker_threads')
-const name = "Fortress Hit"
+const name = "Fortress"
 
 if (isMainThread)
     return module.exports = {
@@ -214,7 +214,7 @@ async function fortressHit(name, kid, level, options) {
             if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
             
-            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`[${KingdomID[kid]}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
             return true
         } catch (e) {
             freeCommander(commander.lordID)

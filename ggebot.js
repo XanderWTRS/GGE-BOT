@@ -16,6 +16,8 @@ const botConfig = workerData
 
 const _console = console
 
+;(botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}).name = "GGEBOT";
+
 function mngLog(msg, logLevel) {
     let callSites = getCallSites(6)
     let scriptName = require('path').basename(callSites[2]?.scriptName).slice(0, -3)
