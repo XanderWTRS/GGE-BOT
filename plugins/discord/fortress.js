@@ -113,7 +113,7 @@ events.once("load", () => {
                 const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
 
                 let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                if (!message || message.author.id != (await clientReady).user.id)
+                if (!message || !message.editable || message.system || message.author.id != (await clientReady).user.id)
                     message = await channel.send({ content: "```Loading...```", flags: [4096] })
 
                 if (message.content == msg)
