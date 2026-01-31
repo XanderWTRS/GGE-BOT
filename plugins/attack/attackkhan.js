@@ -75,6 +75,7 @@ if (isMainThread)
 
     }
 
+const troopBlackList = [277, 34, 35]
 const err = require("../../err.json")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
@@ -247,9 +248,6 @@ events.on("eventStart", async eventInfo => {
                     if (unitInfo == undefined)
                         continue
 
-                    if (unitInfo.wodID == 277)
-                        continue
-
                     if (unitInfo.ragePointBonus != undefined)
                         attackerBannerKhanTools.push([unitInfo, unit.ammount])
                     else if (unitInfo.khanTabletBooster != undefined) {
@@ -275,6 +273,9 @@ events.on("eventStart", async eventInfo => {
                             attackerShieldTools.push([unitInfo, unit.ammount])
                     }
                     else if (unitInfo.fightType == 0) {
+                        if(troopBlackList.includes(unitInfo.wodID))
+                            continue
+                        
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
                         else if (unitInfo.role == "ranged")
