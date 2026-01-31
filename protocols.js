@@ -93,12 +93,12 @@ const KingdomID = Object.freeze({
     stormIslands: 4,
     berimond: 10,
 
-    0: "greatEmpire",
-    1: "burningSands",
-    2: "everWinterGlacier",
-    3: "firePeaks",
-    4: "stormIslands",
-    10: "berimond"
+    0: "Great Empire",
+    1: "Burning Sands",
+    2: "EverWinter Glacier",
+    3: "Fire Peaks",
+    4: "Storm Islands",
+    10: "Berimond"
 });
 const OwnedCastlePositionList = o =>
     ({ kingdomID: o[0], areaID: o[1], X: o[2], Y: o[3], areaType: o[4] })
