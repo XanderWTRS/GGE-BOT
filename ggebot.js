@@ -17,7 +17,8 @@ const botConfig = workerData
 const _console = console
 
 function mngLog(msg, logLevel) {
-    let scriptName = require('path').basename(getCallSites()[0].scriptName).slice(0, -3)
+    let callSites = getCallSites(6)
+    let scriptName = require('path').basename(callSites[2]?.scriptName).slice(0, -3)
     let plugin = botConfig.plugins[scriptName]
     let name = plugin?.name ?? scriptName
     
