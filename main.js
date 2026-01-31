@@ -405,7 +405,7 @@ async function start() {
     }
     const discordData = discordCreds(uuid)
     plugins.forEach(plugin => {
-      data.plugins[plugin.key] = {}
+      data.plugins[plugin.key] ??= {}
       if (plugin.force) {
         data.plugins[plugin.key].state = true
       }
