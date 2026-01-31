@@ -412,15 +412,17 @@ events.on("eventStart", async eventInfo => {
                 });
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach((unitSlot, i) => {
-                    let attacker = i & 1 ?
-                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
+                    let attacker = i & 1 ? 
+                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
-                        Math.ceil(maxTroops / 2))
-                })
+                        Math.floor(maxTroops / 2) - 1)
+                    })
 
-                await areaInfoLock(() => sendXT("cra", JSON.stringify(attackInfo)))
+                // await areaInfoLock(() => 
+                    sendXT("cra", JSON.stringify(attackInfo))
+            // )
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
