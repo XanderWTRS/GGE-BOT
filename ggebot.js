@@ -240,7 +240,7 @@ events.once("load", async (_, r) => {
     setInterval(() =>
         sendXT("dcl", JSON.stringify({ CD: 1 })),
         1000 * 60 * 5)
-    if (!sourceCastleArea) {
+    if (sourceCastleArea) {
         xtHandler.on("dcl", obj => {
             const castleProd = Types.DetailedCastleList(obj)
                 .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
@@ -256,14 +256,6 @@ events.once("load", async (_, r) => {
             parentPort.postMessage([ActionType.StatusUser, status])
         })
     }
-
-    xtHandler.on("gcu", obj => {
-        Object.assign(status, {
-            coin: obj.C1 != 0 ? Math.floor(obj.C1) : undefined,
-            rubies: obj.C2 != 0 ? Math.floor(obj.C2) : undefined,
-        })
-        parentPort.postMessage([ActionType.StatusUser, status])
-    })
 })
 
 parentPort.on("message", async obj => {
@@ -421,3 +413,45 @@ xtHandler.on("qli", obj => obj.QL.forEach(quest => {
     if ([3000, 3002, 3019, 3490].includes(quest.QID))
         sendXT("qsc", JSON.stringify({ QID: quest.QID }))
 }))
+
+xtHandler.on("gcu", obj => {
+    Object.assign(status, {
+        coin: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
+        rubies: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
+    })
+    parentPort.postMessage([ActionType.StatusUser, status])
+})
+
+events.on("eventStart", async eventInfo => {
+    if(eventInfo.EID != 117)
+        return
+    if(eventInfo.FTDC != 1)
+        return
+    if(playerInfo.rubies == undefined)
+        debugger
+
+    if(playerInfo.rubies < 100)
+        return
+
+    console.log("Grabbed fortune")
+    sendXT("ftl", JSON.stringify({}))
+})
+
+xtHandler.on("gcs", obj => {
+    obj.CHR.forEach(offering => {
+        for (let i = 0; i < offering.FOA; i++) {
+            if(offering.CID == 1) {
+                console.log("Grabbed free Ludwig offering")
+                sendXT("sct", JSON.stringify({CID:1, OID:6001, IF:1, AMT:1}))
+            }
+            if(offering.CID == 2) {
+                console.log("Grabbed free Knight offering")
+                sendXT("sct", JSON.stringify({CID:2, OID:6002, IF:1, AMT:1}))
+            }
+            if(offering.CID == 3) {
+                console.log("Grabbed free Beatrice offering")
+                sendXT("sct", JSON.stringify({CID:3, OID:6003, IF:1, AMT:1}))
+            }
+        }
+    })
+})

@@ -234,6 +234,7 @@ async function start() {
     catch {
       needLang = true
     }
+    //https://empire-html5.goodgamestudios.com/config/languages/version.json
     if (needLang) { // https://empire-html5.goodgamestudios.com/default/config/country/latest/country.xml
       const response = await fetch('https://empire-html5.goodgamestudios.com/config/languages/latest/en.json')
       const str = await response.text()
