@@ -8,7 +8,7 @@ if (isMainThread)
     }
 
 const { getCommanderStats } = require("../../getEquipment")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip } = require('../../protocols')
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave, boxMullerRandom, sleep } = require("./attack.js")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggebot")
@@ -318,7 +318,7 @@ async function barronHit(name, type, kid, options) {
                 throw err[attackSentInfo.result]
             }
             
-            console.info(`Hitting target C${attackSentInfo.AAM.UM.L.VIS + 1} ${attackSentInfo.AAM.M.TA[1]}:${attackSentInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackSentInfo.AAM.M.TT - attackSentInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info(`[${KingdomID[kid]}] Hitting target C${attackSentInfo.AAM.UM.L.VIS + 1} ${attackSentInfo.AAM.M.TA[1]}:${attackSentInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackSentInfo.AAM.M.TT - attackSentInfo.AAM.M.PT))), 's') + " till impact"}`)
             console.debug(`(Setup: ${attackSentInfo.executionDuration}s)`)
             return true
         } catch (e) {

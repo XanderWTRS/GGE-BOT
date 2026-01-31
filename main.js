@@ -278,8 +278,7 @@ async function start() {
   } catch {}
 
   const plugins = pluginData
-    .filter(e => !e[1].hidden)
-    .map(e => new Object({ key: path.basename(e[0]), filename: e[0], name: e[1].name, description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions }))
+    .map(e => new Object({ key: path.basename(e[0]), filename: e[0], name: e[1].name, description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions, hidden: e[1].hidden }))
     .sort((a, b) => (a.force ?? 0) - (b.force ?? 0))
 
   const loginCheck = uuid => 
@@ -570,7 +569,7 @@ async function start() {
           removeBot(user.id)
           
           loggedInUsers[uuid]?.forEach(({ws}) => 
-              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
+              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e[1]?.hidden)]])))
           break
         case ActionType.GetLogs:
           worker.messageBuffer[worker.messageBufferCount] = obj[1]
@@ -662,7 +661,7 @@ async function start() {
 
   wss.addListener('connection', (ws, req) => {
     const refreshUsers = () =>
-      ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]]))
+      ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e[1]?.hidden)]]))
 
     let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith('uuid='))
       .substring(5, Infinity)
@@ -793,8 +792,8 @@ async function start() {
               }
             }
           }
-          loggedInUsers[uuid]?.forEach(({ ws }) =>
-            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins]])))
+          loggedInUsers[uuid]?.forEach(({ ws }) => 
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e[1]?.hidden)]])))
           break
         }
         case ActionType.GetLogs: {
