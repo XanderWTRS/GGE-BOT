@@ -52,9 +52,7 @@ for (var key in _instances) {
         instances.push({id: obj.getAttribute("value"),server,zone,instanceLocaId,instanceName})
 }
 
-export default function UserSettings(props) {
-    const { __ } = props
-
+export default function UserSettings({ __ }) {
     props.selectedUser.name ??= ""
     const isNewUser = props.selectedUser.name === ""
     const [name, setName] = React.useState(props.selectedUser.name)
