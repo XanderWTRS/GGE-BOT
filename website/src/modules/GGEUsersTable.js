@@ -16,7 +16,6 @@ import MenuItem from '@mui/material/MenuItem'
 
 import { ErrorType, ActionType, LogLevel } from "../types.js"
 import UserSettings from './userSettings'
-import { getTranslation } from '../translations.js'
 import settings from '../settings.json'
 
 function Log(props) {
@@ -56,17 +55,12 @@ function Log(props) {
             </div>
         </Paper>)
 }
-function Language(props) {
+function Language({ languageCode, setLanguage }) {
     const [anchorEl, setAnchorEl] = React.useState(null) 
-    const { cookies, setCookie } = props
     const open = Boolean(anchorEl)
-    const handleClick = event => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-
+    const handleClick = event => { setAnchorEl(event.currentTarget) }
+    const handleClose = () => { setAnchorEl(null) }
+    
     return (
         <>
             <Button
@@ -76,7 +70,7 @@ function Language(props) {
                 aria-expanded={open ? 'true' : undefined}
                 onClick={handleClick}
             >
-                {cookies.lang}
+                {languageCode}
             </Button>
             <Menu
                 id="basic-menu"
@@ -89,18 +83,17 @@ function Language(props) {
                     },
                 }}
             >
-                <MenuItem onClick={() => {setCookie("lang", 'en', { maxAge: 31536000}); handleClose() }}>EN</MenuItem>
-                <MenuItem onClick={() => {setCookie("lang", 'pl', { maxAge: 31536000}); handleClose() }}>PL</MenuItem>
-                <MenuItem onClick={() => {setCookie("lang", 'de', { maxAge: 31536000}); handleClose() }}>DE</MenuItem>
-                <MenuItem onClick={() => {setCookie("lang", 'tr', { maxAge: 31536000}); handleClose() }}>TR</MenuItem>
-                <MenuItem onClick={() => {setCookie("lang", 'ar', { maxAge: 31536000}); handleClose() }}>AR</MenuItem>
+                <MenuItem onClick={() => {setLanguage('en'); handleClose() }}>EN</MenuItem>
+                <MenuItem onClick={() => {setLanguage('pl'); handleClose() }}>PL</MenuItem>
+                <MenuItem onClick={() => {setLanguage('de'); handleClose() }}>DE</MenuItem>
+                <MenuItem onClick={() => {setLanguage('tr'); handleClose() }}>TR</MenuItem>
+                <MenuItem onClick={() => {setLanguage('ar'); handleClose() }}>AR</MenuItem>
             </Menu>
         </>
     )
 }
 export default function GGEUserTable(props) {
-    const { cookies, setCookie } = props
-    const t = key => getTranslation(cookies.lang, key)
+    const { setLanguage, __, languageCode } = props
     const user = {}
 
     const [openSettings, setOpenSettings] = React.useState(false)
@@ -146,16 +139,16 @@ export default function GGEUserTable(props) {
                                 }}
                             />
                         </TableCell>
-                        <TableCell align="left">{t("Name")}</TableCell>
-                        <TableCell align="left" padding='none'>{t("Plugins")}</TableCell>
-                        <TableCell>{t("Status")}</TableCell>
+                        <TableCell align="left">{__("Name")}</TableCell>
+                        <TableCell align="left" padding='none'>{__("Plugins")}</TableCell>
+                        <TableCell>{__("Status")}</TableCell>
                         <TableCell align='right' padding='none'>
-                            <Language cookies={cookies} setCookie={setCookie}/>
+                            <Language setLanguage={setLanguage} languageCode={languageCode}/>
                             <Button
                                 style={{ margin: "10px", maxHeight: '32px', minHeight: '32px' }}
                                 onClick={async () =>
                                     window.open(`https://discord.com/oauth2/authorize?client_id=${props.channelInfo[0]}&permissions=8&response_type=code&redirect_uri=${window.location.protocol === 'https:' ? "https" : "http"}%3A%2F%2F${window.location.hostname}%3A${(settings.port ?? window.location.port) !== '' ? (settings.port ?? window.location.port) : window.location.protocol === 'https:' ? "443" : "80"}%2FdiscordAuth&integration_type=0&scope=identify+guilds.join+bot`, "_blank")}
-                            >{t("Link Discord")}</Button>
+                            >{__("Link Discord")}</Button>
                             <Button style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginRight: "10px" }} onClick={handleSettingsOpen}>+</Button>
                         </TableCell>
                     </TableRow>
@@ -236,18 +229,18 @@ export default function GGEUserTable(props) {
                                     <Button variant="text" onClick={() => {
                                         props.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, row]))
                                         handleLogOpen()
-                                    }}>{t("Logs")}</Button>
+                                    }}>{__("Logs")}</Button>
                                     <Button variant="text" onClick={() => {
                                         setSelectedUser(row)
                                         setOpenSettings(true)
-                                    }}>{t("Settings")}</Button>
+                                    }}>{__("Settings")}</Button>
                                     <Button variant="contained"
                                         onClick={() => {
                                             row.state = !state
                                             props.ws.send(JSON.stringify([ErrorType.Success, ActionType.SetUser, row]))
                                             setState(!state)
                                         }}
-                                        style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginLeft: "10px" }}>{state ? t("Stop") : t("Start")}</Button>
+                                        style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginLeft: "10px" }}>{state ? __("Stop") : __("Start")}</Button>
                                 </TableCell>
                             </TableRow>)
                         }
@@ -263,7 +256,7 @@ export default function GGEUserTable(props) {
                         <TableCell align='right' padding='none'>
                             <Button variant="contained" style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', paddingLeft: "38px", paddingRight: "38px", margin: "10px" }} onClick={() => {
                                 props.ws.send(JSON.stringify([ErrorType.Success, ActionType.RemoveUser, props.rows.filter((e) => selected.includes(e.id))]))
-                            }}>{t("Remove")}</Button>
+                            }}>{__("Remove")}</Button>
                         </TableCell>
                     </TableRow>
                 </TableBody>
@@ -284,7 +277,7 @@ export default function GGEUserTable(props) {
                     closeBackdrop={handleSettingsClose}
                     plugins={props.plugins}
                     channels={props.channelInfo[1]}
-                    cookies={cookies} />
+                    __={__} />
             </Backdrop>
             <Backdrop
             sx={theme => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}

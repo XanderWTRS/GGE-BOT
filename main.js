@@ -569,7 +569,7 @@ async function start() {
           removeBot(user.id)
           
           loggedInUsers[uuid]?.forEach(({ws}) => 
-              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e[1]?.hidden)]])))
+              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
           break
         case ActionType.GetLogs:
           worker.messageBuffer[worker.messageBufferCount] = obj[1]
@@ -661,10 +661,9 @@ async function start() {
 
   wss.addListener('connection', (ws, req) => {
     const refreshUsers = () =>
-      ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e[1]?.hidden)]]))
+      ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]]))
 
-    let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith('uuid='))
-      .substring(5, Infinity)
+    let uuid = req.headers.cookie?.split('; ').find(e => e.startsWith('uuid='))?.substring(5, Infinity)
 
     if (!loginCheck(uuid))
       return ws.send(JSON.stringify([ErrorType.Unauthenticated, ActionType.GetUUID, {}]))
@@ -793,7 +792,7 @@ async function start() {
             }
           }
           loggedInUsers[uuid]?.forEach(({ ws }) => 
-            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e[1]?.hidden)]])))
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
           break
         }
         case ActionType.GetLogs: {

@@ -22,7 +22,7 @@ const { botConfig, events } = require("../ggebot")
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 if (isNaN(Number(pluginOptions.hours)))
-    return console.log(`hours is not a number!`)
+    return console.warn(`hours is not a number!`)
 
 events.once("load", () => {
     setTimeout(() => 

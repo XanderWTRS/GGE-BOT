@@ -14,7 +14,6 @@ import Typography from '@mui/material/Typography'
 
 import { ErrorType, ActionType } from "../types.js"
 import PluginsTable from './pluginsTable'
-import { getTranslation } from '../translations.js' // Import translation
 import settings from '../settings.json'
 
 let lang = JSON.parse(await (await fetch(`${window.location.protocol === 'https:' ? "https" : "http"}://${window.location.hostname}:${settings.port ?? window.location.port}/lang.json`)).text())
@@ -54,32 +53,31 @@ for (var key in _instances) {
 }
 
 export default function UserSettings(props) {
-    const { cookies } = props // Get language from props
-    const t = key => getTranslation(cookies.lang, key)
+    const { __ } = props
 
     props.selectedUser.name ??= ""
     const isNewUser = props.selectedUser.name === ""
     const [name, setName] = React.useState(props.selectedUser.name)
     const [pass, setPass] = React.useState("")
-    const [plugins, setPlugins] = React.useState(props.selectedUser.plugins)
+    const [plugins, setPlugins] = React.useState(props.selectedUser.plugins ?? {})
     const [server, setServer] = React.useState(props.selectedUser.server ?? instances[0].id)
     const [externalEvent, setExternalEvent] = React.useState(props.selectedUser.externalEvent)
 
     const pluginTable = React.useMemo(() => {
         return <PluginsTable plugins={props.plugins} userPlugins={plugins} channels={props.channels} 
-                    onChange={ e => setPlugins(e)} cookies={cookies} /> // Pass language
-    }, [props.channels, props.plugins, plugins, cookies])
+                    onChange={ e => setPlugins(e)} __={__} />
+    }, [props.channels, props.plugins, plugins, __])
 
     return (
         <div onClick={event => event.stopPropagation()} style={{ maxWidth: '90vw', width: '800px' }}>
             <Paper sx={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <Box sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
                     <FormGroup row={true} sx={{ mb: 2, gap: 2, display: 'flex', alignItems: 'center' }}>
-                        <TextField required size="small" label={t("Username")} value={name} onChange={e => setName(e.target.value)} disabled={!isNewUser} />
-                        <TextField required size="small" label={t("Password")} type='password' value={pass} onChange={e => setPass(e.target.value)} />
+                        <TextField required size="small" label={__("Username")} value={name} onChange={e => setName(e.target.value)} disabled={!isNewUser} />
+                        <TextField required size="small" label={__("Password")} type='password' value={pass} onChange={e => setPass(e.target.value)} />
                         
                         <FormControl size="small" style={{width: "150px"}}>
-                            <InputLabel id="simple-select-label">{t("Server")}</InputLabel>
+                            <InputLabel id="simple-select-label">{__("Server")}</InputLabel>
                             <Select
                                 labelId="simple-select-label"
                                 id="simple-select"
@@ -122,7 +120,7 @@ export default function UserSettings(props) {
                             props.closeBackdrop()
                         }}
                     >
-                        {t("Save")}
+                        {__("Save")}
                     </Button>
                 </Box>
             </Paper>
