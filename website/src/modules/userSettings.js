@@ -52,19 +52,19 @@ for (var key in _instances) {
         instances.push({id: obj.getAttribute("value"),server,zone,instanceLocaId,instanceName})
 }
 
-export default function UserSettings({ __ }) {
-    props.selectedUser.name ??= ""
-    const isNewUser = props.selectedUser.name === ""
-    const [name, setName] = React.useState(props.selectedUser.name)
+export default function UserSettings({ __, selectedUser, channels, plugins : pluginData, ws, closeBackdrop }) {
+    selectedUser.name ??= ""
+    const isNewUser = selectedUser.name === ""
+    const [name, setName] = React.useState(selectedUser.name)
     const [pass, setPass] = React.useState("")
-    const [plugins, setPlugins] = React.useState(props.selectedUser.plugins ?? {})
-    const [server, setServer] = React.useState(props.selectedUser.server ?? instances[0].id)
-    const [externalEvent, setExternalEvent] = React.useState(props.selectedUser.externalEvent)
+    const [plugins, setPlugins] = React.useState(selectedUser.plugins ?? {})
+    const [server, setServer] = React.useState(selectedUser.server ?? instances[0].id)
+    const [externalEvent, setExternalEvent] = React.useState(selectedUser.externalEvent)
 
     const pluginTable = React.useMemo(() => {
-        return <PluginsTable plugins={props.plugins} userPlugins={plugins} channels={props.channels} 
+        return <PluginsTable plugins={pluginData} userPlugins={plugins} channels={channels} 
                     onChange={ e => setPlugins(e)} __={__} />
-    }, [props.channels, props.plugins, plugins, __])
+    }, [channels, pluginData, plugins, __])
 
     return (
         <div onClick={event => event.stopPropagation()} style={{ maxWidth: '90vw', width: '800px' }}>
@@ -105,17 +105,17 @@ export default function UserSettings({ __ }) {
                                 externalEvent: externalEvent
                             }
                             if (!isNewUser) {
-                                obj.id = props.selectedUser.id
-                                if (pass === "") obj.pass = props.selectedUser.pass
+                                obj.id = selectedUser.id
+                                if (pass === "") obj.pass = selectedUser.pass
                             }
 
-                            props.ws.send(JSON.stringify([
+                            ws.send(JSON.stringify([
                                 ErrorType.Success,
                                 isNewUser ? ActionType.AddUser : ActionType.SetUser,
                                 obj
                             ]))
 
-                            props.closeBackdrop()
+                            closeBackdrop()
                         }}
                     >
                         {__("Save")}
