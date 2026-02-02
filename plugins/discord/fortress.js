@@ -1,10 +1,5 @@
-//message main thread to add id to list
-const { isMainThread } = require('node:worker_threads')
-const name = "Fortress"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         pluginOptions: [
             {
                 type: "Channel",
@@ -14,10 +9,10 @@ if (isMainThread)
         ]
     }
 
-const { events, botConfig } = require("../../ggebot")
+const { events, botConfig } = require("../../ggeBot.js")
 const { clientReady } = require('./discord')
 const pretty = require('pretty-time')
-const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
+const { TargetType, mapObjects, addToWhiteList } = require("../getRegions.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 addToWhiteList(11)
@@ -38,7 +33,7 @@ mapObjects[3][11].event.addListener("update", updateTower)
 const maxMapObjects = 36
 events.once("load", () => {
     if(!pluginOptions.channelID)
-        return console.warn("Missing channel")
+        return console.warn("missingChannel")
     setInterval(async () => {
         let currentDate = Date.now()
 

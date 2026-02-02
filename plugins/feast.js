@@ -1,9 +1,5 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Feast"
-
-if (isMainThread) {
+if (require('node:worker_threads').isMainThread) {
     module.exports = {
-        name: name,
         description: "Triggers feast",
         pluginOptions: [
             {
@@ -29,7 +25,7 @@ if (isMainThread) {
     return
 }
 
-const { events, botConfig } = require("../ggebot")
+const { events, botConfig } = require("../ggeBot.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const { ClientCommands, getResourceCastleList, KingdomID, AreaType } = require("../protocols.js")
@@ -65,8 +61,8 @@ events.once("load", async () => {
     })
 
     if (feasts > 0)
-        console.log(`Feasted ${feastFoodReduction * feasts} food`)
+        console.log("consumed", feastFoodReduction * feasts)
     else {
-        console.log(`Not enough food to feast`)
+        console.log("notEnoughFoodToFeast")
     }
 })

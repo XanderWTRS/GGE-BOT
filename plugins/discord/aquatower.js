@@ -1,9 +1,5 @@
-const { isMainThread, parentPort, threadId } = require('node:worker_threads')
-const name = "Aqua Tower"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         pluginOptions: [
             {
                 type: "Channel",
@@ -19,9 +15,9 @@ if (isMainThread)
         ]
     }
 
-const { events, botConfig } = require("../../ggebot")
-const { clientReady } = require('./discord')
-const { TargetType, mapObjects, addToWhiteList } = require("../getregions.js")
+const { events, botConfig } = require("../../ggeBot.js")
+const { clientReady } = require('./discord.js')
+const { TargetType, mapObjects, addToWhiteList } = require("../getRegions.js")
 const { getKingdomInfoList, KingdomID } = require('../../protocols.js')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
@@ -69,7 +65,7 @@ events.once("load", async (_, r) => {
         let kingdomInfoList = await getKingdomInfoList()
     
         if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-            return console.warn(`refusing to run without Storm Islands unlocked`)
+            return console.warn("wontRunWithoutStormUnlocked")
 
     setInterval(async () => {
         let currentDate = Date.now()

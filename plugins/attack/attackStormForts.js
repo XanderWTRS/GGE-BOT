@@ -1,9 +1,5 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Attack Aqua Forts"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         pluginOptions: [
 
             { type: "Label", label: "Easy Forts", md: 2 },
@@ -39,12 +35,12 @@ if (isMainThread)
     }
 
 
-const { getCommanderStats } = require("../../getEquipment")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggebot")
-const getAreaCached = require('../../getmap.js')
+const { getCommanderStats } = require("../../getEquipment.js")
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols.js')
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
+const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
+const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -118,21 +114,21 @@ events.once("load", async () => {
             if (castleProd.aqua > 500000) {
                 castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`Buying Coins`)
+                console.info("broughtCoins")
             }
         }
         if (pluginOptions["buydeco"]) {
             if (castleProd.aqua > 500000) {
                 castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`Buying Deco`)
+                console.info("broughtDeco")
             }
         }
         if (pluginOptions["buyxp"]) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 10000
                 sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`Got XP`)
+                console.info("broughtXP")
             }
         }
     })
@@ -301,7 +297,7 @@ events.once("load", async () => {
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
 
-            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -402,7 +398,7 @@ events.once("load", async () => {
         }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`Waiting ${Math.round(time / 1000)} for next possible fortress hit`)
+        console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

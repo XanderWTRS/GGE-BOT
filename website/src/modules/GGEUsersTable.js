@@ -18,7 +18,7 @@ import { ErrorType, ActionType, LogLevel } from "../types.js"
 import UserSettings from './userSettings'
 import settings from '../settings.json'
 
-function Log({ws}) {
+function Log({ws, __}) {
     const [currentLogs, setCurrentLogs] = React.useState([])
     
     React.useEffect(() => {
@@ -31,17 +31,18 @@ function Log({ws}) {
             if (Number(err) !== ErrorType.Success)
                 return
 
-            setCurrentLogs(obj[0].splice(obj[1], obj[0].length - 1).concat(obj[0]).map((obj, index) =>
-                <div key={index} style={{
+            setCurrentLogs(obj[0].splice(obj[1], obj[0].length - 1).concat(obj[0]).map((obj, index) => {
+                return <div key={index} style={{
                     color: obj[0] === LogLevel.Error ? "red" :
                         obj[0] === LogLevel.Warn ? "yellow" : "blue"
-                }}>{obj[1]}</div>
+                }}>{obj[1].map(__)}</div>
+            }
             ).reverse())
         }
         ws.addEventListener("message", logGrabber)
         return () => ws.removeEventListener("message", logGrabber)
 
-    }, [ws])
+    }, [ws, __])
 
     return (
         <Paper sx={{ maxHeight: '90%', overflow: 'auto', height: '80%', width: '40%' }}>
@@ -279,7 +280,7 @@ export default function GGEUserTable({setLanguage, __, languageCode, rows, users
                 handleLogClose()
             }}
             style={{ maxHeight: '100%', overflow: 'auto' }} >
-                <Log ws={ws}/>
+                <Log ws={ws} __={__}/>
                 </Backdrop>
             <PlayerTable 
                 setLanguage={setLanguage} 

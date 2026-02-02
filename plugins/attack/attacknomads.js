@@ -1,10 +1,5 @@
-const { isMainThread } = require('node:worker_threads')
-
-const name = "Attack Nomad Camps"
-    
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         pluginOptions: [
             {
                 type: "Select",
@@ -23,7 +18,7 @@ if (isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default : 3
+                default: 3
             },
             {
                 type: "Checkbox",
@@ -78,13 +73,13 @@ const err = require("../../err.json")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
+const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot")
 const { getCommanderStats } = require("../../getEquipment")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
-const getAreaCached = require('../../getmap')
+const getAreaCached = require('../../getMap')
 
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
@@ -101,7 +96,7 @@ const skipTarget = async (AI) => {
         let skip = spendSkip(AI.extraData[2])
 
         if (skip == undefined)
-            throw new Error("Couldn't find skip")
+            throw new Error("couldntFindSkip")
 
         sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
@@ -136,7 +131,7 @@ xtHandler.on("pep", obj => {
         return
     nomadsPoints = Number(obj.OP[0])
     if (nomadsPoints >= pluginOptions.nomadsScoreShutoff) {
-        console.log(`Shutting down reason: score reached.`)
+        console.log("shuttingDownEvent", "scoreReached")
         quit = true
     }
 })
@@ -144,24 +139,24 @@ xtHandler.on("pep", obj => {
 events.on("eventStop", eventInfo => {
     if (eventInfo.EID != eventID)
         return
-    
-    if(quit)
+
+    if (quit)
         return
 
-    console.log(`Shutting down reason: Event ended.`)
+    console.log("shuttingDownEvent", "eventEnded")
     quit = true
 })
 events.on("eventStart", async eventInfo => {
-    if(eventInfo.EID != eventID)
+    if (eventInfo.EID != eventID)
         return
 
     if (eventInfo.EDID == -1) {
-        const eventDifficultyID = 
-            Number(eventsDifficulties.find(e => 
-                ((pluginOptions.eventDifficulty) + 1) == e.difficultyTypeID && 
+        const eventDifficultyID =
+            Number(eventsDifficulties.find(e =>
+                ((pluginOptions.eventDifficulty) + 1) == e.difficultyTypeID &&
                 e.eventID == eventID)
                 .difficultyID)
-                
+
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
     }
 
@@ -175,7 +170,7 @@ events.on("eventStart", async eventInfo => {
         .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
             Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
         .sort((a, b) => a.extraData[6] - b.extraData[6])
-    
+
     quit = false
 
     while (!quit) {
@@ -193,7 +188,7 @@ events.on("eventStart", async eventInfo => {
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 const AI = areaInfo.shift()
-                
+
                 areaInfo.push(AI)
 
                 Object.assign(AI, (await ClientCommands.getAreaInfo(kid, AI.x, AI.y, AI.x, AI.y)()).areaInfo[0])
@@ -218,7 +213,7 @@ events.on("eventStart", async eventInfo => {
                     if (unitInfo == undefined)
                         continue
 
-                    if(unitInfo.wodID == 277)
+                    if (unitInfo.wodID == 277)
                         continue
 
                     else if (unitInfo.khanTabletBooster != undefined && unitInfo.ragePointBonus == undefined) {
@@ -233,10 +228,10 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if (
                         unitInfo.toolCategory &&
-                    unitInfo.usageEventID  == undefined &&
-                    unitInfo.allowedToAttack  == undefined &&
-                    unitInfo.typ == 'Attack' &&
-                    unitInfo.amountPerWave == undefined
+                        unitInfo.usageEventID == undefined &&
+                        unitInfo.allowedToAttack == undefined &&
+                        unitInfo.typ == 'Attack' &&
+                        unitInfo.amountPerWave == undefined
                     ) {
                         if (unitInfo.wallBonus)
                             attackerWallTools.push([unitInfo, unit.ammount])
@@ -244,7 +239,7 @@ events.on("eventStart", async eventInfo => {
                             attackerShieldTools.push([unitInfo, unit.ammount])
                     }
                     else if (unitInfo.fightType == 0) {
-                        if(unitInfo.foodSupply && !pluginOptions.useFood)
+                        if (unitInfo.foodSupply && !pluginOptions.useFood)
                             continue
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
@@ -276,7 +271,7 @@ events.on("eventStart", async eventInfo => {
                     attackerWallNomadTools.reverse()
                     attackerShieldNomadTools.reverse()
                 }
-                
+
                 attackerWallTools.sort((a, b) =>
                     Number(a[0].wallBonus) - Number(b[0].wallBonus))
 
@@ -328,7 +323,7 @@ events.on("eventStart", async eventInfo => {
                         attackerRangeTroops.sort((a, b) => Number(a[0].rangeAttack) - Number(b[0].rangeAttack))
                         return
                     }
-                    else if(!pluginOptions.noChests) {
+                    else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = pluginOptions.eventWallToolsfirst ? [] : attackerNomadTools
                             if (tools.length == 0) {
@@ -380,16 +375,16 @@ events.on("eventStart", async eventInfo => {
                 });
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                 attackInfo.RW.forEach((unitSlot, i) => {
-                    let attacker = i & 1 ? 
-                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
+                    let attacker = i & 1 ?
+                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
                         Math.floor(maxTroops / 2) - 1)
-                    })
+                })
 
                 //await areaInfoLock(() => 
-                    sendXT("cra", JSON.stringify(attackInfo))
+                sendXT("cra", JSON.stringify(attackInfo))
                 //)
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
@@ -400,17 +395,17 @@ events.on("eventStart", async eventInfo => {
                         return false
                     return true
                 })
-                return {...obj, result: r}
+                return { ...obj, result: r }
             })
 
             if (!attackInfo) {
                 freeCommander(commander.lordID)
                 continue
             }
-            if(attackInfo.result != 0)
+            if (attackInfo.result != 0)
                 throw err[attackInfo.result]
-
-            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            
+            console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {

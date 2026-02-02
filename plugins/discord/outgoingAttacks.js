@@ -1,11 +1,6 @@
 
-
-const { isMainThread } = require('node:worker_threads')
-const name = "Outgoing"
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
                 type: "Channel",

@@ -1,16 +1,11 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Discord"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Discord",
         hidden: true
     }
 
 const { Client, Events, GatewayIntentBits, Collection, REST, Routes } = require('discord.js')
 const ggeConfig = require("../../ggeConfig.json")
-const { events, botConfig } = require('../../ggebot')
+const { events, botConfig } = require('../../ggeBot')
 
 let clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
 let client = new Client(clientOptions)
@@ -33,7 +28,7 @@ client.on(Events.InteractionCreate, async interaction => {
     const command = commands.get(interaction.commandName)
 
     if (!command) 
-        return console.error(`No command matching ${interaction.commandName} was found.`)
+        return console.debug("noMatchingCommandWasFound", interaction.commandName)
 
     if (interaction.isAutocomplete()) {
         try {
@@ -60,7 +55,7 @@ async function refreshCommands() {
     await clientPromise
     const rest = new REST().setToken(ggeConfig.discordToken)
     if (commands.size == 0)
-        return console.warn(`No commands`)
+        return console.warn("noCommands")
     
     await rest.put(
         Routes.applicationGuildCommands(

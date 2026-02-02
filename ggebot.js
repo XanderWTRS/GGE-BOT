@@ -8,25 +8,28 @@ const {DatabaseSync} = require('node:sqlite')
 const events = new EventEmitter()
 const ggeConfig = require("./ggeConfig.json")
 const { getCallSites } = require('node:util')
+const { I18n } = require('i18n')
+const path = require('node:path')
 
 if (isMainThread)
     return
+
+const i18n = new I18n({
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
+  directory: path.join(__dirname, 'website', 'public', 'locales'),
+  updateFiles: false,
+})
 
 const botConfig = workerData
 
 const _console = console
 
-;(botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}).name = "GGEBOT";
-
-function mngLog(msg, logLevel) {
+function mngLog(logLevel, ...msg) {
     let callSites = getCallSites(6)
-    let scriptName = require('path').basename(callSites[2]?.scriptName).slice(0, -3)
-    let plugin = botConfig.plugins[scriptName]
-    let name = plugin?.name ?? scriptName
+    let scriptName = path.basename(callSites[2]?.scriptName).slice(0, -3)
+    // let plugin = botConfig.plugins[scriptName]
+    // let name = plugin?.name ?? scriptName
     
-    msg = `[${name}] ${msg}`
-
-    _console.log(`[${botConfig.name}] ${msg}`)
     const now = new Date()
     let hours = now.getHours()
     let minutes = now.getMinutes()
@@ -34,20 +37,24 @@ function mngLog(msg, logLevel) {
     hours = hours < 10 ? '0' + hours : hours
     minutes = minutes < 10 ? '0' + minutes : minutes
     
-    parentPort.postMessage([ActionType.GetLogs,[logLevel, `[${hours + ':' + minutes}] ` + msg]])
+    let message = [`[${hours + ':' + minutes}] `, '[',`${scriptName}`, '] ']
+    message.push(...msg)
+    _console.log(`[${botConfig.name}] ${message.map(i18n.__)}`)
+
+    parentPort.postMessage([ActionType.GetLogs, logLevel, message])
 }
 if (!botConfig.internalWorker) {
     console = {}
-    console.log = msg => mngLog(msg, 0)
-    console.info = msg => mngLog(msg, 0)
-    console.warn = msg => mngLog(msg, 1)
-    console.error = msg => mngLog(msg, 2)
+    console.log = (...msg) => mngLog(0, ...msg)
+    console.info = (...msg) => mngLog(0, ...msg)
+    console.warn = (...msg) => mngLog(1, ...msg)
+    console.error = (...msg) => mngLog(2, ...msg)
     console.debug = ggeConfig.debug ? _console.debug : _ => {}
     console.trace = _console.trace
 }
 
 events.on("configModified", () => {
-    console.log(`[GGEBOT] config has been reload`)
+    console.log("botConfigReloaded")
 })
 
 const rawProtocolSeparator = "%"
@@ -83,22 +90,22 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
         if (err[result] == "ATTACK_TOO_MANY_UNITS")
             tooManyUnits++
         if (lordErrors == 5) {
-            console.error("Closing forcefully due to LORD_IS_USED errors!")
+            console.error("closedReason", "LORD_IS_USED")
             parentPort.postMessage([ActionType.KillBot])
             return
         }
         if (tooManyUnits == 12) {
-            console.error("Closing forcefully due to ATTACK_TOO_MANY_UNITS errors!")
+            console.error("closedReason", "ATTACK_TOO_MANY_UNITS")
             parentPort.postMessage([ActionType.KillBot])
             return
         }
         if(err[result] == "MOVEMENT_HAS_NO_UNITS") {
-            console.error("Closing forcefully due to MOVEMENT_HAS_NO_UNITS error!")
+            console.error("closedReason", "MOVEMENT_HAS_NO_UNITS")
             parentPort.postMessage([ActionType.KillBot])
             return
         }
         if(err[result] == "CANT_START_NEW_ARMIES") {
-            console.error("Closing forcefully due to MOVEMENT_HAS_NO_UNITS error!")
+            console.error("closedReason", "CANT_START_NEW_ARMIES")
             parentPort.postMessage([ActionType.KillBot])
             return
         }
@@ -109,7 +116,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             xtHandler.removeListener(key, helperFunction)
             const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
             result = -1
-            console.warn(`${key} Timed out`)
+            console.warn(key, "timedOut")
 
             reject(msg)
         }, timeout * (ggeConfig.timeoutMultiplier ?? 1))
@@ -218,7 +225,7 @@ webSocket.onmessage = async (e) => {
                 break
             default: 
                 if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
-                    console.warn(`Got result ${err[data[2]] ? err[data[2]] : data[2]} from ${data[0]}`)
+                    console.debug(err[data[2]] ?? data[2], data[0])
                     errorCount++
                 }
             case "core_pol":
@@ -247,8 +254,8 @@ webSocket.onerror = () => {events.emit("unload"); process.exit(0)}
 webSocket.onclose = () => {events.emit("unload"); process.exit(0)}
 
 events.on("unload", () => {
-    console.log(`errorCount: ${errorCount}`)
-    console.log(`sentHits: ${sentHits}`)
+    console.debug("errorCount", errorCount)
+    console.debug("hitCount", sentHits)
 })
 
 const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js');
@@ -375,13 +382,14 @@ let loginAttempts = 0
 xtHandler.on("lli", async (obj,r) => {
     if(r == 453)
     {
-        console.log(`retrying login in ${obj.CD} seconds`)
+        console.log("retryLogin", obj.CD, "retryLoginSeconds")
         setTimeout(retry, obj.CD * 1000)
         return
     }
 
     if(err[r] == "IS_BANNED") {
-        console.log(`retrying login in ${Math.round(obj.RS / 60 / 60)} hours`)
+        console.log("retryLogin", obj.CD, "retryLoginSeconds")
+        console.log("retryLogin", Math.round(obj.RS / 60 / 60), "retryLoginHours")
         setTimeout(retry, obj.RS * 1000)
         return
     }
@@ -389,14 +397,14 @@ xtHandler.on("lli", async (obj,r) => {
     if (r == 0) {
         //Due to exploits that can break the client this is to give limited access again.
         const timer = setTimeout(() => {
-            console.warn("Logged in (without event data)")
-            console.warn("Some features will not work.")
+            console.warn("loggedIn", "loggedInWithoutEventData")
+            console.warn("featuresMightNotWork")
             events.emit("load")
         }, 30 * 1000 * (ggeConfig.timeoutMultiplier ?? 1))
 
         xtHandler.once("sei", () => {
             parentPort.postMessage([ActionType.Started])
-            console.log("Logged in")
+            console.log("loggedIn")
             events.emit("load")
             clearTimeout(timer)
         })
@@ -453,7 +461,7 @@ events.on("eventStart", async eventInfo => {
     if(playerInfo.rubies < 100)
         return
 
-    console.log("Grabbed fortune")
+    console.log("grabbedFortuneTellerFortune")
     sendXT("ftl", JSON.stringify({}))
 })
 
@@ -461,15 +469,15 @@ xtHandler.on("gcs", obj => {
     obj.CHR.forEach(offering => {
         for (let i = 0; i < offering.FOA; i++) {
             if(offering.CID == 1) {
-                console.log("Grabbed free Ludwig offering")
+                console.log("GrabbedOffering", "grabbedLudwig")
                 sendXT("sct", JSON.stringify({CID:1, OID:6001, IF:1, AMT:1}))
             }
             if(offering.CID == 2) {
-                console.log("Grabbed free Knight offering")
+                console.log("GrabbedOffering", "grabbedKnight")
                 sendXT("sct", JSON.stringify({CID:2, OID:6002, IF:1, AMT:1}))
             }
             if(offering.CID == 3) {
-                console.log("Grabbed free Beatrice offering")
+                console.log("GrabbedOffering", "grabbedBeatrice")
                 sendXT("sct", JSON.stringify({CID:3, OID:6003, IF:1, AMT:1}))
             }
         }

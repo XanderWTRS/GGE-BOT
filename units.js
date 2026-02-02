@@ -7288,7 +7288,7 @@ let getAsset = (key, hardFail) => new Promise(async (resolve, reject) => {
         let imageBlob = await imageFile.blob()
 
         if(imageBlob.size == 0){
-            console.warn("imageBlob equal to 0")
+            console.warn("couldntGetAsset")
             return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
         }
         let sharpImg = sharp(await imageBlob.arrayBuffer())
@@ -7299,7 +7299,7 @@ let getAsset = (key, hardFail) => new Promise(async (resolve, reject) => {
         let convertedImageBuffer = await convertedImage.toBuffer()
         
         if(convertedImageBuffer.byteLength == 0) {
-            console.warn("Converted Image buffer equal to 0")
+            console.warn("couldntGetAsset")
             return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
         }
 

@@ -1,4 +1,4 @@
-const { waitForResult, sendXT, xtHandler, events, playerInfo, botConfig } = require("./ggebot")
+const { waitForResult, sendXT, xtHandler, events, botConfig } = require("./ggeBot")
 const fs = require("fs/promises")
 
 ;(botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ??= {}).name = "Protocols";
@@ -71,12 +71,12 @@ const spendSkip = (time) => {
         })
 
     if (skip[0] == undefined) {
-        console.warn(`[Protocols] Failed to find skip`)
+        console.warn("noMoreSkips")
         console.warn(JSON.stringify(skips))
         return undefined
     }
 
-    console.debug(`[Protocol] Using skip ${skip[0][0]}`)
+    console.debug("usingSkip", skip[0][0])
 
     return skip[0][0]
 }

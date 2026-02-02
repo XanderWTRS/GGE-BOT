@@ -1,17 +1,13 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Fortress"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         hidden: true
     }
 
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggebot")
-const getAreaCached = require('../../getmap.js')
+const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
+const getAreaCached = require('../../getMap.js')
 const err = require('../../err.json')
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -54,7 +50,7 @@ function spiralCoordinates(n) {
 
     return { x, y }
 }
-async function fortressHit(name, kid, level, options) {
+async function fortressHit(kid, level, options) {
     let pluginOptions = {}
     Object.assign(pluginOptions, options ?? {})
     Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
@@ -214,7 +210,7 @@ async function fortressHit(name, kid, level, options) {
             if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
             
-            console.info(`[${KingdomID[kid]}] Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -300,7 +296,7 @@ async function fortressHit(name, kid, level, options) {
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`Waiting ${Math.round(time / 1000)} for next fortress hit`)
+        console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

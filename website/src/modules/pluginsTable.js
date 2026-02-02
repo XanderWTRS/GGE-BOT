@@ -128,7 +128,7 @@ function Plugin({plugin, onChange, __, userPlugins, channel}) {
                         ) : undefined
                     }
                 </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>{__(plugin.name)}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{__(plugin.key)}</TableCell>
                 <TableCell>{__(plugin.description)}</TableCell>
                 <TableCell align='right'>
                     {!plugin.force ?

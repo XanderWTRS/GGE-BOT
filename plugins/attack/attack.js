@@ -1,8 +1,5 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Attack"
-if (isMainThread) {
+if (require('node:worker_threads').isMainThread) {
     module.exports = {
-        name: name,
         description: "Handles Hits",
         force: true,
         pluginOptions: [
@@ -23,8 +20,8 @@ if (isMainThread) {
     return
 }
 const { DatabaseSync } = require('node:sqlite')
-const { botConfig, playerInfo } = require('../../ggebot')
 const { getPermanentCastle } = require('../../protocols')
+const { botConfig, playerInfo } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
 
 const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
@@ -221,7 +218,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
             attackTarget.HBW = bestHorse
             attackTarget.PTT = 0
         } else {
-            console.warn(`'Use Coin' enabled but no coin horse found. Defaulting to walking.`)
+            console.warn("noStablesCoinHorse")
             attackTarget.HBW = -1
             attackTarget.PTT = 0
         }
@@ -276,55 +273,48 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
     if (!alreadyRunning) {
         alreadyRunning = true
         setImmediate(async () => {
-            try {
-                do {
-                    try {
-                        // Human-like delay logic using Gaussian distribution
-                        // Base delay from config + random gaussian variance
-                        const baseDelay = parseInt(pluginOptions.attackDelay)
-                        const variance = parseInt(pluginOptions.attackDelayRand)
-                        
-                        // Generate a natural random delay. Skew 1 means normal distribution.
-                        const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
+            do {
+                try {
+                    // Human-like delay logic using Gaussian distribution
+                    // Base delay from config + random gaussian variance
+                    const baseDelay = parseInt(pluginOptions.attackDelay)
+                    const variance = parseInt(pluginOptions.attackDelayRand)
 
-                        console.debug(`Attack delay: ${naturalDelay}`)
+                    // Generate a natural random delay. Skew 1 means normal distribution.
+                    const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
-                        const time = Date.now()
-                        const deltaLastHitTime = lastHitTime - time
-                        const deltaTimeTillTimeout = timeTillTimeout - time
+                    console.debug("attackDelayAttack", naturalDelay)
 
-                        if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
-                            const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
-                            if(timeTillNextHit > 0) {
-                                console.log(`Having a ${Math.round(timeTillNextHit / 1000 / 60)} minute nap to prevent ban`)
-                                await sleep(timeTillNextHit)
-                            }
-                            timeTillTimeout = Date.now() + napTime
-                            setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
+                    const time = Date.now()
+                    const deltaLastHitTime = lastHitTime - time
+                    const deltaTimeTillTimeout = timeTillTimeout - time
+
+                    if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
+                        const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
+                        if (timeTillNextHit > 0) {
+                            console.log("takingBreakPreventBan", Math.round(timeTillNextHit / 1000 / 60))
+                            await sleep(timeTillNextHit)
                         }
+                        timeTillTimeout = Date.now() + napTime
+                        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
+                    }
 
-                        lastHitTime = Date.now()
-                        setLastHitTime.run(lastHitTime, botConfig.id)
+                    lastHitTime = Date.now()
+                    setLastHitTime.run(lastHitTime, botConfig.id)
 
-                        if(!await (attacks.shift()()))
-                            continue
+                    if (!await (attacks.shift()()))
+                        continue
 
-                        await sleep(naturalDelay)
-                    } catch (innerError) {
-                        // Catch errors specific to the task but keep the loop running
-                        if (innerError !== "NO_MORE_TROOPS") {
-                             console.warn(`Error processing attack: ${innerError}`)
-                        }
+                    await sleep(naturalDelay)
+                } catch (innerError) {
+                    // Catch errors specific to the task but keep the loop running
+                    if (innerError !== "NO_MORE_TROOPS") {
+                        console.warn("failedToHandleAttack", innerError)
                     }
                 }
-                while (attacks.length > 0);
             }
-            catch (e) {
-                console.warn(`Critical loop error:`, e)
-            }
-            finally {
-                alreadyRunning = false
-            }
+            while (attacks?.length > 0);
+            alreadyRunning = false
         })
     }
 })
