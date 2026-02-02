@@ -279,7 +279,7 @@ async function start() {
 
   const plugins = pluginData
     .map(e => new Object({ key: path.basename(e[0]), filename: e[0], name: e[1].name, description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions, hidden: e[1].hidden }))
-    .sort((a, b) => (a.force ?? 0) - (b.force ?? 0))
+    .sort((a, b) => (a.force ?? 0) - (b.force ?? 0)).filter(e => e != undefined)
 
   const loginCheck = uuid => 
     !!userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid ?? "")
