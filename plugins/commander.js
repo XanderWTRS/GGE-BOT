@@ -1,7 +1,7 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = { hidden: true }
 
-const { xtHandler, playerInfo, waitForResult } = require('../ggeBot.js')
+const { xtHandler, playerInfo, waitForResult } = require('../ggeBot')
 const { Types } = require('../protocols.js')
 const EventEmitter = require('node:events')
 

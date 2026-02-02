@@ -3,7 +3,7 @@ if (require('node:worker_threads').isMainThread)
         hidden: true
     }
 
-const { xtHandler, sendXT, events } = require("../ggeBot")
+const { xtHandler, sendXT, events } = require("../ggeBot.js")
 const EventEmitter = require('node:events')
 
 class TargetType {

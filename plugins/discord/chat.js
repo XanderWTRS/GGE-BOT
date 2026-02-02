@@ -19,7 +19,7 @@ if (require('node:worker_threads').isMainThread)
 
 const turl = require('turl')
 const emoji = require("emoji-dictionary")
-const { xtHandler, sendXT, botConfig } = require("../../ggebot")
+const { xtHandler, sendXT, botConfig } = require("../../ggeBot.js")
 const { clientReady } = require('./discord')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}

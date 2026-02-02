@@ -125,7 +125,7 @@
 	"noStablesCoinHorse": "No stables detected defaulting to walking",
 	"attackDelayAttack": "Attack delay: ",
 	"takingBreakPreventBan": "Taking a break to prevent ban for: ",
-	"failedToHandleAttack": "Failed to handle attack correctly",
+	"failedToHandleAttack": "Failed to handle attack correctly: ",
 	"shuttingDownEvent": "Shutting down event reason: ",
 	"eventEnded": "Event Ended",
 	"hittingTargetAttack": "Hitting target ",
@@ -213,6 +213,7 @@
 	"helpRequests": "Help requests",
 	"nomadShop": "Nomad Shop",
 	"samShop": "Samurai Shop",
-	"attackBerimondKingdom": "Attack Berimond Kingdom"
+	"attackBerimondKingdom": "Attack Berimond Kingdom",
+	"ggeBot": "GGE BOT"
 	
 }

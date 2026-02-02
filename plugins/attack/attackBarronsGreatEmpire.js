@@ -57,10 +57,10 @@ if (require('node:worker_threads').isMainThread)
             }
         ]
     }
-const { botConfig, events } = require("../../ggeBot.js")
 const { KingdomID, AreaType } = require('../../protocols.js')
+const { botConfig, events } = require("../../ggeBot.js")
 const commonAttack = require('./sharedBarronAttackLogic.js')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
-events.on("load", () => commonAttack(AreaType.barron,KingdomID.greatEmpire, pluginOptions))
+events.on("load", () => commonAttack(AreaType.barron, KingdomID.greatEmpire, pluginOptions))

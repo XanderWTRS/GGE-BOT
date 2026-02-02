@@ -1,18 +1,19 @@
-process.on('uncaughtException', console.error) //Wanna cry? Remove this.
 const { isMainThread, workerData, parentPort } = require('node:worker_threads')
+if (isMainThread)
+    return
+
+process.on('uncaughtException', console.error) //Wanna cry? Remove this.
+
 const EventEmitter = require('node:events')
 const WebSocket = require('ws')
-const ActionType = require('./actions.json')
-const err = require('./err.json')
-const {DatabaseSync} = require('node:sqlite')
-const events = new EventEmitter()
-const ggeConfig = require("./ggeConfig.json")
+const { DatabaseSync } = require('node:sqlite')
 const { getCallSites } = require('node:util')
 const { I18n } = require('i18n')
 const path = require('node:path')
-
-if (isMainThread)
-    return
+const ggeConfig = require("./ggeConfig.json")
+const ActionType = require('./actions.json')
+const err = require('./err.json')
+const events = new EventEmitter()
 
 const i18n = new I18n({
   locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
@@ -24,45 +25,44 @@ const botConfig = workerData
 
 const _console = console
 
-function mngLog(logLevel, ...msg) {
+function mngLog(logLevel, msg) {
     let callSites = getCallSites(6)
     let scriptName = path.basename(callSites[2]?.scriptName).slice(0, -3)
     // let plugin = botConfig.plugins[scriptName]
     // let name = plugin?.name ?? scriptName
-    
+
     const now = new Date()
     let hours = now.getHours()
     let minutes = now.getMinutes()
-    
+
     hours = hours < 10 ? '0' + hours : hours
     minutes = minutes < 10 ? '0' + minutes : minutes
-    
-    let message = [`[${hours + ':' + minutes}] `, '[',`${scriptName}`, '] ']
-    message.push(...msg)
-    _console.log(`[${botConfig.name}] ${message.map(i18n.__)}`)
 
+    let message = [`[${hours + ':' + minutes}] `, '[', `${scriptName}`, '] ']
+
+    if (msg instanceof Error) {
+        message.push(msg.message)
+    }
+
+    message.push(...msg)
+    _console.log(`[${botConfig.name}] ${message.map(i18n.__).join('')}`)
     parentPort.postMessage([ActionType.GetLogs, logLevel, message])
 }
 if (!botConfig.internalWorker) {
     console = {}
-    console.log = (...msg) => mngLog(0, ...msg)
-    console.info = (...msg) => mngLog(0, ...msg)
-    console.warn = (...msg) => mngLog(1, ...msg)
-    console.error = (...msg) => mngLog(2, ...msg)
-    console.debug = ggeConfig.debug ? _console.debug : _ => {}
+    console.log = (...msg) => mngLog(0, msg)
+    console.info = (...msg) => mngLog(0, msg)
+    console.warn = (...msg) => mngLog(1, msg)
+    console.error = (...msg) => mngLog(2, msg)
+    console.debug = ggeConfig.debug ? _console.debug : _ => { }
     console.trace = _console.trace
 }
 
-events.on("configModified", () => {
-    console.log("botConfigReloaded")
-})
-
-const rawProtocolSeparator = "%"
-
 const xtHandler = new EventEmitter()
 
+const rawProtocolSeparator = "%"
 function sendXT(cmdName, paramObj) {
-    webSocket.send(rawProtocolSeparator + ["xt",  botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
+    webSocket.send(rawProtocolSeparator + ["xt", botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
 }
 
 /**
@@ -76,7 +76,7 @@ function sendXT(cmdName, paramObj) {
 let lordErrors = 0
 let tooManyUnits = 0
 const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
-    if (timeout == undefined) 
+    if (timeout == undefined)
         reject(`waitForResult: No timeout specified`)
 
     timeout *= 2.5
@@ -99,19 +99,19 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             parentPort.postMessage([ActionType.KillBot])
             return
         }
-        if(err[result] == "MOVEMENT_HAS_NO_UNITS") {
+        if (err[result] == "MOVEMENT_HAS_NO_UNITS") {
             console.error("closedReason", "MOVEMENT_HAS_NO_UNITS")
             parentPort.postMessage([ActionType.KillBot])
             return
         }
-        if(err[result] == "CANT_START_NEW_ARMIES") {
+        if (err[result] == "CANT_START_NEW_ARMIES") {
             console.error("closedReason", "CANT_START_NEW_ARMIES")
             parentPort.postMessage([ActionType.KillBot])
             return
         }
     }
 
-    if(timeout > 0) {
+    if (timeout > 0) {
         timer = setTimeout(() => {
             xtHandler.removeListener(key, helperFunction)
             const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
@@ -138,25 +138,67 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
 })
 
 const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`);
-webSocket.onopen = _ => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
 
 const playerInfo = {
-    level : NaN,
-    userID : NaN,
+    level: NaN,
+    userID: NaN,
     playerID: NaN,
-    email : String(),
+    email: String(),
     acceptedTOS: Boolean(),
     verifiedEmail: Boolean(),
     isCheater: Boolean(),
     name: String(),
-    alliance : {
-        id : Number(),
-        rank : Number(),
-        name : String(),
-        fame : Number(),
-        searchingForPlayers : Boolean()
+    alliance: {
+        id: Number(),
+        rank: Number(),
+        name: String(),
+        fame: Number(),
+        searchingForPlayers: Boolean()
     }
 }
+
+module.exports = {
+    sendXT,
+    xtHandler,
+    waitForResult,
+    webSocket,
+    events,
+    botConfig,
+    playerInfo
+}
+
+let status = {}
+// events.once("load", async (_, r) => {
+//     const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
+//     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
+
+//     sendXT("dcl", JSON.stringify({ CD: 1 }))
+//     setInterval(() =>
+//         sendXT("dcl", JSON.stringify({ CD: 1 })),
+//         1000 * 60 * 5)
+//     if (sourceCastleArea) {
+//         xtHandler.on("dcl", obj => {
+//             const castleProd = Types.DetailedCastleList(obj)
+//                 .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
+
+//             if (!castleProd)
+//                 return
+
+//             Object.assign(status, {
+//                 aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
+//                 food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
+//                 mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
+//             })
+//             parentPort.postMessage([ActionType.StatusUser, status])
+//         })
+//     }
+// })
+
+events.on("configModified", () => {
+    console.log("botConfigReloaded")
+})
+
+webSocket.onopen = _ => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
 
 xtHandler.on("gal", obj => {
     playerInfo.alliance.id = Number(obj.AID)
@@ -168,8 +210,8 @@ xtHandler.on("gal", obj => {
 
 xtHandler.on("gxp", obj => {
     playerInfo.level = obj.LVL + obj.LL
-    
-    if(!botConfig.externalEvent)
+
+    if (!botConfig.externalEvent)
         return
 
     Object.assign(status, {
@@ -188,31 +230,19 @@ xtHandler.on("gpi", obj => {
     playerInfo.isCheater = Boolean(obj.CL)
 })
 
-module.exports = { sendXT, xtHandler, waitForResult, webSocket, events, botConfig, playerInfo }
-require("./protocols.js")
-for (const [_,val] of Object.entries(botConfig.plugins)) {
-    if(!val.state)
-        continue
-    try {
-        require(`./${val.filename}`)
-    }
-    catch(e) {
-        console.warn(e)
-    }
-}
-
 let errorCount = 0
 let sentHits = 0
 
-xtHandler.on("cra", (obj,r) => r == 0 ? sentHits++ : void 0)
+xtHandler.on("cra", (obj, r) => r == 0 ? sentHits++ : void 0)
 
-webSocket.onmessage = async (e) => {
+webSocket.onmessage = e => {
     let message = e.data.toString()
     if (message.charAt(0) == rawProtocolSeparator) {
         let params = message.substr(1, message.length - 2).split(rawProtocolSeparator)
         let data = params.splice(1, params.length - 1)
+        // _console.log(data.toString())
 
-        switch(data[0]) {
+        switch (data[0]) {
             case "gbd":
                 for (const [key, value] of Object.entries(JSON.parse(data[3])))
                     xtHandler.emit(key, value, Number(data[2]), "str")
@@ -223,19 +253,19 @@ webSocket.onmessage = async (e) => {
             case "gfl":
                 xtHandler.emit(data[0], data[3], Number(data[2]), "str");
                 break
-            default: 
+            default:
                 if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
                     console.debug(err[data[2]] ?? data[2], data[0])
                     errorCount++
                 }
             case "core_pol":
             case "rlu":
-                if(xtHandler.listenerCount(data[0]) == 0)
+                if (xtHandler.listenerCount(data[0]) == 0)
                     return
                 xtHandler.emit(data[0], data[3] ? JSON.parse(data[3]) : undefined, Number(data[2]), "str");
         }
     }
-    
+
     else if (message.charAt(0) == "<") {
         switch (message) {
             case "<msg t='sys'><body action='apiOK' r='0'></body></msg>":
@@ -250,39 +280,12 @@ webSocket.onmessage = async (e) => {
         }
     }
 }
-webSocket.onerror = () => {events.emit("unload"); process.exit(0)}
-webSocket.onclose = () => {events.emit("unload"); process.exit(0)}
+webSocket.onerror = () => { events.emit("unload"); process.exit(0) }
+webSocket.onclose = () => { events.emit("unload"); process.exit(0) }
 
 events.on("unload", () => {
     console.debug("errorCount", errorCount)
     console.debug("hitCount", sentHits)
-})
-
-const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js');
-let status = {}
-events.once("load", async (_, r) => {
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
-
-    sendXT("dcl", JSON.stringify({ CD: 1 }))
-    setInterval(() =>
-        sendXT("dcl", JSON.stringify({ CD: 1 })),
-        1000 * 60 * 5)
-    if (sourceCastleArea) {
-        xtHandler.on("dcl", obj => {
-            const castleProd = Types.DetailedCastleList(obj)
-                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
-
-            if (!castleProd)
-                return
-
-            Object.assign(status, {
-                aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
-                food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
-                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
-            })
-            parentPort.postMessage([ActionType.StatusUser, status])
-        })
-    }
 })
 
 parentPort.on("message", async obj => {
@@ -296,7 +299,7 @@ parentPort.on("message", async obj => {
                         old_[key] = new_[key];
                 });
             }
-            deepCopy(botConfig,obj[1])
+            deepCopy(botConfig, obj[1])
             events.emit("configModified")
             break
             break
@@ -305,21 +308,21 @@ parentPort.on("message", async obj => {
             break
         case ActionType.GetExternalEvent:
             sendXT("sei", JSON.stringify({}))
-            let [sei, _] = await waitForResult("sei", 1000* 10)
-            if(sei.E.find(e => e.EID == 113))
-                sendXT("glt", JSON.stringify({GST:3}))
+            let [sei, _] = await waitForResult("sei", 1000 * 10)
+            if (sei.E.find(e => e.EID == 113))
+                sendXT("glt", JSON.stringify({ GST: 3 }))
             else
-                sendXT("glt", JSON.stringify({GST:2}))
-            let [glt, _2] = await waitForResult("glt", 1000* 10)
-            parentPort.postMessage([ActionType.GetExternalEvent, {sei: sei, glt: glt}])
+                sendXT("glt", JSON.stringify({ GST: 2 }))
+            let [glt, _2] = await waitForResult("glt", 1000 * 10)
+            parentPort.postMessage([ActionType.GetExternalEvent, { sei: sei, glt: glt }])
             break
-        
+
     }
 })
 
-let retry = async () => {
-    if(botConfig.externalEvent) {
-        sendXT("tlep", JSON.stringify({TLT: botConfig.tempServerData.glt.TLT}))
+let retry = () => {
+    if (botConfig.externalEvent) {
+        sendXT("tlep", JSON.stringify({ TLT: botConfig.tempServerData.glt.TLT }))
         return
     }
     // const RCT = await new Promise(resolve => {
@@ -372,22 +375,18 @@ let retry = async () => {
         }))
     }
 }
-xtHandler.on("vck", async _ => {
-    await retry()
-})
+xtHandler.on("vck", _ => retry())
 
 xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
-
 let loginAttempts = 0
-xtHandler.on("lli", async (obj,r) => {
-    if(r == 453)
-    {
+xtHandler.on("lli", async (obj, r) => {
+    if (r == 453) {
         console.log("retryLogin", obj.CD, "retryLoginSeconds")
         setTimeout(retry, obj.CD * 1000)
         return
     }
 
-    if(err[r] == "IS_BANNED") {
+    if (err[r] == "IS_BANNED") {
         console.log("retryLogin", obj.CD, "retryLoginSeconds")
         console.log("retryLogin", Math.round(obj.RS / 60 / 60), "retryLoginHours")
         setTimeout(retry, obj.RS * 1000)
@@ -412,15 +411,15 @@ xtHandler.on("lli", async (obj,r) => {
         setInterval(() => sendXT("pin", "<RoundHouseKick>"), 1000 * 60).unref()
         return
     }
-    
+
     if (r == err["INVALID_LOGIN_TOKEN"]) {
         loginAttempts++
         if (loginAttempts < 30)
             return retry()
     }
-    if(botConfig.internalWorker) 
+    if (botConfig.internalWorker)
         process.exit(0)
-    
+
     status.hasError = true
     parentPort.postMessage([ActionType.StatusUser, status])
     const userDatabase = new DatabaseSync('./user.db')
@@ -431,9 +430,9 @@ xtHandler.on("lli", async (obj,r) => {
 
 xtHandler.on("sne", obj => {
     obj.MSG.forEach(message => {
-        if(message[1] != 67)
+        if (message[1] != 67)
             return
-        sendXT("dms", JSON.stringify({MID:message[0]}))
+        sendXT("dms", JSON.stringify({ MID: message[0] }))
     });
 })
 
@@ -451,14 +450,14 @@ xtHandler.on("gcu", obj => {
 })
 
 events.on("eventStart", async eventInfo => {
-    if(eventInfo.EID != 117)
+    if (eventInfo.EID != 117)
         return
-    if(eventInfo.FTDC != 1)
+    if (eventInfo.FTDC != 1)
         return
-    if(playerInfo.rubies == undefined)
+    if (playerInfo.rubies == undefined)
         debugger
 
-    if(playerInfo.rubies < 100)
+    if (playerInfo.rubies < 100)
         return
 
     console.log("grabbedFortuneTellerFortune")
@@ -468,18 +467,30 @@ events.on("eventStart", async eventInfo => {
 xtHandler.on("gcs", obj => {
     obj.CHR.forEach(offering => {
         for (let i = 0; i < offering.FOA; i++) {
-            if(offering.CID == 1) {
+            if (offering.CID == 1) {
                 console.log("GrabbedOffering", "grabbedLudwig")
-                sendXT("sct", JSON.stringify({CID:1, OID:6001, IF:1, AMT:1}))
+                sendXT("sct", JSON.stringify({ CID: 1, OID: 6001, IF: 1, AMT: 1 }))
             }
-            if(offering.CID == 2) {
+            if (offering.CID == 2) {
                 console.log("GrabbedOffering", "grabbedKnight")
-                sendXT("sct", JSON.stringify({CID:2, OID:6002, IF:1, AMT:1}))
+                sendXT("sct", JSON.stringify({ CID: 2, OID: 6002, IF: 1, AMT: 1 }))
             }
-            if(offering.CID == 3) {
+            if (offering.CID == 3) {
                 console.log("GrabbedOffering", "grabbedBeatrice")
-                sendXT("sct", JSON.stringify({CID:3, OID:6003, IF:1, AMT:1}))
+                sendXT("sct", JSON.stringify({ CID: 3, OID: 6003, IF: 1, AMT: 1 }))
             }
         }
     })
 })
+
+require("./protocols.js")
+for (const [_, val] of Object.entries(botConfig.plugins)) {
+    if (!val.state)
+        continue
+    try {
+        require(`./${val.filename}`)
+    }
+    catch (e) {
+        console.warn(e)
+    }
+}

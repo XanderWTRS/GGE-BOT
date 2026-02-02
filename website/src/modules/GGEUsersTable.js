@@ -32,10 +32,11 @@ function Log({ws, __}) {
                 return
 
             setCurrentLogs(obj[0].splice(obj[1], obj[0].length - 1).concat(obj[0]).map((obj, index) => {
+                let items = obj[1].map(__).join("")
                 return <div key={index} style={{
                     color: obj[0] === LogLevel.Error ? "red" :
                         obj[0] === LogLevel.Warn ? "yellow" : "blue"
-                }}>{obj[1].map(__)}</div>
+                }}>{items}</div>
             }
             ).reverse())
         }

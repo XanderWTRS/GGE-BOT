@@ -489,7 +489,7 @@ async function start() {
         data2.gameServer ??= instance.gameServer
         data2.gameID ??= instance.gameID
 
-        const worker = new Worker('./ggebot.js', { workerData: { ...data2, discordData } })
+        const worker = new Worker('./ggeBot.js', { workerData: { ...data2, discordData } })
         worker.messageBuffer = messageBuffer
         worker.messageBufferCount = messageBufferCount
         worker.on('message', async obj => {
@@ -535,7 +535,7 @@ async function start() {
       }
     }
 
-    const worker = new Worker('./ggebot.js', { workerData: { ...data, discordData } })
+    const worker = new Worker('./ggeBot.js', { workerData: { ...data, discordData } })
 
     worker.messageBuffer = messageBuffer
     worker.messageBufferCount = messageBufferCount
@@ -571,6 +571,7 @@ async function start() {
               ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
           break
         case ActionType.GetLogs:
+            // console.log("logged something")
           worker.messageBuffer[worker.messageBufferCount] = [obj[1],obj[2]]
           worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
           loggedInUsers[uuid]?.forEach(o => 
