@@ -1,18 +1,15 @@
 if (require('node:worker_threads').isMainThread) {
     module.exports = {
-        description: "Handles Hits",
         force: true,
         pluginOptions: [
             {
                 type: "Text",
-                label: "Attack Delay (Seconds)",
-                key: "attackDelay",
+                key: "attackDelaySeconds",
                 default: "4.0"
             },
             {
                 type: "Text",
-                label: "Attack Delay Randomization (Seconds)",
-                key: "attackDelayRand",
+                key: "attackDelayRandomizationSeconds",
                 default: "1.0"
             }
         ]
@@ -277,8 +274,8 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                 try {
                     // Human-like delay logic using Gaussian distribution
                     // Base delay from config + random gaussian variance
-                    const baseDelay = parseInt(pluginOptions.attackDelay)
-                    const variance = parseInt(pluginOptions.attackDelayRand)
+                    const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
+                    const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
 
                     // Generate a natural random delay. Skew 1 means normal distribution.
                     const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)

@@ -1,22 +1,18 @@
 if (require('node:worker_threads').isMainThread) {
     module.exports = {
-        description: "Triggers feast",
         pluginOptions: [
             {
                 type: "Text",
-                label: "Feast Food Reduction",
                 key: "feastFoodReduction",
                 default: 150000
             },
             {
                 type: "Text",
-                label: "Minimum Food",
                 key: "minimumFood",
                 default: 150000
             },
             {
                 type: "Text",
-                label: "Minimum Food rate",
                 key: "minimumFoodRate",
                 default: 0
             },

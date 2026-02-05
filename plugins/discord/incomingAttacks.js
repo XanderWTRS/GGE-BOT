@@ -1,15 +1,12 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
                 type: "Channel",
-                label: "Channel ID",
                 key: "channelID",
             },            {
                 type: "Channel",
-                label: "Channel ID Aqua",
-                key: "channelIDAqua",
+                key: "StormChannelID",
             }
         ]
     }
@@ -35,7 +32,7 @@ clientReady.then(async client => {
     let channelAquaAlert
     try {
         if (pluginOptions.channelAquaAlert)
-            channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
+            channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
     }
     catch (e) {
         console.warn(e)

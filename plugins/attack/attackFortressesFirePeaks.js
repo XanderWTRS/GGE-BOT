@@ -3,7 +3,6 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             }
         ]

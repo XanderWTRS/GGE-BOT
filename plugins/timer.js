@@ -2,11 +2,9 @@ const { isMainThread, parentPort } = require('node:worker_threads')
 
 if (isMainThread) {
     module.exports = {
-        description: "Shuts down after specific time",
         pluginOptions: [
             {
                 type: "Text",
-                label: "Hours",
                 key: "hours",
                 default: 2
             },

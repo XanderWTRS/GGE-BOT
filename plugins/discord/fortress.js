@@ -3,7 +3,6 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Channel",
-                label: "Channel ID",
                 key: "channelID",
             }
         ]

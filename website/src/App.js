@@ -36,8 +36,12 @@ function GrabAssets() {
       transform: "translate(-50%, -50%)"
     }} />
   }
-
-  return <App setLanguage={setLanguage} languageCode={cookies.lang} __={key => lang[key] || key} />
+  const __ = key => {
+    if(lang[key] == undefined)
+      console.warn(`[Language] ${key} key not found`)
+    return lang[key] || key
+  }
+  return <App setLanguage={setLanguage} languageCode={cookies.lang} __={__} />
 }
 
 const darkTheme = createTheme({

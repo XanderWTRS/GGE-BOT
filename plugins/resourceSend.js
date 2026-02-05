@@ -1,7 +1,6 @@
 if(require('node:worker_threads').isMainThread)
 {
     module.exports = {
-        description : "Sends stone and wood to other kingdoms"
     }
     return
 }

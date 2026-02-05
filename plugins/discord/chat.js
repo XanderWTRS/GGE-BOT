@@ -1,16 +1,13 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
                 type: "Channel",
-                label: "Channel ID",
                 key: "channelID",
             },
 
             {
                 type: "Checkbox",
-                label: "Hide Discord Name",
                 key: "hideDiscordName",
                 default: false
             }

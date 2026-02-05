@@ -46,7 +46,7 @@ function Log({ws, __}) {
     }, [ws, __])
 
     return (
-        <Paper sx={{ maxHeight: '90%', overflow: 'auto', height: '80%', width: '40%' }}>
+        <Paper sx={{ overflow: 'auto'}}>
             <div onClick={e => e.stopPropagation()}
                 style={{ width: "100%", height: "100%" }}>
                 <Typography variant="subtitle1" component="div" align='left' padding={"10px"}>
@@ -118,16 +118,16 @@ function PlayerTable({ setLanguage, __, languageCode, rows, usersStatus, ws, cha
                             }}
                         />
                     </TableCell>
-                    <TableCell align="left">{__("Name")}</TableCell>
-                    <TableCell align="left" padding='none'>{__("Plugins")}</TableCell>
-                    <TableCell>{__("Status")}</TableCell>
-                    <TableCell align='right' padding='none'>
+                    <TableCell align="left">{__("name")}</TableCell>
+                    <TableCell align="left" padding='none'>{__("plugins")}</TableCell>
+                    <TableCell>{__("status")}</TableCell>
+                    <TableCell align='right' padding='none' style={{width:"max-content"}}>
                         <Language setLanguage={setLanguage} languageCode={languageCode} />
                         <Button
                             style={{ margin: "10px", maxHeight: '32px', minHeight: '32px' }}
                             onClick={async () =>
                                 window.open(`https://discord.com/oauth2/authorize?client_id=${channelInfo[0]}&permissions=8&response_type=code&redirect_uri=${window.location.protocol === 'https:' ? "https" : "http"}%3A%2F%2F${window.location.hostname}%3A${(settings.port ?? window.location.port) !== '' ? (settings.port ?? window.location.port) : window.location.protocol === 'https:' ? "443" : "80"}%2FdiscordAuth&integration_type=0&scope=identify+guilds.join+bot`, "_blank")}
-                        >{__("Link Discord")}</Button>
+                        >{__("linkDiscord")}</Button>
                         <Button style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginRight: "10px" }} onClick={handleSettingsOpen}>+</Button>
                     </TableCell>
                 </TableRow>
@@ -175,31 +175,33 @@ function PlayerTable({ setLanguage, __, languageCode, rows, usersStatus, ws, cha
                             </TableCell>
                             <TableCell component="th" scope="row">{row.name}</TableCell>
 
-                            <TableCell align="left" padding='none'>{getEnabledPlugins().join(" ")}</TableCell>
+                            <TableCell align="left" padding='none'  sx={{scrollbarColor: "#5e6269 #2d2f31", scrollbarWidth:"thin", maxWidth: "20vw", overflow: "auto", whiteSpace: "nowrap"}}>
+                                    {getEnabledPlugins().map(__).join(" ")}
+                            </TableCell>
                             <TableCell>
                                 <Box sx={{ display: 'flex' }}>
                                     <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
-                                        <Typography>{status.aquamarine ? "Aqua" : ""}</Typography>
+                                        <Typography>{status.aquamarine ? __("aqua") : ""}</Typography>
                                         <Typography>{status.aquamarine ?? ""}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
-                                        <Typography>{status.level ? "Level" : ""}</Typography>
+                                        <Typography>{status.level ? __("level") : ""}</Typography>
                                         <Typography>{status.level ?? ""}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
-                                        <Typography>{status.mead ? "Mead" : ""}</Typography>
+                                        <Typography>{status.mead ? __("mead") : ""}</Typography>
                                         <Typography>{status.mead ?? ""}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
-                                        <Typography>{status.food ? "Food" : ""}</Typography>
+                                        <Typography>{status.food ? __("food") : ""}</Typography>
                                         <Typography>{status.food ?? ""}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
-                                        <Typography>{status.coin ? "Coin" : ""}</Typography>
+                                        <Typography>{status.coin ? __("coin") : ""}</Typography>
                                         <Typography>{status.coin ?? ""}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', flexDirection: "column" }} paddingRight={"10px"}>
-                                        <Typography>{status.rubies ? "Rubies" : ""}</Typography>
+                                        <Typography>{status.rubies ? __("rubies") : ""}</Typography>
                                         <Typography>{status.rubies ?? ""}</Typography>
                                     </Box>
                                 </Box>
@@ -208,18 +210,18 @@ function PlayerTable({ setLanguage, __, languageCode, rows, usersStatus, ws, cha
                                 <Button variant="text" onClick={() => {
                                     ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, row]))
                                     handleLogOpen()
-                                }}>{__("Logs")}</Button>
+                                }}>{__("logs")}</Button>
                                 <Button variant="text" onClick={() => {
                                     setSelectedUser(row)
                                     setOpenSettings(true)
-                                }}>{__("Settings")}</Button>
+                                }}>{__("settings")}</Button>
                                 <Button variant="contained"
                                     onClick={() => {
                                         row.state = !state
                                         ws.send(JSON.stringify([ErrorType.Success, ActionType.SetUser, row]))
                                         setState(!state)
                                     }}
-                                    style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginLeft: "10px" }}>{state ? __("Stop") : __("Start")}</Button>
+                                    style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', marginLeft: "10px" }}>{state ? __("stop") : __("start")}</Button>
                             </TableCell>
                         </TableRow>)
                     }
@@ -235,7 +237,7 @@ function PlayerTable({ setLanguage, __, languageCode, rows, usersStatus, ws, cha
                     <TableCell align='right' padding='none'>
                         <Button variant="contained" style={{ maxWidth: '64px', maxHeight: '32px', minWidth: '32px', minHeight: '32px', paddingLeft: "38px", paddingRight: "38px", margin: "10px" }} onClick={() => {
                             ws.send(JSON.stringify([ErrorType.Success, ActionType.RemoveUser, rows.filter((e) => selected.includes(e.id))]))
-                        }}>{__("Remove")}</Button>
+                        }}>{__("remove")}</Button>
                     </TableCell>
                 </TableRow>
             </TableBody>

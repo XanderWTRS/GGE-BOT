@@ -3,7 +3,6 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Select",
-                label: "Event Difficulty",
                 key: "eventDifficulty",
                 selection: [
                     "Easy",
@@ -22,37 +21,31 @@ if (require('node:worker_threads').isMainThread)
             },
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             },
             {
                 type: "Checkbox",
-                label: "Lowest value chests first",
                 key: "lowValueChests",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "No chests",
                 key: "noChests",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Feather",
                 key: "useFeather",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Coin",
                 key: "useCoin",
                 default: false
             },
             {
                 type: "Text",
-                label: "Samurai score shutoff",
-                key: "samsScoreShutoff"
+                key: "scoreShutoff"
             }
         ]
 
@@ -114,8 +107,8 @@ xtHandler.on("cat", (obj, result) => {
 })
 let quit = false
 xtHandler.on("pep", obj => {
-    if (pluginOptions.samsScoreShutoff <= 0)
-        pluginOptions.samsScoreShutoff = Infinity
+    if (pluginOptions.scoreShutoff <= 0)
+        pluginOptions.scoreShutoff = Infinity
 
     if (obj.EID != eventID)
         return
@@ -124,7 +117,7 @@ xtHandler.on("pep", obj => {
     if(quit)
         return
 
-    if (samsPoints >= pluginOptions.samsScoreShutoff) {
+    if (samsPoints >= pluginOptions.scoreShutoff) {
         console.log("shuttingDownEvent", "ScoreReached")
         quit = true
     }

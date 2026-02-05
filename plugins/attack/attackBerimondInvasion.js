@@ -3,42 +3,35 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Checkbox",
-                label: "Use Feather",
                 key: "useFeather",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Coin",
                 key: "useCoin",
                 default: false
             },
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             },
             {
                 type: "Checkbox",
-                label: "Lowest value chests first",
                 key: "lowValueChests",
                 default: false
             },
             {
                 type: "Text",
-                label: "Waves till chest",
                 key: "wavesTillChests",
                 default: 4
             },
             {
                 type: "Checkbox",
-                label: "No event tools",
                 key: "noEventTools",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Reputation",
                 key: "reputation",
                 default: false
             }

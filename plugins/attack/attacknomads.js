@@ -3,7 +3,6 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Select",
-                label: "Event Difficulty",
                 key: "eventDifficulty",
                 selection: [
                     "Easy",
@@ -18,52 +17,44 @@ if (require('node:worker_threads').isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default: 3
+                default: "3"
             },
             {
                 type: "Checkbox",
-                label: "Use event Wall Tools first",
-                key: "eventWallToolsfirst"
+                key: "eventWallToolsFirst"
             },
             {
                 type: "Checkbox",
-                label: "Lowest value chests first",
                 key: "lowValueChests",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "No chests",
                 key: "noChests",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Feather",
                 key: "useFeather",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Coin",
                 key: "useCoin",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Food",
                 key: "useFood",
                 default: true
             },
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             },
             {
                 type: "Text",
-                label: "Nomad score shutoff",
-                key: "nomadsScoreShutoff"
+                key: "scoreShutoff"
             }
         ]
 
@@ -325,7 +316,7 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if (!pluginOptions.noChests) {
                         const selectTool = i => {
-                            let tools = pluginOptions.eventWallToolsfirst ? [] : attackerNomadTools
+                            let tools = pluginOptions.eventWallToolsFirst ? [] : attackerNomadTools
                             if (tools.length == 0) {
                                 if (i == 0) {
                                     tools = attackerWallNomadTools
