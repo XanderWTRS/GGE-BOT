@@ -42,7 +42,7 @@ function mngLog(logLevel, msg) {
 
     message.push(...msg)
 
-    _console.log(`[${botConfig.name}] ${message.map(msg => {
+    message = message.map(msg => {
         if(msg instanceof Error)
             return msg.message
 
@@ -50,7 +50,9 @@ function mngLog(logLevel, msg) {
             return JSON.stringify(msg)
 
         return msg
-    }).map(i18n.__).join('')}`)
+    })
+
+    _console.log(`[${botConfig.name}] ${message.map(i18n.__).join('')}`)
     parentPort.postMessage([ActionType.GetLogs, logLevel, message])
 }
 if (!botConfig.internalWorker) {
