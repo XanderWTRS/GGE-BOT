@@ -38,6 +38,8 @@ const client = new Client(clientOptions)
 
 console.info(i18n.__("startBanner"))
 
+console.warn("*IF YOU ARE CURRENTLY FACING ISSUES WITH THIS NEW VERSION PLEASE REINSTALL BOT!*")
+
 const ggeConfigExample = `{
     "webPort" : "3001",
     "fontPath" : "",
