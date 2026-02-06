@@ -69,7 +69,7 @@ clientReady.then(async client => {
     
             channel.send( //<-- asyncronous bastard causing my fucking hack
                 "```ansi\n" +
-                `${attackerName} (${attackerArea}) is attacking ${victimName} (${victimArea}) from ${victimAlliance} in ${kidName[movement.M.KID]} ${clicks} clicks` +
+                `${attackerName} (${attackerArea})${i18n.__("incomingFrom")}${attackerAlliance}${i18n.__("incomingIsAttacking")}${victimName} (${victimArea})${i18n.__("incomingIn")}${kidName[movement.M.KID]} ${clicks}${i18n.__("incomingClicks")}` +
                 "```" +
                 `<t:${Math.round(Date.now() / 1000 + time)}:R>`)
     

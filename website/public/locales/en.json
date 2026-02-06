@@ -235,5 +235,9 @@
 	"allowLvl80Easy": "Lvl 80",
 	"buyCoins": "Buy coins",
 	"buyXP": "Buy XP",
-	"noChests": "No chests"
+	"noChests": "No chests",
+	"incomingFrom": " from ",
+	"incomingIsAttacking": " is attacking ",
+	"incomingIn": " incoming in ",
+	"incomingClicks" : " clicks"
 }

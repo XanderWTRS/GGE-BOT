@@ -16,6 +16,13 @@ const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
 const { xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
 const { clientReady } = require('./discord.js')
 const { createLayout } = require("../../imageGen.js")
+const { I18n, __ } = require('i18n')
+
+const i18n = new I18n({
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
+  directory: path.join(__dirname, "..", "..", 'website', 'public', 'locales'),
+  updateFiles: false,
+})
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
@@ -112,7 +119,7 @@ clientReady.then(async client => {
                 return
             let content = `${mention}` +
                 "```ansi\n" +
-                `${attackerName} (${attackerArea}) from ${attackerAlliance} is attacking ${victimName} (${victimArea}) in ${kidName[movement.M.KID]} ${clicks} clicks` +
+                `${attackerName} (${attackerArea})${i18n.__("incomingFrom")}${attackerAlliance}${i18n.__("incomingIsAttacking")}${victimName} (${victimArea})${i18n.__("incomingIn")}${kidName[movement.M.KID]} ${clicks}${i18n.__("incomingClicks")}` +
                 "```" +
                 `<t:${Math.round(Date.now() / 1000 + time)}:R>`
             let data = {}
