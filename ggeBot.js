@@ -47,7 +47,7 @@ function mngLog(logLevel, msg) {
             return msg.message
 
         if(!(msg instanceof String))
-            return msg.toString()
+            return JSON.stringify(msg)
 
         return msg
     }).map(i18n.__).join('')}`)
