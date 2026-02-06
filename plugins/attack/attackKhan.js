@@ -67,11 +67,11 @@ if (require('node:worker_threads').isMainThread)
 
 const troopBlackList = [277, 34, 35]
 const err = require("../../err.json")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols.js')
+const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
-const { getCommanderStats } = require("../../getEquipment")
+const { getCommanderStats } = require("../../getEquipment.js")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
