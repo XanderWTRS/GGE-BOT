@@ -1,21 +1,15 @@
 
-
-const { isMainThread } = require('node:worker_threads')
-const name = "Outgoing"
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
                 type: "Channel",
-                label: "Channel ID",
                 key: "channelID",
             }
         ]
     }
 
-const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
+const { xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
 const { clientReady } = require('./discord')
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 

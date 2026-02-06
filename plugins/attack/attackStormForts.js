@@ -1,50 +1,44 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Attack Aqua Forts"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         pluginOptions: [
 
-            { type: "Label", label: "Easy Forts", md: 2 },
-            { type: "Checkbox", label: "Attack Level 60", key: "allowLvl60Easy", default: true },
-            { type: "Checkbox", label: "Attack Level 70", key: "allowLvl70Easy", default: true },
-            { type: "Checkbox", label: "Attack Level 80", key: "allowLvl80Easy", default: true },
+            { type: "Label", key: "easyForts", md: 2 },
+            { type: "Checkbox", key: "allowLvl60Easy", default: true },
+            { type: "Checkbox", key: "allowLvl70Easy", default: true },
+            { type: "Checkbox", key: "allowLvl80Easy", default: true },
             { type: "", md: 3},
             
-            { type: "Label", label: "Hard Forts", md: 2 },
-            { type: "Checkbox", label: "Attack Level 40", key: "allowLvl40", default: false },
-            { type: "Checkbox", label: "Attack Level 50", key: "allowLvl50", default: false },
-            { type: "Checkbox", label: "Attack Level 60", key: "allowLvl60", default: false },
-            { type: "Checkbox", label: "Attack Level 70", key: "allowLvl70", default: false },
-            { type: "Checkbox", label: "Attack Level 80", key: "allowLvl80", default: false },
+            { type: "Label", key: "hardForts", md: 2 },
+            { type: "Checkbox", key: "allowLvl40Hard", default: false },
+            { type: "Checkbox", key: "allowLvl50Hard", default: false },
+            { type: "Checkbox", key: "allowLvl60Hard", default: false },
+            { type: "Checkbox", key: "allowLvl70Hard", default: false },
+            { type: "Checkbox", key: "allowLvl80Hard", default: false },
 
-            { type: "Label", label: "Other" },
-            { type: "Checkbox", label: "Buy Coins", key: "buycoins", default: true },
-            { type: "Checkbox", label: "Buy Deco", key: "buydeco", default: false },
-            { type: "Checkbox", label: "Buy XP", key: "buyxp", default: false },
+            { type: "Label", key: "other" },
+            { type: "Checkbox", key: "buyCoins", default: true },
+            { type: "Checkbox", key: "buyDecoration", default: false },
+            { type: "Checkbox", key: "buyXP", default: false },
             {
                 type: "Checkbox",
-                label: "Use Feather",
                 key: "useFeather",
                 default: false
             },
-            { type: "Checkbox", label: "Use Coin", key: "useCoin", default: false },
+            { type: "Checkbox", key: "useCoin", default: false },
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             }
         ]
     }
 
 
-const { getCommanderStats } = require("../../getEquipment")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggebot")
-const getAreaCached = require('../../getmap.js')
+const { getCommanderStats } = require("../../getEquipment.js")
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols.js')
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
+const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
+const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -94,11 +88,11 @@ const type = AreaType.stormTower
 events.once("load", async () => {
     let allowedLevels = [];
     
-    if (pluginOptions["allowLvl40"]) allowedLevels.push(10)
-    if (pluginOptions["allowLvl50"]) allowedLevels.push(11)
-    if (pluginOptions["allowLvl60"]) allowedLevels.push(12)
-    if (pluginOptions["allowLvl70"]) allowedLevels.push(13)
-    if (pluginOptions["allowLvl80"]) allowedLevels.push(14)
+    if (pluginOptions["allowLvl40Hard"]) allowedLevels.push(10)
+    if (pluginOptions["allowLvl50Hard"]) allowedLevels.push(11)
+    if (pluginOptions["allowLvl60Hard"]) allowedLevels.push(12)
+    if (pluginOptions["allowLvl70Hard"]) allowedLevels.push(13)
+    if (pluginOptions["allowLvl80Hard"]) allowedLevels.push(14)
 
     if (pluginOptions["allowLvl60Easy"]) allowedLevels.push(7)
     if (pluginOptions["allowLvl70Easy"]) allowedLevels.push(8)
@@ -114,25 +108,25 @@ events.once("load", async () => {
             .castles.find(a => a.kingdomID == kid)
             .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
         
-        if (pluginOptions["buycoins"]) {
+        if (pluginOptions["buyCoins"]) {
             if (castleProd.aqua > 500000) {
                 castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`Buying Coins`)
+                console.info("broughtCoins")
             }
         }
-        if (pluginOptions["buydeco"]) {
+        if (pluginOptions["buyDecoration"]) {
             if (castleProd.aqua > 500000) {
                 castleProd.aqua -= 500000
                 sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`Buying Deco`)
+                console.info("broughtDeco")
             }
         }
-        if (pluginOptions["buyxp"]) {
+        if (pluginOptions["buyXP"]) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 10000
                 sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
-                console.info(`Got XP`)
+                console.info("broughtXP")
             }
         }
     })
@@ -301,7 +295,7 @@ events.once("load", async () => {
             if(attackInfo.result != 0)
                 throw err[attackInfo.result]
 
-            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -402,7 +396,7 @@ events.once("load", async () => {
         }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`Waiting ${Math.round(time / 1000)} for next possible fortress hit`)
+        console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

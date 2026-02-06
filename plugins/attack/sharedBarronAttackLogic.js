@@ -1,18 +1,14 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Barron"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
         hidden: true
     }
 
 const { getCommanderStats } = require("../../getEquipment")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave, boxMullerRandom, sleep } = require("./attack.js")
+const { Types, getResourceCastleList, ClientCommands, AreaType, spendSkip, KingdomID } = require('../../protocols')
+const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggebot")
-const getAreaCached = require('../../getmap.js')
+const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
+const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
 
 const units = require("../../items/units.json")
@@ -55,7 +51,7 @@ function spiralCoordinates(n) {
 
     return { x, y }
 }
-async function barronHit(name, type, kid, options) {
+async function barronHit(type, kid, options) {
     function getLevel(victorys, kid) {
         function getKingdomOffset(e) {
             let t = 0
@@ -107,7 +103,7 @@ async function barronHit(name, type, kid, options) {
             let skip = spendSkip(AI.extraData[2])
 
             if (skip == undefined)
-                throw new Error("Couldn't find skip")
+                throw new Error("couldntFindSkip")
 
             sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
             let [obj2, result2] = await waitForResult("msd", 7000, (obj, result) => {
@@ -154,7 +150,7 @@ async function barronHit(name, type, kid, options) {
         const commander = await waitForCommanderAvailable(comList)
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
-            const attackSentInfo = await waitToAttack(async () => {
+            const attackInfo = await waitToAttack(async () => {
                 const executionStartTime = Date.now() // Start timer for "human" interaction
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList()())
@@ -309,17 +305,15 @@ async function barronHit(name, type, kid, options) {
                 return { ...obj, attackInfo, result: r, executionDuration }
             })
             
-            if (!attackSentInfo) {
+            if (!attackInfo) {
                 freeCommander(commander.lordID)
                 return false
             }
-            if(attackSentInfo.result != 0) {
-                console.debug(`${JSON.stringify(attackSentInfo)}`)
-                throw err[attackSentInfo.result]
+            if(attackInfo.result != 0) {
+                console.debug(`${JSON.stringify(attackInfo)}`)
+                throw err[attackInfo.result]
             }
-            
-            console.info(`[${KingdomID[kid]}] Hitting target C${attackSentInfo.AAM.UM.L.VIS + 1} ${attackSentInfo.AAM.M.TA[1]}:${attackSentInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackSentInfo.AAM.M.TT - attackSentInfo.AAM.M.PT))), 's') + " till impact"}`)
-            console.debug(`(Setup: ${attackSentInfo.executionDuration}s)`)
+            console.info("hittingTargetAttack", KingdomID[kid], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -339,9 +333,7 @@ async function barronHit(name, type, kid, options) {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
-                    return true
                 case "ATTACK_TOO_MANY_UNITS":
-                    console.warn(`Math error (Too Many Units). Skipping this target to prevent crash.`)
                     return true
                 case "CANT_START_NEW_ARMIES":
                 default:
@@ -403,7 +395,7 @@ async function barronHit(name, type, kid, options) {
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info(`Waiting ${Math.round(time / 1000)} for next hit`)
+        console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

@@ -67,15 +67,15 @@ export default function UserSettings({ __, selectedUser, channels, plugins : plu
     }, [channels, pluginData, plugins, __])
 
     return (
-        <div onClick={event => event.stopPropagation()} style={{ maxWidth: '90vw', width: '800px' }}>
-            <Paper sx={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div onClick={event => event.stopPropagation()} style={{ width: 'max-content' }}>
+            <Paper sx={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', width: "80vw" }}>
                 <Box sx={{ p: 2, flexGrow: 1, overflowY: 'auto' }}>
-                    <FormGroup row={true} sx={{ mb: 2, gap: 2, display: 'flex', alignItems: 'center' }}>
-                        <TextField required size="small" label={__("Username")} value={name} onChange={e => setName(e.target.value)} disabled={!isNewUser} />
-                        <TextField required size="small" label={__("Password")} type='password' value={pass} onChange={e => setPass(e.target.value)} />
+                    <FormGroup row={true} sx={{ mb: 2, gap: 2}}>
+                        <TextField required size="small" label={__("username")} value={name} onChange={e => setName(e.target.value)} disabled={!isNewUser} />
+                        <TextField required size="small" label={__("password")} type='password' value={pass} onChange={e => setPass(e.target.value)} />
                         
-                        <FormControl size="small" style={{width: "150px"}}>
-                            <InputLabel id="simple-select-label">{__("Server")}</InputLabel>
+                        <FormControl size="small" style={{minWidth: "max-content"}}>
+                            <InputLabel required id="simple-select-label">{__("server")}</InputLabel>
                             <Select
                                 labelId="simple-select-label"
                                 id="simple-select"
@@ -83,7 +83,7 @@ export default function UserSettings({ __, selectedUser, channels, plugins : plu
                                 onChange={(newValue) => setServer(newValue.target.value)}
                             >
                                 {
-                                    instances.map((server, i) => <MenuItem value={server.id} key={`Server${i}`}>{lang[server.instanceLocaId] + ' ' + server.instanceName}</MenuItem>)
+                                    instances.map((server, i) => <MenuItem value={server.id} key={i}>{lang[server.instanceLocaId] + ' ' + server.instanceName}</MenuItem>)
                                 }
                             </Select>
                         </FormControl>
@@ -94,8 +94,7 @@ export default function UserSettings({ __, selectedUser, channels, plugins : plu
                 </Box>
                 
                 <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'flex-end', bgcolor: 'background.paper' }}>
-                    <Button variant="contained" color="primary"
-                        sx={{ minWidth: '100px' }}
+                    <Button variant="contained" color="primary" size='small'
                         onClick={async () => {
                             let obj = {
                                 name: name,
@@ -118,7 +117,7 @@ export default function UserSettings({ __, selectedUser, channels, plugins : plu
                             closeBackdrop()
                         }}
                     >
-                        {__("Save")}
+                        {__("save")}
                     </Button>
                 </Box>
             </Paper>

@@ -18,7 +18,8 @@ const { I18n } = require('i18n')
 
 const i18n = new I18n({
   locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
-  directory: path.join(__dirname, 'website', 'public', 'locales')
+  directory: path.join(__dirname, 'website', 'public', 'locales'),
+  updateFiles: false,
 })
 
 const clientOptions = { 
@@ -36,6 +37,8 @@ const clientOptions = {
 const client = new Client(clientOptions)
 
 console.info(i18n.__("startBanner"))
+
+console.warn("*IF YOU ARE CURRENTLY FACING ISSUES WITH THIS NEW VERSION PLEASE REINSTALL BOT!*")
 
 const ggeConfigExample = `{
     "webPort" : "3001",
@@ -278,8 +281,8 @@ async function start() {
   } catch {}
 
   const plugins = pluginData
-    .map(e => new Object({ key: path.basename(e[0]), filename: e[0], name: e[1].name, description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions, hidden: e[1].hidden }))
-    .sort((a, b) => (a.force ?? 0) - (b.force ?? 0)).filter(e => e != undefined)
+    .map(e => new Object({ key: path.basename(e[0]), filename: e[0], description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions, hidden: e[1].hidden }))
+    .sort((a, b) => (a.force ?? 0) - (b.force ?? 0))
 
   const loginCheck = uuid => 
     !!userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid ?? "")
@@ -408,7 +411,6 @@ async function start() {
       if (plugin.force) {
         data.plugins[plugin.key].state = true
       }
-      data.plugins[plugin.key].name = plugin.name
       if (data.plugins[plugin.key]?.state) {
         data.plugins[plugin.key].filename = plugin.filename
         plugin.pluginOptions?.forEach(option => {
@@ -471,7 +473,6 @@ async function start() {
           if (plugin.force) {
             data2.plugins[plugin.key].state = true
           }
-          data2.plugins[plugin.key].name = plugin.name
           if (data2.plugins[plugin.key]?.state) {
             data2.plugins[plugin.key].filename = plugin.filename
             plugin.pluginOptions?.forEach(option => {
@@ -490,7 +491,7 @@ async function start() {
         data2.gameServer ??= instance.gameServer
         data2.gameID ??= instance.gameID
 
-        const worker = new Worker('./ggebot.js', { workerData: { ...data2, discordData } })
+        const worker = new Worker('./ggeBot.js', { workerData: { ...data2, discordData } })
         worker.messageBuffer = messageBuffer
         worker.messageBufferCount = messageBufferCount
         worker.on('message', async obj => {
@@ -498,7 +499,7 @@ async function start() {
             case ActionType.GetLogs:
               if (!uuid)
                 break
-              worker.messageBuffer[worker.messageBufferCount] = obj[1]
+              worker.messageBuffer[worker.messageBufferCount] = [obj[1], obj[2]]
               worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
               loggedInUsers[uuid]?.forEach(o => {
                 if (o.viewedUser == user.id)
@@ -536,7 +537,7 @@ async function start() {
       }
     }
 
-    const worker = new Worker('./ggebot.js', { workerData: { ...data, discordData } })
+    const worker = new Worker('./ggeBot.js', { workerData: { ...data, discordData } })
 
     worker.messageBuffer = messageBuffer
     worker.messageBufferCount = messageBufferCount
@@ -572,7 +573,8 @@ async function start() {
               ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
           break
         case ActionType.GetLogs:
-          worker.messageBuffer[worker.messageBufferCount] = obj[1]
+            // console.log("logged something")
+          worker.messageBuffer[worker.messageBufferCount] = [obj[1],obj[2]]
           worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
           loggedInUsers[uuid]?.forEach(o => 
               o.viewedUser == user.id ? o.ws.send(JSON.stringify([
@@ -584,7 +586,7 @@ async function start() {
         case ActionType.StatusUser:
           obj[1].id = user.id
           loggedInUsers[uuid]?.forEach(o =>
-            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.StatusUser, obj[1]])))
+            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.StatusUser, [obj[1], obj[2]]])))
           break
         case ActionType.RemoveUser:
           worker.off('exit', onTerminate)
@@ -775,7 +777,6 @@ async function start() {
                   if (plugin.force) {
                     data.plugins[plugin.key].state = true
                   }
-                  data.plugins[plugin.key].name = plugin.name
                   if (data.plugins[plugin.key]?.state) {
                     data.plugins[plugin.key].filename = plugin.filename
                     plugin.pluginOptions?.forEach(option => {

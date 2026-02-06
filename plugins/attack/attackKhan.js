@@ -1,15 +1,8 @@
-const { isMainThread } = require('node:worker_threads')
-
-const name = "Attack Khan"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Hits khan camps (NOT RESPONSIBLE)",
         pluginOptions: [
             {
                 type: "Select",
-                label: "Event Difficulty",
                 key: "eventDifficulty",
                 selection: [
                     "Easy",
@@ -24,58 +17,49 @@ if (isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default: 3
+                default: "3"
             },
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             },
             {
                 type: "Checkbox",
-                label: "Use event Wall Tools first",
-                key: "eventWallToolsfirst"
+                key: "eventWallToolsFirst"
             },
             {
                 type: "Checkbox",
-                label: "Lowest value chests first",
                 key: "lowValueChests",
                 default: false
             },
             {
                 type: "Text",
-                label: "Waves till chest",
                 key: "wavesTillChests",
                 default: 4
             },
             {
                 type: "Checkbox",
-                label: "Use Feather",
                 key: "useFeather",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Coin",
                 key: "useCoin",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "No chests",
                 key: "noChests",
                 default: false
             },
             {
                 type: "Checkbox",
-                label: "Use Food",
                 key: "useFood",
                 default: true
             },
             {
                 type: "Text",
-                label: "Nomad score shutoff",
-                key: "nomadsScoreShutoff"
+                key: "scoreShutoff"
             }
         ]
 
@@ -83,11 +67,11 @@ if (isMainThread)
 
 const troopBlackList = [277, 34, 35]
 const err = require("../../err.json")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols')
-const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggebot")
-const { getCommanderStats } = require("../../getEquipment")
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, KingdomID } = require('../../protocols.js')
+const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
+const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
+const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
+const { getCommanderStats } = require("../../getEquipment.js")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
@@ -109,7 +93,7 @@ const skipTarget = async AI => {
         let skip = spendSkip(AI[5])
 
         if (skip == undefined)
-            throw new Error("Couldn't find skip")
+            throw new Error("couldntFindSkip")
 
         sendXT("msd", JSON.stringify({ X: AI[1], Y: AI[2], MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || obj.AI[0] == type)
@@ -152,9 +136,9 @@ xtHandler.on("rpr", obj => {
 
     if (obj.PCRP >= campRageNeeded) {
         if (rage > campRageNeeded)
-            console.warn(`Rage is higher than expected`)
+            console.warn("rageTooHigh")
 
-        console.info(`Rage trigger`)
+        console.info("rageTrigger")
         sendXT("lta", JSON.stringify({ AV: 0, EID: eventID }))
     }
 })
@@ -172,7 +156,7 @@ xtHandler.on("pep", obj => {
         return
 
     if (nomadsPoints >= pluginOptions.nomadsScoreShutoff) {
-        console.log(`Shutting down reason: Score reached.`)
+        console.log("shuttingDownEvent", "scoreReached")
         quit = true
     }
 })
@@ -183,7 +167,7 @@ events.on("eventStop", eventInfo => {
     if(quit)
         return
 
-    console.log(`Shutting down reason: Event ended.`)
+    console.log("shuttingDownEvent", "eventEnded")
     quit = true
 })
 events.on("eventStart", async eventInfo => {
@@ -373,7 +357,7 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if (!pluginOptions.noChests) {
                         const selectTool = i => {
-                            let tools = pluginOptions.eventWallToolsfirst ? [] : attackerBannerKhanTools
+                            let tools = pluginOptions.eventWallToolsFirst ? [] : attackerBannerKhanTools
                             if (pluginOptions.wavesTillChests <= index) {
                                 tools = attackerNomadTools
                                 if (tools.length == 0) {
@@ -452,8 +436,7 @@ events.on("eventStart", async eventInfo => {
             }
             if (attackInfo.result != 0)
                 throw err[attackInfo.result]
-
-            console.info(`Hitting target C${attackInfo.AAM.UM.L.VIS + 1} ${attackInfo.AAM.M.TA[1]}:${attackInfo.AAM.M.TA[2]} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's') + " till impact"}`)
+            console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {

@@ -22,44 +22,46 @@ import FormControlLabel from '@mui/material/FormControlLabel'
 import Slider from '@mui/material/Slider'
 import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
-function PluginOption ({pluginData, onChange : onUserPluginChange, channels, userPlugins: userPlugins, plugin, __}) {
-    const array_chunks = (array, chunk_size) => Array(Math.ceil(array.length / chunk_size)).fill().map((_, index) => index * chunk_size).map(begin => array.slice(begin, begin + chunk_size))
+import { Container } from '@mui/material'
 
-    userPlugins[plugin.key][pluginData.key] ??= pluginData.default
+function PluginOption({ pluginData, onChange: onUserPluginChange, channels, userPlugins: userPlugins, plugin, __ }) {
     const [value, setValue] = React.useState(userPlugins[plugin.key][pluginData.key])
 
-    const onChange = (newValue) => {
-        userPlugins[plugin.key][pluginData.key] = newValue
-        setValue(newValue)
+    userPlugins[plugin.key][pluginData.key] ??= pluginData.default
+
+    const onChange = value => {
+        userPlugins[plugin.key][pluginData.key] = value
+        setValue(value)
         onUserPluginChange(userPlugins)
     }
     switch (pluginData.type) {
         case "":
             return <></>
         case "Label":
-            return <Typography variant="subtitle2" sx={{ width: '100%', borderBottom: '1px solid rgba(144, 202, 249, 0.3)', pb: 0.2, mb: 0.2, color: '#90caf9', mt: 0.5, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.7rem' }}>{__(pluginData.label)}</Typography>
+            return <Typography variant="subtitle2" sx={{ width: '100%', borderBottom: '1px solid rgba(144, 202, 249, 0.3)', pb: 0.2, mb: 0.2, color: '#90caf9', mt: 0.5, fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.7rem' }}>{__(pluginData.key)}</Typography>
         case "Text":
             return <TextField
                 fullWidth
-                label={__(pluginData.label)}
+                label={__(pluginData.key)}
                 variant="outlined"
                 size="small"
-                key={pluginData.label}
+                key={pluginData.key}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={e => onChange(e.target.value)}
                 sx={{ '& .MuiInputBase-root': { fontSize: '0.75rem' }, '& .MuiInputLabel-root': { fontSize: '0.75rem' }, my: 0.5 }}
             />
         case "Checkbox":
             return <FormControlLabel
                 control={<Checkbox size="small" sx={{ p: 0.5, color: '#90caf9', '&.Mui-checked': { color: '#90caf9' } }} />}
-                label={<Typography variant="body2" sx={{ fontSize: '0.75rem' }}>{__(pluginData.label)}</Typography>}
-                key={pluginData.label}
-                checked={value}
+                label={<Typography variant="body2" sx={{ fontSize: '0.75rem' }}>{__(pluginData.key)}</Typography>}
+                key={pluginData.key}
+                checked={Boolean(value)}
                 onChange={(_, newValue) => onChange(newValue)}
                 sx={{ mr: 1, ml: 0, '& .MuiFormControlLabel-label': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }}
             />
         case "Table":
-            return <TableContainer component={Paper} elevation={0} sx={{ bgcolor: 'rgba(0,0,0,0.1)', mt: 0.5, maxHeight: '200px', overflow: 'auto' }}>
+            const array_chunks = (array, chunk_size) => Array(Math.ceil(array.length / chunk_size)).fill().map((_, index) => index * chunk_size).map(begin => array.slice(begin, begin + chunk_size))
+            return <TableContainer component={Paper} elevation={0} sx={{ bgcolor: 'rgba(0,0,0,0.1)', mt: 0.5 }}>
                 <Table aria-label="simple table" size="small" stickyHeader>
                     <TableHead>
                         <TableRow>
@@ -68,12 +70,12 @@ function PluginOption ({pluginData, onChange : onUserPluginChange, channels, use
                     </TableHead>
                     <TableBody>
                         {
-                            array_chunks(pluginData.data, pluginData.row.length).map((e, idx) =>
-                                <TableRow key={`${pluginData.key}R${idx}`}>
+                            array_chunks(pluginData.data, pluginData.row.length).map((e, i) =>
+                                <TableRow key={i}>
                                     {
                                         e.map((pluginData, i) =>
-                                            <TableCell key={pluginData.key + `${i}`} sx={{ py: 0.5 }}>
-                                                <PluginOption pluginData={pluginData} onChange={onUserPluginChange} channels={channels} userPlugins={userPlugins} __={__} plugin={plugin}/>
+                                            <TableCell key={i} sx={{ py: 0.5 }}>
+                                                <PluginOption pluginData={pluginData} onChange={onUserPluginChange} channels={channels} userPlugins={userPlugins} __={__} plugin={plugin} />
                                             </TableCell>)
                                     }
                                 </TableRow>)
@@ -83,21 +85,21 @@ function PluginOption ({pluginData, onChange : onUserPluginChange, channels, use
             </TableContainer>
         case "Channel":
             return <FormControl fullWidth size="small" sx={{ my: 0.5 }}>
-                <InputLabel sx={{ fontSize: '0.75rem' }}>{__(pluginData.label)}</InputLabel>
-                <Select value={value} label={pluginData.label} onChange={(newValue) => onChange(newValue.target.value)} sx={{ fontSize: '0.75rem' }}>
+                <InputLabel sx={{ fontSize: '0.75rem' }}>{__(pluginData.key)}</InputLabel>
+                <Select value={value} label={pluginData.key} onChange={(newValue) => onChange(newValue.target.value)} sx={{ fontSize: '0.75rem' }}>
                     {channels?.map((channel, i) => <MenuItem value={channel.id} key={i} sx={{ fontSize: '0.75rem' }}>{channel.name}</MenuItem>)}
                 </Select>
             </FormControl>
         case "Select":
             return <FormControl fullWidth size="small" sx={{ my: 0.5 }}>
-                <InputLabel sx={{ fontSize: '0.75rem' }}>{__(pluginData.label)}</InputLabel>
-                <Select value={value} label={pluginData.label} onChange={(newValue) => onChange(newValue.target.value)} sx={{ fontSize: '0.75rem' }}>
-                    {pluginData.selection.map((e, i) => <MenuItem value={i} key={e} sx={{ fontSize: '0.75rem' }}>{e}</MenuItem>)}
+                <InputLabel sx={{ fontSize: '0.75rem' }}>{__(pluginData.key)}</InputLabel>
+                <Select value={value} label={pluginData.key} onChange={(newValue) => onChange(newValue.target.value)} sx={{ fontSize: '0.75rem' }}>
+                    {pluginData.selection.map((e, i) => <MenuItem value={i} key={i} sx={{ fontSize: '0.75rem' }}>{e}</MenuItem>)}
                 </Select>
             </FormControl>
         case "Slider":
             return <Box sx={{ display: "flex", alignItems: "center", width: '100%', my: 0.5 }}>
-                <Typography variant="body2" sx={{ mr: 1, fontSize: '0.75rem' }}>{__(pluginData.label)}</Typography>
+                <Typography variant="body2" sx={{ mr: 1, fontSize: '0.75rem' }}>{__(pluginData.key)}</Typography>
                 <Slider size="small" sx={{ flexGrow: 1 }} value={value} onChange={(_, newValue) => onChange(newValue)} />
                 <Typography variant="body2" sx={{ ml: 1, minWidth: '25px', fontSize: '0.75rem' }}>{`${value}%`}</Typography>
             </Box>
@@ -105,105 +107,96 @@ function PluginOption ({pluginData, onChange : onUserPluginChange, channels, use
             return null
     }
 }
+const PluginOptionContainer = ({ plugin, onChange, channels, userPlugins, __ }) =>
+    <>
+    <Typography sx={{ width: '100%', pb: 0.2, mb: 0.2, mt: 0.5, fontWeight: 'bold', fontSize: '0.85rem' }}>{__(plugin.key)}</Typography>
+        {
+            plugin?.pluginOptions?.map((pluginData, index) => {
+                const getGridSize = obj => {
+                    obj = Object.assign(obj.type === 'Checkbox' ? { xs: 6, sm: 4, md: 3, lg: 2 } : { xs: 12, sm: 6, md: 4 }, obj)
+                    delete obj.key
+                    return obj
+                }
 
-function Plugin({plugin, onChange, __, userPlugins, channel}) {
+                return (
+                    // <Container item {...getGridSize(pluginData)}  key={index}>
+                    <PluginOption pluginData={pluginData} onChange={onChange}  key={index} channels={channels} userPlugins={userPlugins} __={__} plugin={plugin} />
+                    // {/* </Container> */}
+                )
+            })
+        }
+    </>
+function Plugin({ plugin, onChange, __, userPlugins, selectedPlugin, setSelectedPlugin }) {
     userPlugins[plugin.key] ??= {}
-    const [open, setOpen] = React.useState(false)
     const [state, setState] = React.useState(userPlugins[plugin.key]?.state)
-
+    function onClick() {
+        if(plugin.pluginOptions?.length > 0)
+            setSelectedPlugin(plugin)
+    }
     return (
-        <>
-            <TableRow sx={{ '&:nth-of-type(odd)': { backgroundColor: 'rgba(255, 255, 255, 0.03)' }, '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
-                <TableCell>
-                    {
-                        plugin?.pluginOptions ? (
-                            <IconButton
-                                aria-label="expand row"
-                                size="small"
-                                onClick={() => setOpen(!open)}
-                                sx={{ color: '#90caf9' }}
-                            >
-                                {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                            </IconButton>
-                        ) : undefined
-                    }
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>{__(plugin.name)}</TableCell>
-                <TableCell>{__(plugin.description)}</TableCell>
-                <TableCell align='right'>
-                    {!plugin.force ?
-                        <Button
-                            variant={state ? "contained" : "outlined"}
-                            color={state ? "error" : "success"}
-                            size="small"
-                            sx={{ minWidth: '70px', height: '28px', fontSize: '0.75rem' }}
-                            onClick={() => {
-                                setState(!state)
-                                userPlugins[plugin.key].state = !state
-                                onChange(userPlugins)
-                            }}>
-                            {state ? "Stop" : "Start"}
-                        </Button> :
-                        <span style={{ color: '#666', fontSize: '0.8rem', marginRight: '10px' }}>System</span>
-                    }
-                </TableCell>
-            </TableRow>
-            <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0, borderBottom: open ? '1px solid rgba(81, 81, 81, 1)' : 'unset' }} colSpan={4} >
-                    <Collapse in={open} timeout="auto" unmountOnExit>
-                        {/* Ayarlar Kutusu: Daha Kompakt ve Scroll edilebilir */}
-                        <Box sx={{ p: 1, m: 0.5, ml: 2, bgcolor: 'rgba(0, 0, 0, 0.2)', borderRadius: 1, border: '1px solid rgba(255, 255, 255, 0.08)', maxHeight: '40vh', overflowY: 'auto', '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { backgroundColor: '#555', borderRadius: '3px' } }}>
-                            <Grid container columnSpacing={1} rowSpacing={0.5} alignItems="center">
-                                {plugin?.pluginOptions?.map((pluginData) => {
-
-                                    // Grid boyutlandırma (Daha kompakt)
-                                    const getGridSize = obj => {
-                                        obj = Object.assign(obj.type === 'Checkbox' ? { xs: 6, sm: 4, md: 3, lg: 2 } : { xs: 12, sm: 6, md: 4 }, obj)
-                                        delete obj.key
-                                        return obj
-                                    }
-
-                                    const gridSize = getGridSize(pluginData)
-                                    return (
-                                        <Grid item {...gridSize} sx={{ overflow: 'hidden' }} key={plugin.key + "G"}>
-                                            <PluginOption pluginData={pluginData} onChange={onChange} channel={channel} userPlugins={userPlugins} __={__} plugin={plugin} />
-                                        </Grid>
-                                    )
-                                })}
-                            </Grid>
-                        </Box>
-                    </Collapse>
-                </TableCell>
-            </TableRow>
-        </>
+        <TableRow
+            sx={ plugin != selectedPlugin ? {
+                '&:nth-of-type(odd)': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)'
+                },
+                '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                }
+                
+            }: {
+                backgroundColor: "#375377"
+            }}>
+            <TableCell onClick={onClick} sx={{ fontWeight: 'bold'}}>{__(plugin.key)}</TableCell>
+            <TableCell align='right'>
+                {!plugin.force ?
+                    <Button
+                        variant={state ? "contained" : "outlined"}
+                        color={state ? "error" : "success"}
+                        size="small"
+                        sx={{ minWidth: '70px', height: '28px', fontSize: '0.75rem' }}
+                        onClick={() => {
+                            setState(!state)
+                            userPlugins[plugin.key].state = !state
+                            onChange(userPlugins)
+                        }}>
+                        {__(state ? "stop" : "start")}
+                    </Button> : <Button
+                        size="small"
+                        sx={{ minWidth: '70px', height: '28px', fontSize: '0.75rem' }}
+                        disabled />
+                }
+            </TableCell>
+        </TableRow>
     )
 }
-export default function PluginsTable({ __, userPlugins, onChange, plugins, channel }) {
+export default function PluginsTable({ __, userPlugins, onChange, plugins, channels }) {
+    const [selectedPlugin, setSelectedPlugin] = React.useState(undefined) //, maxHeight: "40vh"
+
     return (
-        <Paper elevation={3} style={{ height: '100%', width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#1e1e1e' }}>
-            <TableContainer sx={{ flexGrow: 1, height : "100%", width : "100%", overflowY: 'auto', overflowX: 'hidden' }}>
-                <Table stickyHeader aria-label="plugins table">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell style={{ width: 50, backgroundColor: '#2d2d2d', color: '#90caf9' }}></TableCell>
-                            <TableCell style={{ backgroundColor: '#2d2d2d', color: '#90caf9', fontWeight: 'bold' }}>Name</TableCell>
-                            <TableCell style={{ backgroundColor: '#2d2d2d', color: '#90caf9', fontWeight: 'bold' }}>Description</TableCell>
-                            <TableCell align='right' style={{ backgroundColor: '#2d2d2d', color: '#90caf9' }}>Status</TableCell>
-                        </TableRow>
-                    </TableHead>
+        <Paper elevation={3} style={{ minHeight: "45vh", maxHeight: "65vh", backgroundColor: '#131313', display:"flex", flexDirection:"column"}} >
+            <TableContainer sx={{ scrollbarColor: "#5e6269 #2d2f31"}}>
+                <Table aria-label="plugins table">
                     <TableBody>
-                        {plugins.map(plugin =>
+                        {plugins.map((plugin, index) =>
                             <Plugin
                                 plugin={plugin}
                                 onChange={onChange}
-                                key={plugin.key}
+                                key={index}
                                 userPlugins={userPlugins}
                                 __={__}
-                                channel={channel}
+                                selectedPlugin={selectedPlugin}
+                                setSelectedPlugin={setSelectedPlugin}
                             />)}
                     </TableBody>
                 </Table>
             </TableContainer>
+            <Container sx={{scrollbarColor: "#5e6269 #2d2f31", minWidth:"100%", minHeight: "25vh", maxHeight: "25vh", overflowY:"auto", flex: "0 0 90%", borderTop: "solid #1b1b1b 3px"}}>
+                {
+                    selectedPlugin ?
+                        <PluginOptionContainer onChange={onChange} userPlugins={userPlugins} channels={channels} __={__} plugin={selectedPlugin} /> :
+                        undefined
+                }
+            </Container>
         </Paper>
     )
 }

@@ -1,26 +1,18 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Feast"
-
-if (isMainThread) {
+if (require('node:worker_threads').isMainThread) {
     module.exports = {
-        name: name,
-        description: "Triggers feast",
         pluginOptions: [
             {
                 type: "Text",
-                label: "Feast Food Reduction",
                 key: "feastFoodReduction",
                 default: 150000
             },
             {
                 type: "Text",
-                label: "Minimum Food",
                 key: "minimumFood",
                 default: 150000
             },
             {
                 type: "Text",
-                label: "Minimum Food rate",
                 key: "minimumFoodRate",
                 default: 0
             },
@@ -29,10 +21,9 @@ if (isMainThread) {
     return
 }
 
-const { events, botConfig } = require("../ggebot")
-
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const { ClientCommands, getResourceCastleList, KingdomID, AreaType } = require("../protocols.js")
+const { events, botConfig } = require("../ggeBot.js")
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const feastFoodReduction = pluginOptions.feastFoodReduction ? Number(pluginOptions.feastFoodReduction): 150000
 const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood): 150000
 const minimumFoodRate = pluginOptions.minimumFoodRate ? Number(pluginOptions.minimumFoodRate) : 0
@@ -65,8 +56,8 @@ events.once("load", async () => {
     })
 
     if (feasts > 0)
-        console.log(`Feasted ${feastFoodReduction * feasts} food`)
+        console.log("consumed", feastFoodReduction * feasts)
     else {
-        console.log(`Not enough food to feast`)
+        console.log("notEnoughFoodToFeast")
     }
 })

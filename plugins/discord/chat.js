@@ -1,19 +1,13 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Chat"
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
                 type: "Channel",
-                label: "Channel ID",
                 key: "channelID",
             },
 
             {
                 type: "Checkbox",
-                label: "Hide Discord Name",
                 key: "hideDiscordName",
                 default: false
             }
@@ -22,7 +16,7 @@ if (isMainThread)
 
 const turl = require('turl')
 const emoji = require("emoji-dictionary")
-const { xtHandler, sendXT, botConfig } = require("../../ggebot")
+const { xtHandler, sendXT, botConfig } = require("../../ggeBot.js")
 const { clientReady } = require('./discord')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}

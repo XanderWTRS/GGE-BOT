@@ -1,10 +1,9 @@
-const name = "Slash Commands"
 if (require('node:worker_threads').isMainThread)
-    return module.exports = { name }
+    return module.exports = {}
 
 const { Events, SlashCommandBuilder, Interaction } = require('discord.js')
-const { client, clientReady, commands } = require('./discord')
-const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggebot")
+const { client, clientReady, commands } = require('./discord.js')
+const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggeBot.js")
 const { ClientCommands, HighscoreType, AreaType } = require('../../protocols.js')
 const ggeConfig = require("../../ggeConfig.json")
 

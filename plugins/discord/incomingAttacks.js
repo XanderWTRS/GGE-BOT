@@ -1,26 +1,20 @@
-const { isMainThread } = require('node:worker_threads')
-const name = "Alert"
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Intergrates Discord & GGE Chat",
         pluginOptions: [
             {
                 type: "Channel",
-                label: "Channel ID",
                 key: "channelID",
             },            {
                 type: "Channel",
-                label: "Channel ID Aqua",
-                key: "channelIDAqua",
+                key: "StormChannelID",
             }
         ]
     }
 
 const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
 
-const { xtHandler, botConfig, playerInfo } = require("../../ggebot")
-const { clientReady } = require('./discord')
+const { xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
+const { clientReady } = require('./discord.js')
 const { createLayout } = require("../../imageGen.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
@@ -33,15 +27,15 @@ clientReady.then(async client => {
      channelAlert = await client.channels.fetch(pluginOptions.channelID)
     }
     catch (e) {
-        console.warn(`${e}`)
+        console.warn(e)
     }
     let channelAquaAlert
     try {
         if (pluginOptions.channelAquaAlert)
-            channelAquaAlert = await client.channels.fetch(pluginOptions.channelIDAqua)
+            channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
     }
     catch (e) {
-        console.warn(`${e}`)
+        console.warn(e)
     }
 
     xtHandler.on("gam", func = obj => {

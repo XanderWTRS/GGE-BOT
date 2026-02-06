@@ -1,22 +1,15 @@
-const { isMainThread } = require('node:worker_threads')
-
-const name = "Attack Fortress (Everwinter Glacier)"
-
-if (isMainThread)
+if (require('node:worker_threads').isMainThread)
     return module.exports = {
-        name: name,
-        description: "Hits fortresses",
         pluginOptions: [
             {
                 type: "Text",
-                label: "Com White List",
                 key: "commanderWhiteList"
             }
         ]
     }
 
-const { AreaType, KingdomID } = require('../../protocols')
-const { botConfig, events } = require('../../ggebot.js')
+const { KingdomID } = require('../../protocols.js')
+const { botConfig, events } = require('../../ggeBot.js')
 const fortressHit = require('./sharedFortressAttackLogic.js')
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
@@ -24,4 +17,4 @@ const kid = KingdomID.everWinterGlacier
 const level = 20
 
 events.on("load", () => 
-    fortressHit(name, kid, level, pluginOptions))
+    fortressHit(kid, level, pluginOptions))

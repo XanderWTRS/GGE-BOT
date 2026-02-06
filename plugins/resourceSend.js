@@ -1,15 +1,11 @@
-const {isMainThread} = require('node:worker_threads')
-const name = "Res Send"
-if(isMainThread)
+if(require('node:worker_threads').isMainThread)
 {
     module.exports = {
-        name : name,
-        description : "Sends stone and wood to other kingdoms"
     }
     return
 }
 
-const { events } = require("../ggebot.js")
+const { events } = require("../ggeBot.js")
 
 const {
     ClientCommands,
@@ -28,7 +24,7 @@ events.once("load", async () => {
 
         let kingdomInfoList = await getKingdomInfoList()
         if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-            return console.warn(`refusing to run without Storm Islands unlocked`)
+            return console.warn("wontRunWithoutStormUnlocked")
 
         kingdoms:
         for (let i = 0; i < dcl.castles.length; i++) {
@@ -68,7 +64,7 @@ events.once("load", async () => {
 
                 stormAreaInfo.wood -= maxWoodToSend
                 stormAreaInfo.stone -= maxStoneToSend
-                console.log(`Sent ${JSON.stringify(G)} to ${KingdomID[kingdom.kingdomID]}`)
+                console.log("sentResSend", JSON.stringify(G), "toResSend", KingdomID[kingdom.kingdomID])
             }            
         }
     }
