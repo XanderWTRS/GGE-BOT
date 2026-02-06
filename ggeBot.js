@@ -40,12 +40,15 @@ function mngLog(logLevel, msg) {
 
     let message = [`[${hours + ':' + minutes}] `, '[', `${scriptName}`, '] ']
 
-    if (msg instanceof Error) {
-        message.push(msg.message)
-    }
+    _console.log(`[${botConfig.name}] ${message.map(msg => {
+        if(msg instanceof Error)
+            return msg.message
 
-    message.push(...msg)
-    _console.log(`[${botConfig.name}] ${message.map(i18n.__).join('')}`)
+        if(!msg instanceof String)
+            return msg.toString()
+
+        return msg
+    }).map(i18n.__).join('')}`)
     parentPort.postMessage([ActionType.GetLogs, logLevel, message])
 }
 if (!botConfig.internalWorker) {
