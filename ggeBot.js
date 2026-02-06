@@ -44,7 +44,7 @@ function mngLog(logLevel, msg) {
         if(msg instanceof Error)
             return msg.message
 
-        if(!msg instanceof String)
+        if(!(msg instanceof String))
             return msg.toString()
 
         return msg
