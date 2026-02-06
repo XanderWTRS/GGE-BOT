@@ -40,6 +40,8 @@ function mngLog(logLevel, msg) {
 
     let message = [`[${hours + ':' + minutes}] `, '[', `${scriptName}`, '] ']
 
+    message.push(...msg)
+
     _console.log(`[${botConfig.name}] ${message.map(msg => {
         if(msg instanceof Error)
             return msg.message
