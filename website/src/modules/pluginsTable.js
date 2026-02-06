@@ -107,7 +107,7 @@ function PluginOption({ pluginData, onChange: onUserPluginChange, channels, user
             return null
     }
 }
-const PluginOptionContainer = ({ plugin, onChange, channel, userPlugins, __ }) =>
+const PluginOptionContainer = ({ plugin, onChange, channels, userPlugins, __ }) =>
     <>
     <Typography sx={{ width: '100%', pb: 0.2, mb: 0.2, mt: 0.5, fontWeight: 'bold', fontSize: '0.85rem' }}>{__(plugin.key)}</Typography>
         {
@@ -120,7 +120,7 @@ const PluginOptionContainer = ({ plugin, onChange, channel, userPlugins, __ }) =
 
                 return (
                     // <Container item {...getGridSize(pluginData)}  key={index}>
-                    <PluginOption pluginData={pluginData} onChange={onChange}  key={index} channel={channel} userPlugins={userPlugins} __={__} plugin={plugin} />
+                    <PluginOption pluginData={pluginData} onChange={onChange}  key={index} channels={channels} userPlugins={userPlugins} __={__} plugin={plugin} />
                     // {/* </Container> */}
                 )
             })
@@ -169,7 +169,7 @@ function Plugin({ plugin, onChange, __, userPlugins, selectedPlugin, setSelected
         </TableRow>
     )
 }
-export default function PluginsTable({ __, userPlugins, onChange, plugins, channel }) {
+export default function PluginsTable({ __, userPlugins, onChange, plugins, channels }) {
     const [selectedPlugin, setSelectedPlugin] = React.useState(undefined) //, maxHeight: "40vh"
 
     return (
@@ -184,7 +184,6 @@ export default function PluginsTable({ __, userPlugins, onChange, plugins, chann
                                 key={index}
                                 userPlugins={userPlugins}
                                 __={__}
-                                channel={channel}
                                 selectedPlugin={selectedPlugin}
                                 setSelectedPlugin={setSelectedPlugin}
                             />)}
@@ -194,7 +193,7 @@ export default function PluginsTable({ __, userPlugins, onChange, plugins, chann
             <Container sx={{scrollbarColor: "#5e6269 #2d2f31", minWidth:"100%", minHeight: "25vh", maxHeight: "25vh", overflowY:"auto", flex: "0 0 90%", borderTop: "solid #1b1b1b 3px"}}>
                 {
                     selectedPlugin ?
-                        <PluginOptionContainer onChange={onChange} userPlugins={userPlugins} channel={channel} __={__} plugin={selectedPlugin} /> :
+                        <PluginOptionContainer onChange={onChange} userPlugins={userPlugins} channels={channels} __={__} plugin={selectedPlugin} /> :
                         undefined
                 }
             </Container>

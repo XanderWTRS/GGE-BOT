@@ -46,9 +46,6 @@ function mngLog(logLevel, msg) {
         if(msg instanceof Error)
             return msg.message
 
-        if(!(msg instanceof String))
-            return JSON.stringify(msg)
-
         return msg
     })
 
