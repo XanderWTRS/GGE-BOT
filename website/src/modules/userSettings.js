@@ -52,19 +52,14 @@ for (var key in _instances) {
         instances.push({id: obj.getAttribute("value"),server,zone,instanceLocaId,instanceName})
 }
 
-export default function UserSettings({ __, selectedUser, channels, plugins : pluginData, ws, closeBackdrop }) {
+export default function UserSettings({ __, selectedUser, channels, plugins, ws, closeBackdrop }) {
     selectedUser.name ??= ""
+    selectedUser.plugins ??= {}
     const isNewUser = selectedUser.name === ""
     const [name, setName] = React.useState(selectedUser.name)
     const [pass, setPass] = React.useState("")
-    const [plugins, setPlugins] = React.useState(selectedUser.plugins ?? {})
     const [server, setServer] = React.useState(selectedUser.server ?? instances[0].id)
     const [externalEvent, setExternalEvent] = React.useState(selectedUser.externalEvent)
-
-    const pluginTable = React.useMemo(() => {
-        return <PluginsTable plugins={pluginData} userPlugins={plugins} channels={channels} 
-                    onChange={ e => setPlugins(e)} __={__} />
-    }, [channels, pluginData, plugins, __])
 
     return (
         <div onClick={event => event.stopPropagation()} style={{ width: 'max-content' }}>
@@ -89,8 +84,7 @@ export default function UserSettings({ __, selectedUser, channels, plugins : plu
                         </FormControl>
                         <FormControlLabel sx={{ m: 0 }} control={<Checkbox size="small" />} checked={externalEvent} onChange={e => setExternalEvent(e.target.checked)} label={<Typography variant="body2">OR/BTH</Typography>} />
                     </FormGroup>
-                    
-                    {pluginTable}
+                    <PluginsTable plugins={plugins} userPlugins={selectedUser.plugins} channels={channels}  __={__} />
                 </Box>
                 
                 <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'flex-end', bgcolor: 'background.paper' }}>
@@ -100,7 +94,7 @@ export default function UserSettings({ __, selectedUser, channels, plugins : plu
                                 name: name,
                                 pass: pass,
                                 server: server,
-                                plugins: plugins,
+                                plugins: selectedUser.plugins,
                                 externalEvent: externalEvent
                             }
                             if (!isNewUser) {

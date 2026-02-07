@@ -395,7 +395,7 @@ const GetProductionData = e => ({
     offensiveToolProductionSpeed: Number(e.RS2),
     defensiveToolProductionSpeed: Number(e.RS3),
     hospitalProductionSpeed: Number(e.RSH),
-    buildSpeedBoost: Number(e.BDB),
+    buildSpeedBoost: Number(e.BDB) / 100, //Could be an issue float point integer
     //Beri or other sea event
     maxUnitStorage: Number(e.US),
     hasRoyalCaptialBuff: Boolean(e.RCP),
