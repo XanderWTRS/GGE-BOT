@@ -150,8 +150,7 @@ function PlayerTable({ setLanguage, __, languageCode, rows, usersStatus, ws, cha
                         const [state, setState] = React.useState(row.state)
                         row.state = state
 
-                        let status = usersStatus[row.id]
-                        status ??= {}
+                        let status = usersStatus[row.id] ?? {}
                         return (<TableRow style={status?.hasError ? { border: "red solid 2px" } : {}}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
