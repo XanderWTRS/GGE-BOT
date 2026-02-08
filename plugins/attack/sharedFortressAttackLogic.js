@@ -265,12 +265,15 @@ async function fortressHit(kid, level, options) {
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
         let gaa 
-        try {
-            gaa = await getAreaCached(kid, rect.x, rect.y, rect.w, rect.h)
-        }
-        catch {
-            continue
-        }
+        let attemptsLeft = 5
+        do {
+            try {
+                gaa = await getAreaCached(kid, rect.x, rect.y, rect.w, rect.h)
+            }
+            catch { attemptsLeft-- }
+            if(attemptsLeft <= 0)
+                continue done
+        } while (!gaa)
 
         let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => {
             let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))

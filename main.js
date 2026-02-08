@@ -586,7 +586,7 @@ async function start() {
         case ActionType.StatusUser:
           obj[1].id = user.id
           loggedInUsers[uuid]?.forEach(o =>
-            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.StatusUser, [obj[1], obj[2]]])))
+            o.ws.send(JSON.stringify([ErrorType.Success, ActionType.StatusUser, obj[1]])))
           break
         case ActionType.RemoveUser:
           worker.off('exit', onTerminate)
