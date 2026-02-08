@@ -428,11 +428,11 @@ const DCLAreaInfo = e => ({
     aqua: Number(e.A),
     defence: Number(e.D),
     getProductionData: GetProductionData(e.gpa),
-    unitInventory: Array.from(e.AC).map(Unit),
-    strongHoldInventory: Array.from(e.SHI).map(Unit),
-    hospitalInventory: Array.from(e.HI).map(Unit),
-    travelingUnits: Array.from(e.TU).map(Unit), //TODO: check that this is valid
-    marketCarriagesCount: Number(e.MC),
+    unitInventory: Array.from(e.AC ?? []).map(Unit),
+    strongHoldInventory: Array.from(e.SHI ?? []).map(Unit),
+    hospitalInventory: Array.from(e.HI ?? []).map(Unit),
+    travelingUnits: Array.from(e.TU ?? []).map(Unit), //TODO: check that this is valid
+    marketCarriagesCount: Number(e.MC ?? []),
     hasBarracks: Boolean(e.B),
     hasSiegeWorkshop: Boolean(e.WS),
     hasDefenseWorkshop: Boolean(e.DW),
@@ -816,7 +816,7 @@ const clientJoinOpenAlliance = AID => {
 }
 
 const BuildingInfo = o => ({
-    WID: Number(o[0]),
+    wodID: Number(o[0]),
     OID: Number(o[1]),
     x: Number(o[2]),
     y: Number(o[3]),
@@ -838,13 +838,16 @@ const CastleArea = e => ({
     //??? : Array.from(e.CI).map(),
     areaInfo: GAAAreaInfo(e.A)
 })
-const JoinArea = e => ({
-    kingdomID: Number(e.KID),
-    type: Number(e.type),
-    getCastleArea: CastleArea(e.gca),
-    userAttackProtection: ServerUserAttackProtection(e.uap),
-    ///??? : csl : {///??? : Number(e.SL)}
-})
+class JoinArea {
+    constructor(e) {
+        this.kingdomID = Number(e.KID)
+        this.type = Number(e.type)
+        this.getCastleArea = CastleArea(e.gca)
+        this.userAttackProtection = ServerUserAttackProtection(e.uap)
+        this.areaInfo = DCLAreaInfo((e.grc.gpa = e.gpa, e.grc))
+        ///??? : csl : {///??? : Number(e.SL)}
+    }
+}
 
 const clientJoinArea = (x, y, kingdomID) => {
     sendXT("joa", JSON.stringify({ PX: x, PY: y, KID: kingdomID }))
@@ -863,7 +866,7 @@ const clientJoinArea = (x, y, kingdomID) => {
     return async () => {
         let [obj, result] = await waitObject
 
-        return JoinArea({ ...obj, result: result })
+        return new JoinArea({ ...obj, result: result })
     }
 }
 
@@ -876,7 +879,7 @@ const clientJoinCastle = (areaID, kingdomID) => {
     return async () => {
         let [obj, result] = await waitObject
 
-        return JoinArea({ ...obj, result: result })
+        return new JoinArea({ ...obj, result: result })
     }
 }
 
