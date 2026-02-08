@@ -172,31 +172,31 @@ module.exports = {
 }
 
 let status = {}
-// events.once("load", async (_, r) => {
-//     const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
-//     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
+events.once("load", async (_, r) => {
+    const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
 
-//     sendXT("dcl", JSON.stringify({ CD: 1 }))
-//     setInterval(() =>
-//         sendXT("dcl", JSON.stringify({ CD: 1 })),
-//         1000 * 60 * 5)
-//     if (sourceCastleArea) {
-//         xtHandler.on("dcl", obj => {
-//             const castleProd = Types.DetailedCastleList(obj)
-//                 .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
+    sendXT("dcl", JSON.stringify({ CD: 1 }))
+    setInterval(() =>
+        sendXT("dcl", JSON.stringify({ CD: 1 })),
+        1000 * 60 * 5)
+    if (sourceCastleArea) {
+        xtHandler.on("dcl", obj => {
+            const castleProd = Types.DetailedCastleList(obj)
+                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
 
-//             if (!castleProd)
-//                 return
+            if (!castleProd)
+                return
 
-//             Object.assign(status, {
-//                 aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
-//                 food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
-//                 mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
-//             })
-//             parentPort.postMessage([ActionType.StatusUser, status])
-//         })
-//     }
-// })
+            Object.assign(status, {
+                aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
+                food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
+                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
+            })
+            parentPort.postMessage([ActionType.StatusUser, status])
+        })
+    }
+})
 
 events.on("configModified", () => {
     console.log("botConfigReloaded")

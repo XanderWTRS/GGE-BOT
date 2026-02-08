@@ -270,7 +270,6 @@ async function barronHit(type, kid, options) {
                     }
                 })
 
-
                 if (doCourtyard) {
                     let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
                     attackInfo.RW.forEach((unitSlot, i) => {
@@ -319,6 +318,7 @@ async function barronHit(type, kid, options) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
+                    console.log(`[${KingdomID[kid]}] Waiting for more troops`)
                     await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
                         if (movementInfo.movement.movement.kingdomID != kid)
                             return
@@ -341,51 +341,32 @@ async function barronHit(type, kid, options) {
             }
         }
     }
-    done:
-    for (let i = 0, j = 0; i < 13 * 13; i++) {
-        let rX, rY
-        let rect
-        do {
+    let gaa
+    do {
+        try {
+            gaa = await getAreaCached(kid,
+                sourceCastleArea.x - 50, sourceCastleArea.y - 50,
+                sourceCastleArea.x + 50, sourceCastleArea.y + 50)
+            error = false
+        } catch (e) {
+            console.error(e)
+            error = true
+        }
+    } while (error);
 
-            ({ x: rX, y: rY } = spiralCoordinates(j++))
-            rX *= 100
-            rY *= 100
+    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => {
+        let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))
+        let d2 = Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2))
+        if (d1 < d2)
+            return -1
+        if (d1 > d2)
+            return 1
+    })
+    const timeSinceEpoch = Date.now()
+    areaInfo.forEach(ai =>
+        towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
-            rect = {
-                x: sourceCastleArea.x + rX - 50,
-                y: sourceCastleArea.y + rY - 50,
-                w: sourceCastleArea.x + rX + 50,
-                h: sourceCastleArea.y + rY + 50
-            }
-            if (j > Math.pow(13 * 13, 2))
-                break done
-        } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
-        rect.x = rect.x < 0 ? 0 : rect.x
-        rect.y = rect.y < 0 ? 0 : rect.y
-        rect.w = rect.w < 0 ? 0 : rect.w
-        rect.h = rect.h < 0 ? 0 : rect.h
-        rect.x = rect.x > 1286 ? 1286 : rect.x
-        rect.y = rect.y > 1286 ? 1286 : rect.y
-        rect.w = rect.w > 1286 ? 1286 : rect.w
-        rect.h = rect.h > 1286 ? 1286 : rect.h
-        let gaa = await getAreaCached(kid, rect.x, rect.y, rect.w, rect.h)
-
-        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => {
-            let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))
-            let d2 = Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2))
-            if (d1 < d2)
-                return -1
-            if (d1 > d2)
-                return 1
-        })
-        const timeSinceEpoch = Date.now()
-        areaInfo.forEach(ai =>
-            towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
-
-        sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
-        
-        while (await sendHit());
-    }
+    sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
 
     while (true) {
         let minimumTimeTillHit = Infinity
@@ -395,7 +376,8 @@ async function barronHit(type, kid, options) {
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
+        if(time > 0)
+            console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
         
         while (await sendHit());

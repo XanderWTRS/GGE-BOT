@@ -804,24 +804,34 @@ const clientJoinOpenAlliance = AID => {
         return JoinOpenAlliance({ ...obj, result: result })
     }
 }
+
+const BuildingInfo = o => ({
+    WID: Number(o[0]),
+    OID: Number(o[1]),
+    x: Number(o[2]),
+    y: Number(o[3]),
+    rotation : Number(o[4]),
+    buildTime : Number(o[5]),
+    extraData : Array.from(o).toSpliced(0, 6)
+})
 const CastleArea = e => ({
     ownerInfo: OwnerInfo(e.O),
-    ///??? : Number(e.RAF),
-    ///??? : Number(e.RAW),
-    ///??? : Number(e.RAS),
-    ///??? : Number(e.RAB),
-    ///??? : Array.from(e.BG).map(),
-    ///??? : Array.from(e.BD).map(),
-    ///??? : Array.from(e.T).map(),
-    ///??? : Array.from(e.G).map(),
-    ///??? : Array.from(e.D).map(),
-    ///??? : Array.from(e.CI).map(),
+    //??? : Number(e.RAF),
+    //??? : Number(e.RAW),
+    //??? : Number(e.RAS),
+    //??? : Number(e.RAB),
+    //??? : Array.from(e.BG).map(),
+    buildings : Array.from(e.BD).map(BuildingInfo),
+    //??? : Array.from(e.T).map(),
+    //??? : Array.from(e.G).map(),
+    //??? : Array.from(e.D).map(),
+    //??? : Array.from(e.CI).map(),
     areaInfo: GAAAreaInfo(e.A)
 })
 const JoinArea = e => ({
     kingdomID: Number(e.KID),
     type: Number(e.type),
-    getCastleArea: Array.from(e.gca).map(CastleArea),
+    getCastleArea: CastleArea(e.gca),
     userAttackProtection: ServerUserAttackProtection(e.uap),
     ///??? : csl : {///??? : Number(e.SL)}
 })
@@ -839,6 +849,19 @@ const clientJoinArea = (x, y, kingdomID) => {
 
             return true
         })
+
+    return async () => {
+        let [obj, result] = await waitObject
+
+        return JoinArea({ ...obj, result: result })
+    }
+}
+
+const clientJoinCastle = (areaID, kingdomID) => {
+    sendXT("jca", JSON.stringify({"CID":areaID,"KID":kingdomID}))
+
+    const waitObject = waitForResult("jaa", 1000 * 10, o => 
+        o.grc.KID == kingdomID && o.grc.AID == areaID)
 
     return async () => {
         let [obj, result] = await waitObject
@@ -1116,8 +1139,10 @@ module.exports = {
         searchPlayerName: clientSearchPlayerName,
         allianceQuestPointCount: clientAllianceQuestPointCount,
         getAllianceByID: clientGetAllianceByID,
-        getAllianceByName : clientGetAllianceByName
+        getAllianceByName : clientGetAllianceByName,
+        joinCastle: clientJoinCastle
     },
+    JoinArea,
     kingdomLock,
     areaInfoLock,
     KingdomID,
