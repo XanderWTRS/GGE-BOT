@@ -181,7 +181,7 @@ events.once("load", async () => {
 
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastle = (await ClientCommands.getDetailedCastleList()())
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1

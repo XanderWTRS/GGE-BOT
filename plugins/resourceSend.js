@@ -17,7 +17,7 @@ const {
 
 events.once("load", async () => {
     let trySendRes = async () => {
-        let dcl = await ClientCommands.getDetailedCastleList()()
+        let dcl = await ClientCommands.getDetailedCastleList()
         let stormAreaInfo = dcl.castles.find(e => e.kingdomID == KingdomID.stormIslands).areaInfo[0]
         let gcl = await getResourceCastleList()
         let allowedAIDS = gcl.castles.filter(e => e.kingdomID != KingdomID.stormIslands).map(e => e.areaInfo.filter(e => [AreaType.mainCastle, AreaType.externalKingdom].includes(e.type)).map(e => Number(e.extraData[0]))).flat()

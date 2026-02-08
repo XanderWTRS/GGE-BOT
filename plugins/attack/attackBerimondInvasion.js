@@ -119,7 +119,7 @@ events.on("eventStart", async eventInfo => {
                 const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
                     .areaInfo.find(e => AreaType.mainCastle == e.type)
 
-                const sourceCastle = (await ClientCommands.getDetailedCastleList()())
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 

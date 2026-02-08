@@ -26,7 +26,7 @@ events.once("load", async () => {
         return console.warn("wontRunWithoutStormUnlocked")
 
     let checkMead = async () => {
-        let dcl = await ClientCommands.getDetailedCastleList()()
+        let dcl = await ClientCommands.getDetailedCastleList()
         let stormAreaID = resourceCastleList.castles.find(e => e.kingdomID == targetKingdomID)
             .areaInfo.find(e => e.type == AreaType.externalKingdom)
             .extraData[0] // AreaID
@@ -57,7 +57,7 @@ events.once("load", async () => {
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
 
         setTimeout(async () => {
-            let dcl = await ClientCommands.getDetailedCastleList()()
+            let dcl = await ClientCommands.getDetailedCastleList()
             let stormAreaID = resourceCastleList.castles.find(e => e.kingdomID == targetKingdomID)
                 .areaInfo.find(e => e.type == AreaType.externalKingdom)
                 .extraData[0] // AreaID

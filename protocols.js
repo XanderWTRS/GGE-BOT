@@ -460,14 +460,24 @@ const DetailedCastleList = e => ({
     castles: Array.from(e.C).map(DclCastleList),
     result: Number(e.result)
 })
-const clientGetDetailedCastleList = () => {
-    sendXT("dcl", JSON.stringify({ CD: 1 }))
+const clientGetDetailedCastleList = async () => {
+    let waitObject
+    let attemptsLeft = 5
+    do {
+        sendXT("dcl", JSON.stringify({ CD: 1 }))
+        try {
+            waitObject = waitForResult("dcl", 1000 * 60)
+        }
+        catch(e) {
+            if (attemptsLeft-- <= 0)
+                throw e
+            continue
+        }
+        break
+    } while (true)
 
-    const waitObject = waitForResult("dcl", 1000 * 60)
-    return async () => {
-        const [obj, result] = await waitObject
-        return DetailedCastleList({ ...obj, result: result })
-    }
+    const [obj, result] = await waitObject
+    return DetailedCastleList({ ...obj, result: result })
 }
 
 const clientGetUnitInventory = () => {

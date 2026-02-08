@@ -177,7 +177,7 @@ events.on("eventStart", async eventInfo => {
         const commander = await waitForCommanderAvailable(comList)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastle = (await ClientCommands.getDetailedCastleList()())
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 

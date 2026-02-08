@@ -153,7 +153,7 @@ async function barronHit(type, kid, options) {
             const attackInfo = await waitToAttack(async () => {
                 const executionStartTime = Date.now() // Start timer for "human" interaction
 
-                const sourceCastle = (await ClientCommands.getDetailedCastleList()())
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
@@ -349,7 +349,7 @@ async function barronHit(type, kid, options) {
                 sourceCastleArea.x + 50, sourceCastleArea.y + 50)
             error = false
         } catch (e) {
-            console.error(e)
+            console.warn(e)
             error = true
         }
     } while (error);

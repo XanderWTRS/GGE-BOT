@@ -28,7 +28,7 @@ const feastFoodReduction = pluginOptions.feastFoodReduction ? Number(pluginOptio
 const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood): 150000
 const minimumFoodRate = pluginOptions.minimumFoodRate ? Number(pluginOptions.minimumFoodRate) : 0
 events.once("load", async () => {
-    let dcl = await ClientCommands.getDetailedCastleList()()
+    let dcl = await ClientCommands.getDetailedCastleList()
     let resourceCastleList = await getResourceCastleList()
     let mainCastleAreaID = Number(resourceCastleList.castles.find(e => e.kingdomID == KingdomID.greatEmpire)
         .areaInfo.find(e => e.type == AreaType.mainCastle)
