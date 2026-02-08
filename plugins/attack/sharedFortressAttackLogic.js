@@ -107,7 +107,7 @@ async function fortressHit(kid, level, options) {
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastle = (await ClientCommands.getDetailedCastleList()())
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
