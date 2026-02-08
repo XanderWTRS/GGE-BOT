@@ -1,7 +1,7 @@
-if (require('node:worker_threads').isMainThread)
-    return module.exports = {
+const fs = require("fs")
+if (require('node:worker_threads').isMainThread) {
+    module.exports = {
         pluginOptions: [
-
             { type: "Label", key: "easyForts", md: 2 },
             { type: "Checkbox", key: "allowLvl60Easy", default: true },
             { type: "Checkbox", key: "allowLvl70Easy", default: true },
@@ -24,14 +24,25 @@ if (require('node:worker_threads').isMainThread)
                 key: "useFeather",
                 default: false
             },
-            { type: "Checkbox", key: "useCoin", default: false },
-            {
-                type: "Text",
-                key: "commanderWhiteList"
-            }
+            { type: "Checkbox", key: "useCoin", default: false }
         ]
     }
-
+    try {
+        fs.accessSync("./plugins-extra/upgradeStormCargo.js")
+        module.exports.pluginOptions.push({
+            type: "Checkbox",
+            key: "upgradeStormForts"
+        })
+    }
+    catch(e) {
+        console.debug(e)
+    }
+    module.exports.pluginOptions.push({
+        type: "Text",
+        key: "commanderWhiteList"
+    })
+    return
+}
 
 const { getCommanderStats } = require("../../getEquipment.js")
 const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols.js')
@@ -81,6 +92,16 @@ function spiralCoordinates(n) {
 
 const pluginOptions = 
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+
+if(pluginOptions.upgradeStormForts)
+{
+    try {
+        require("../../plugins-extra/upgradeStormCargo.js")
+    }
+    catch(e) {
+        console.warn(e)
+    }
+}
 
 const kid = KingdomID.stormIslands
 const type = AreaType.stormTower
