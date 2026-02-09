@@ -11,7 +11,14 @@ if (require('node:worker_threads').isMainThread)
 
 const { xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
 const { clientReady } = require('./discord')
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const path = require('path')
+const pluginOptions = botConfig.plugins[path.basename(__filename).slice(0, -3)] ?? {}
+
+const i18n = new I18n({
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
+  directory: path.join(__dirname, "..", "..", 'website', 'public', 'locales'),
+  updateFiles: false,
+})
 
 let movements = []
 clientReady.then(async client => {
