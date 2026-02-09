@@ -817,12 +817,17 @@ const clientJoinOpenAlliance = AID => {
 
 const BuildingInfo = o => ({
     wodID: Number(o[0]),
-    OID: Number(o[1]),
+    ownerID: Number(o[1]),
     x: Number(o[2]),
     y: Number(o[3]),
     rotation : Number(o[4]),
     buildTime : Number(o[5]),
-    extraData : Array.from(o).toSpliced(0, 6)
+    buildingState: Number(o[6]),
+    hitPoints : Number(o[7]),
+    constructionBoost : Number(o[8]) / 100,
+    efficiency: Number(o[9]),
+    damageType: Number(o[10]),
+    extraData : Array.from(o).toSpliced(0, 11)
 })
 const CastleArea = e => ({
     ownerInfo: OwnerInfo(e.O),
@@ -836,7 +841,8 @@ const CastleArea = e => ({
     //??? : Array.from(e.G).map(),
     //??? : Array.from(e.D).map(),
     //??? : Array.from(e.CI).map(),
-    areaInfo: GAAAreaInfo(e.A)
+    areaInfo: GAAAreaInfo(e.A),
+    buildingSlots: Array.from(e.scl.OIDL).map(Number)
 })
 class JoinArea {
     constructor(e) {
@@ -844,7 +850,8 @@ class JoinArea {
         this.type = Number(e.type)
         this.getCastleArea = CastleArea(e.gca)
         this.userAttackProtection = ServerUserAttackProtection(e.uap)
-        this.areaInfo = DCLAreaInfo((e.grc.gpa = e.gpa, e.grc))
+        this.areaInfo = DCLAreaInfo((e.grc.gpa ??= e.gpa, e.grc))
+        //??? : Number(e.scl.SSC)
         ///??? : csl : {///??? : Number(e.SL)}
     }
 }
