@@ -17,14 +17,14 @@ const { xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
 const { clientReady } = require('./discord.js')
 const { createLayout } = require("../../imageGen.js")
 const { I18n, __ } = require('i18n')
+const path = require('path')
+const pluginOptions = botConfig.plugins[path.basename(__filename).slice(0, -3)] ?? {}
 
 const i18n = new I18n({
   locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
   directory: path.join(__dirname, "..", "..", 'website', 'public', 'locales'),
   updateFiles: false,
 })
-
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 let movements = []
 clientReady.then(async client => {
