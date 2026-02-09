@@ -36,8 +36,6 @@ userDatabase.prepare('INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, las
 
 let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
     .get(botConfig.id)
-timeTillTimeout = 0
-lastHitTime = 0
 
 const setTimeTillTimeout = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
 
