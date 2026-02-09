@@ -1014,17 +1014,7 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
     kingdomLockInUse = true
 
     do {
-        //Fuck you darren
-        for (let i = kingdomLockCallbacks.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [kingdomLockCallbacks[i], kingdomLockCallbacks[j]] = [kingdomLockCallbacks[j], kingdomLockCallbacks[i]];
-        }
-        try {
-            await (kingdomLockCallbacks.shift())()
-        }
-        catch (e) {
-            console.warn(e)
-        }
+        await (kingdomLockCallbacks.shift())()
     }
     while (kingdomLockCallbacks.length > 0);
 
