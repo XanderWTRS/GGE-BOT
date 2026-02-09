@@ -281,14 +281,9 @@ async function barronHit(type, kid, options) {
                             Math.floor(maxTroops / 2) - 1)
                     })
                 }
-
-                // Final hesitation before clicking "Attack" (Human verification/hesitation ~150ms-400ms)
-                // await sleep(boxMullerRandom(150, 400, 1))
-
-                //await areaInfoLock(() => 
-                    sendXT("cra", JSON.stringify(attackInfo))
-                //)
-
+                
+                sendXT("cra", JSON.stringify(attackInfo))
+                
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true

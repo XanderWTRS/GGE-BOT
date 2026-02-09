@@ -965,6 +965,7 @@ let areaInfoLock = callback => new Promise(async (resolve, reject) => {
                 reject(e)
             }
         })
+    else resolve()
 
     if(areaInfoCallbacks.length <= 0)
         return
@@ -974,17 +975,17 @@ let areaInfoLock = callback => new Promise(async (resolve, reject) => {
 
     kingdomLockInUse = true
     //Fuck you darren
-    for (let i = areaInfoCallbacks.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [areaInfoCallbacks[i], areaInfoCallbacks[j]] = [areaInfoCallbacks[j], areaInfoCallbacks[i]];
-    }
+    // for (let i = areaInfoCallbacks.length - 1; i > 0; i--) {
+    //     const j = Math.floor(Math.random() * (i + 1));
+    //     [areaInfoCallbacks[i], areaInfoCallbacks[j]] = [areaInfoCallbacks[j], areaInfoCallbacks[i]];
+    // }
     let data = []
     do {
         data.push(areaInfoCallbacks.shift()())
     }
     while (areaInfoCallbacks.length > 0);
 
-    await Promise.all(data)
+    await Promise.allSettled(data)
 
     kingdomLockInUse = false
 
@@ -1004,6 +1005,7 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
                 reject(e)
             }
         })
+    else resolve()
 
     if(kingdomLockCallbacks.length <= 0)
         return

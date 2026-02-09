@@ -307,6 +307,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     // Catch errors specific to the task but keep the loop running
                     if (innerError !== "NO_MORE_TROOPS") {
                         console.warn("failedToHandleAttack", innerError)
+                        console.error(innerError)
                     }
                 }
             }

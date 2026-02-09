@@ -189,10 +189,8 @@ async function fortressHit(kid, level, options) {
                         maxTroops -= assignUnit(unitSlot, attackerTroops, maxTroops))
                 }
 
-                //await areaInfoLock(() => 
-                    sendXT("cra", JSON.stringify(attackInfo))
-                //)
-
+                sendXT("cra", JSON.stringify(attackInfo))
+                
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
