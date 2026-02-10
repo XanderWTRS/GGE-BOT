@@ -23,25 +23,36 @@ const stables = require('../../items/horses.json')
 
 const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
 
-userDatabase.exec(
-  `CREATE TABLE IF NOT EXISTS "PlayerInfo" (
-	"id"	INTEGER UNIQUE,
-	"timeTillTimeout"	INTEGER,
-    "lastHitTime"	INTEGER,
-	PRIMARY KEY("id")
-)`)
+const { setTimeTillTimeout, setLastHitTime, setTimeSpentInTimeout } = (() => {
+    while (true) {
+        try {
+            userDatabase.prepare('INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, lastHitTime, timeSpentInTimeout) VALUES(?,?,?,?)')
+                .run(botConfig.id, 0, 0, 0)
+            return ({
+                setTimeTillTimeout: userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?'),
+                setLastHitTime: userDatabase.prepare('UPDATE PlayerInfo SET lastHitTime = ? WHERE id = ?'),
+                setTimeSpentInTimeout: userDatabase.prepare('UPDATE PlayerInfo SET timeSpentInTimeout = ? WHERE id = ?'),
+            })
+        }
+        catch (e) {
+            console.debug("Possibly needs to be cleared:")
+            console.debug(e)
 
-userDatabase.prepare('INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, lastHitTime) VALUES(?,?,?)')
-    .run(botConfig.id, 0, 0)
+            userDatabase.exec(`DROP TABLE "PlayerInfo"`)
+            userDatabase.exec(`CREATE TABLE IF NOT EXISTS "PlayerInfo" (
+            "id"	INTEGER UNIQUE,
+            "timeTillTimeout"	INTEGER,
+            "lastHitTime"	INTEGER,
+            "timeSpentInTimeout" INTEGER,
+            PRIMARY KEY("id")
+            )`)
+        }
+    }
+})();
 
-let {timeTillTimeout, lastHitTime} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
+
+let {timeTillTimeout, lastHitTime, timeSpentInTimeout: timeToSpendInTimeout} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
     .get(botConfig.id)
-timeTillTimeout = 0
-lastHitTime = 0
-
-const setTimeTillTimeout = userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?')
-
-const setLastHitTime = userDatabase.prepare('UPDATE PlayerInfo SET lastHitTime = ? WHERE id = ?')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -285,16 +296,21 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     const time = Date.now()
                     const deltaLastHitTime = lastHitTime - time
                     const deltaTimeTillTimeout = timeTillTimeout - time
-
-                    if (deltaTimeTillTimeout + deltaLastHitTime <= 0) {
-                        const timeTillNextHit = 1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime)
+                    const takeBreak = async (timeTillNextHit) => {
                         if (timeTillNextHit > 0) {
+                            timeToSpendInTimeout = time + timeTillNextHit
                             console.log("takingBreakPreventBan", Math.round(timeTillNextHit / 1000 / 60))
                             await sleep(timeTillNextHit)
                         }
                         timeTillTimeout = Date.now() + napTime
                         setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
+                        timeToSpendInTimeout = 0
+                        setTimeSpentInTimeout.run(timeToSpendInTimeout, botConfig.id)
                     }
+                    if(timeToSpendInTimeout > 0)
+                        await takeBreak(timeToSpendInTimeout - time)
+                    else if (deltaTimeTillTimeout + deltaLastHitTime <= 0)
+                        await takeBreak(1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime))
 
                     lastHitTime = Date.now()
                     setLastHitTime.run(lastHitTime, botConfig.id)
