@@ -267,6 +267,9 @@ let alreadyRunning = false
 const napTime = 1000 * 60 * 60 * 2
 let attackCount = undefined
 let attackThreshold = undefined
+
+if([,""].includes(pluginOptions.attackLimit))
+    pluginOptions.attackLimit = Infinity
     
 xtHandler.on("gai", obj => {
     attackCount = obj.AC
