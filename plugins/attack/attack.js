@@ -11,6 +11,11 @@ if (require('node:worker_threads').isMainThread) {
                 type: "Text",
                 key: "attackDelayRandomizationSeconds",
                 default: "1.0"
+            },
+            {
+                "type": "Text",
+                "key": "attackLimit",
+                "default": ""
             }
         ]
     }
@@ -18,7 +23,7 @@ if (require('node:worker_threads').isMainThread) {
 }
 const { DatabaseSync } = require('node:sqlite')
 const { getPermanentCastle } = require('../../protocols')
-const { botConfig, playerInfo } = require('../../ggeBot')
+const { botConfig, playerInfo, xtHandler } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
 
 const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
@@ -260,7 +265,23 @@ const pluginOptions = botConfig.plugins[require('path').basename(__filename).sli
 const attacks = []
 let alreadyRunning = false
 const napTime = 1000 * 60 * 60 * 2
+let attackCount = undefined
+let attackThreshold = undefined
+    
+xtHandler.on("gai", obj => {
+    attackCount = obj.AC
+    attackThreshold = obj.ACTH
+})
+let announced = false
 const waitToAttack = callback => new Promise((resolve, reject) => {
+    if(attackCount >= Math.min(Number(pluginOptions.attackLimit), attackThreshold)) {
+        if(!announced) {
+            announced = true
+            console.log("Max attacks reached")
+        }
+        return reject("ATTACK_LIMIT_REACHED")
+    }
+
     if (timeTillTimeout == 0) {
         timeTillTimeout = Date.now() + napTime
         setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
