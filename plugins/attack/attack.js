@@ -42,8 +42,9 @@ const { setTimeTillTimeout, setLastHitTime, setTimeSpentInTimeout } = (() => {
         catch (e) {
             console.debug("Possibly needs to be cleared:")
             console.debug(e)
-
-            userDatabase.exec(`DROP TABLE "PlayerInfo"`)
+            try {
+                userDatabase.exec(`DROP TABLE "PlayerInfo"`)
+            } catch {}
             userDatabase.exec(`CREATE TABLE IF NOT EXISTS "PlayerInfo" (
             "id"	INTEGER UNIQUE,
             "timeTillTimeout"	INTEGER,
