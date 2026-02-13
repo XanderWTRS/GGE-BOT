@@ -219,7 +219,7 @@ events.once("load", async () => {
 
                     Object.assign(areaInfo, 
                         (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)())
-                        .areaInfo[0])
+                        .areaInfo.find(e => e.type == type))
 
                     if(!allowedLevels.includes(areaInfo.extraData[2])) {
                         continue

@@ -132,7 +132,7 @@ async function barronHit(type, kid, options) {
                     if (!options.useTimeSkips && time > 0)
                         continue
 
-                    Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo[0])
+                    Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo.find(e => e.type == type))
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
