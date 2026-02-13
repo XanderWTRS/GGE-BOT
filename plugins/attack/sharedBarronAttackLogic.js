@@ -18,39 +18,6 @@ const minTroopCount = 100
 
 const troopBlackList = [277]//, 34, 35]
 
-function spiralCoordinates(n) {
-    if (n === 0) return { x: 0, y: 0 }
-
-    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2)
-    const layerStart = (2 * (k - 1) + 1) ** 2
-    const offset = n - layerStart
-    const sideLength = 2 * k
-    const side = Math.floor(offset / sideLength)
-    const posInSide = offset % sideLength
-
-    let x, y
-
-    switch (side) {
-        case 0:
-            x = k
-            y = -k + 1 + posInSide
-            break
-        case 1:
-            x = k - 1 - posInSide
-            y = k
-            break
-        case 2:
-            x = -k
-            y = k - 1 - posInSide
-            break
-        case 3:
-            x = -k + 1 + posInSide
-            y = -k
-            break
-    }
-
-    return { x, y }
-}
 async function barronHit(type, kid, options) {
     function getLevel(victorys, kid) {
         function getKingdomOffset(e) {
@@ -73,9 +40,6 @@ async function barronHit(type, kid, options) {
         var n = getKingdomOffset(kid)
         return (0 | Math.floor(1.9 * Math.pow(Math.abs(victorys), .555))) + n
     }
-    let pluginOptions = {}
-    Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
-    Object.assign(pluginOptions, options ?? {})
     
     let towerTime = new WeakMap()
     let sortedAreaInfo = []
@@ -142,8 +106,8 @@ async function barronHit(type, kid, options) {
 
     const sendHit = async () => {
         let comList = undefined
-        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
-            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1)
+        if (![, 0, ""].includes(options.commanderWhiteList)) {
+            const [start, end] = options.commanderWhiteList.split("-").map(Number).map(a => a - 1)
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
@@ -192,7 +156,7 @@ async function barronHit(type, kid, options) {
 
                 const level = getLevel(AI.extraData[1], kid)
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, options)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -225,14 +189,14 @@ async function barronHit(type, kid, options) {
                 // await sleep(boxMullerRandom(200, 400, 1))
 
                 // Get user options, defaulting to full attack if not set
-                let maxWaves = parseInt(pluginOptions.attackWaves)
+                let maxWaves = parseInt(options.attackWaves)
                 if(maxWaves == undefined || isNaN(maxWaves) || maxWaves == 0)
                     maxWaves = Infinity
                 
-                let doLeft = !!(pluginOptions.attackLeft)
-                let doRight = !!(pluginOptions.attackRight)
-                let doMiddle = !!(pluginOptions.attackMiddle)
-                let doCourtyard = !!(pluginOptions.attackCourtyard)
+                let doLeft = !!(options.attackLeft)
+                let doRight = !!(options.attackRight)
+                let doMiddle = !!(options.attackMiddle)
+                let doCourtyard = !!(options.attackCourtyard)
 
                 const commanderStats = getCommanderStats(commander)
                 const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
@@ -364,17 +328,19 @@ async function barronHit(type, kid, options) {
     sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
 
     while (true) {
-        let minimumTimeTillHit = Infinity
-        
-        sortedAreaInfo.forEach(e => {
-            if(!movements.find(a => a.x == e.x && a.y == e.y))
-                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
-        })
-        let time = (Math.max(0, minimumTimeTillHit - Date.now()))
-        if(time > 0)
-            console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
-        await new Promise(r => setTimeout(r, time).unref())
-        
+        if (!options.useTimeSkips) {
+            let minimumTimeTillHit = Infinity
+
+            sortedAreaInfo.forEach(e => {
+                if (!movements.find(a => a.x == e.x && a.y == e.y))
+                    minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
+            })
+            let time = (Math.max(0, minimumTimeTillHit - Date.now()))
+            if (time > 0)
+                console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
+            await new Promise(r => setTimeout(r, time).unref())
+        }
+
         while (await sendHit());
     }
 }
