@@ -277,7 +277,7 @@ async function start() {
   let pluginData = require('./plugins')
 
   try {
-    pluginData = pluginData.concat(require('./plugins-extra'))
+    pluginData.push(...require('./plugins-extra'))
   } catch {}
 
   const plugins = pluginData
@@ -631,7 +631,7 @@ async function start() {
     let user = users[i]
     let keyRemoved = false
     for (const key of Object.keys(user.plugins)) {
-      const pluginFile = plugins.find(e => e.key == key)
+      const pluginFile = plugins.find(e => e?.key == key)
       if(pluginFile != undefined)
         continue
       keyRemoved = true
