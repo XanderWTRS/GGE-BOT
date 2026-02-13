@@ -1,5 +1,7 @@
 const { waitForResult, sendXT, xtHandler, events } = require("./ggeBot.js")
 const fs = require("fs/promises")
+const { RateLimiter } = require("limiter")
+
 const AreaType = Object.freeze({
     barron: 2,
     outpost: 4,
@@ -185,12 +187,12 @@ const ServerGetAreaInfo = o => ({
     areaInfo: Array.from(o.AI).map(GAAAreaInfo),
     result: Number(o.result)
 })
-
+const limiter = new RateLimiter({ tokensPerInterval: 15, interval: "second" });
 /**
  * This will give you at max a 100x100 chunk of the map
 */
 const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
-    const waitObject = areaInfoLock(() => {
+    const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => {
         for (let i = 0; i < Math.ceil(100 / 12); i++) {
             sendXT("gaa", JSON.stringify({
                 KID: Number(kingdomID),
@@ -243,7 +245,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
             settledPromises[0][0].OI.push(...currentValue.OI)
         })
         return settledPromises[0]
-    })
+    }))
     return async () => {
         const [gaa, result] = await waitObject
         
