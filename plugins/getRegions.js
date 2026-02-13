@@ -2,7 +2,7 @@ if (require('node:worker_threads').isMainThread)
     return module.exports = {
         hidden: true
     }
-
+return console.error("This plugin is unusable due to the on going ban issue I am sorry.")
 const { xtHandler, sendXT, events } = require("../ggeBot.js")
 const EventEmitter = require('node:events')
 
