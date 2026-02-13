@@ -132,8 +132,8 @@ async function barronHit(type, kid, options) {
                     if (!options.useTimeSkips && time > 0)
                         continue
 
-                    Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo.find(e => e.type == type))
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
+                    // Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo.find(e => e.type == type))
+                    // towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
                         continue
@@ -325,7 +325,7 @@ async function barronHit(type, kid, options) {
     areaInfo.forEach(ai =>
         towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
-    sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
+    sortedAreaInfo.push(...areaInfo)
 
     while (true) {
         if (!options.useTimeSkips) {
