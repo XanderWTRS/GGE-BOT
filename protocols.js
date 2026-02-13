@@ -683,9 +683,11 @@ xtHandler.on("gcl", (obj, result) =>
 xtHandler.on("fjf", (obj, result) =>
     Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj.mir.gcl, result })))
 
-const ResourceList = e => {
+const ResourceList = obj => {
     let resource = {}
-    resource[e[0]] = e[1]
+    obj.forEach(([type, ammount]) => {
+        resource[type] = ammount
+    })
     return resource
 }
 
@@ -695,14 +697,16 @@ const getResources = async () => { //Never got
     if (!isEmpty(_ResourceList))
         return _ResourceList
 
-    let [obj] = await waitForResult("sce", 1000 * 10)
+    let [obj,r] = await waitForResult("sce", 1000 * 10)
+    if(r != 0)
+        return _ResourceList
 
-    Object.assign(_ResourceList, ResourceList({ ...obj }))
+    Object.assign(_ResourceList, ResourceList(obj))
 
     return _ResourceList
 }
 xtHandler.on("sce", obj =>
-    Object.assign(_resourceCastleList, ResourceList({ ...obj })))
+    Object.assign(_ResourceList, ResourceList(obj)))
 
 const PermanentCastleData = e => e.map(e => ({
     //Units? : Array.from(U.U).map(Number), 
