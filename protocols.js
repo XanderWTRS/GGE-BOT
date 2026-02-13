@@ -187,53 +187,58 @@ const ServerGetAreaInfo = o => ({
     areaInfo: Array.from(o.AI).map(GAAAreaInfo),
     result: Number(o.result)
 })
-const limiter = new RateLimiter({ tokensPerInterval: 15, interval: "second" });
+const limiter = new RateLimiter({ tokensPerInterval: 12, interval: "second" });
 /**
  * This will give you at max a 100x100 chunk of the map
 */
 const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
+    const gaaSize = Math.ceil(100 / 12)
     const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => {
-        for (let i = 0; i < Math.ceil(100 / 12); i++) {
-            sendXT("gaa", JSON.stringify({
-                KID: Number(kingdomID),
-                AX1: Number(fromX + i * 12),
-                AY1: Number(fromY + i * 12),
-                AX2: Number(fromX + (i + 1) * 12),
-                AY2: Number(fromY + (i + 1) * 12)
-            }))
+        for (let x = 0; x < gaaSize; x++) {
+            for (let y = 0; y < gaaSize; y++) {
+                sendXT("gaa", JSON.stringify({
+                    KID: Number(kingdomID),
+                    AX1: Number(fromX + x * 12),
+                    AY1: Number(fromY + y * 12),
+                    AX2: Number(fromX + (x + 1) * 12),
+                    AY2: Number(fromY + (y + 1) * 12)
+                }))
+            }
         }
     }).then(async () => {
         let promises = []
-        for (let i = 0; i < Math.ceil(100 / 12); i++) {
-            promises.push(waitForResult("gaa", 1000 * 10, (obj, result) => {
-                let newFromX = fromX + i * 12
-                let newFromY = fromY + i * 12
-                let toX = newFromX + (i + 1) * 12
-                let toY = fromY + (i + 1) * 12
-                if (Number(result) != 0)
+        for (let x = 0; x < gaaSize; x++) {
+            for (let y = 0; y < gaaSize; y++) {
+                promises.push(waitForResult("gaa", 1000 * 10, (obj, result) => {
+                    let newFromX = fromX + x * 12
+                    let newFromY = fromY + y * 12
+                    let toX = newFromX + (x + 1) * 12
+                    let toY = fromY + (y + 1) * 12
+                    if (Number(result) != 0)
+                        return true
+
+                    if (obj.KID != kingdomID)
+                        return false
+
+                    let ai = obj.AI[0]
+                    if (ai == undefined)
+                        return false
+
+                    let aiX = ai[1]
+                    let aiY = ai[2]
+
+                    let startX = newFromX < toX ? newFromX : toX
+                    let startY = newFromY < toY ? newFromY : toY
+                    let endX = newFromX >= toX ? newFromX : toX
+                    let endY = newFromY >= toY ? newFromY : toY
+
+                    if (aiX < startX || aiX > endX ||
+                        aiY < startY || aiY > endY)
+                        return false
+
                     return true
-
-                if (obj.KID != kingdomID)
-                    return false
-
-                let ai = obj.AI[0]
-                if (ai == undefined)
-                    return false
-
-                let x = ai[1]
-                let y = ai[2]
-
-                let startX = newFromX < toX ? newFromX : toX
-                let startY = newFromY < toY ? newFromY : toY
-                let endX = newFromX >= toX ? newFromX : toX
-                let endY = newFromY >= toY ? newFromY : toY
-
-                if (x < startX || x > endX ||
-                    y < startY || y > endY)
-                    return false
-
-                return true
-            }))
+                }))
+            }
         }
         let settledPromises = await Promise.all(promises)
 
@@ -677,6 +682,27 @@ xtHandler.on("gcl", (obj, result) =>
 
 xtHandler.on("fjf", (obj, result) =>
     Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj.mir.gcl, result })))
+
+const ResourceList = e => {
+    let resource = {}
+    resource[e[0]] = e[1]
+    return resource
+}
+
+let _ResourceList = {}
+
+const getResources = async () => { //Never got
+    if (!isEmpty(_ResourceList))
+        return _ResourceList
+
+    let [obj] = await waitForResult("sce", 1000 * 10)
+
+    Object.assign(_ResourceList, ResourceList({ ...obj }))
+
+    return _ResourceList
+}
+xtHandler.on("sce", obj =>
+    Object.assign(_resourceCastleList, ResourceList({ ...obj })))
 
 const PermanentCastleData = e => e.map(e => ({
     //Units? : Array.from(U.U).map(Number), 
@@ -1197,6 +1223,7 @@ module.exports = {
     getKingdomInfoList,
     getEventList,
     getPermanentCastle,
+    getResources,
     HighscoreType,
     Types: {
         OwnerInfo,
