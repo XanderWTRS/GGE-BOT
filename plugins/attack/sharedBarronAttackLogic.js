@@ -161,7 +161,7 @@ async function barronHit(type, kid, options) {
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const areaInfo = sortedAreaInfo[i]
                     
-                    if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
+                    if(!options.useTimeSkips && movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
 
                     let time = towerTime.get(areaInfo) - timeSinceEpoch
