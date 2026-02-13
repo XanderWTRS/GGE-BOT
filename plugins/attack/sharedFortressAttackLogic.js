@@ -136,7 +136,7 @@ async function fortressHit(kid, level, options) {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo.splice(index, 1)[0]
+                let AI = sortedAreaInfo.toSpliced(index, 1)[0]
 
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
