@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread) {
             {
                 type: "Text",
                 key: "attackDelayRandomizationSeconds",
-                default: "1.0"
+                default: "3.0"
             },
             {
                 "type": "Text",

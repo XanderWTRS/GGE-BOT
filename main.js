@@ -279,6 +279,9 @@ async function start() {
   try {
     pluginData.push(...require('./plugins-extra'))
   } catch {}
+  try {
+    pluginData.push(...require('./plugins-exploits'))
+  } catch {}
 
   const plugins = pluginData
     .map(e => new Object({ key: path.basename(e[0]), filename: e[0], description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions, hidden: e[1].hidden }))
