@@ -239,8 +239,8 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
             if(i == 0)
                 return
 
-            settledPromises[0][0].AI = settledPromises[0][0].AI.concat(arr[0][0].AI, currentValue.AI)
-            settledPromises[0][0].OI = settledPromises[0][0].OI.concat(arr[0][0].OI, currentValue.OI)
+            settledPromises[0][0].AI.push(...currentValue.AI)
+            settledPromises[0][0].OI.push(...currentValue.OI)
         })
         return settledPromises[0]
     })
