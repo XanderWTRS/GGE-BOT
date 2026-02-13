@@ -16,7 +16,7 @@ const err = require('./err.json')
 const events = new EventEmitter()
 
 const i18n = new I18n({
-  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs'],
   directory: path.join(__dirname, 'website', 'public', 'locales'),
   updateFiles: false,
 })
