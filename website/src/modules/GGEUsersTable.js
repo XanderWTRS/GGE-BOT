@@ -88,6 +88,7 @@ function Language({ languageCode, setLanguage }) {
                 <MenuItem onClick={() => {setLanguage('de'); handleClose() }}>DE</MenuItem>
                 <MenuItem onClick={() => {setLanguage('tr'); handleClose() }}>TR</MenuItem>
                 <MenuItem onClick={() => {setLanguage('ar'); handleClose() }}>AR</MenuItem>
+                <MenuItem onClick={() => {setLanguage('cs'); handleClose() }}>CS</MenuItem>
             </Menu>
         </>
     )
