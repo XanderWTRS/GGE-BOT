@@ -124,7 +124,7 @@ async function fortressHit(kid, level, options) {
 
                     Object.assign(areaInfo, 
                         (await ClientCommands.getAreaInfo(
-                            kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo[0])
+                            kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo.find(e => e.type == type))
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (areaInfo.extraData[2] > 0)

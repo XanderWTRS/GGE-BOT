@@ -185,7 +185,7 @@ events.on("eventStart", async eventInfo => {
 
                 areaInfo.push(AI)
 
-                Object.assign(AI, (await ClientCommands.getAreaInfo(kid, AI.x, AI.y, AI.x, AI.y)()).areaInfo[0])
+                Object.assign(AI, (await ClientCommands.getAreaInfo(kid, AI.x, AI.y, AI.x, AI.y)()).areaInfo.find(e => e.type == type))
 
 
                 await skipTarget(AI)
