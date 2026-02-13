@@ -237,7 +237,7 @@ events.once("load", async () => {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo.splice(index, 1)[0]
+                let AI = sortedAreaInfo.toSpliced(index, 1)[0]
 
                 let toLevel = {
                     7: 60,

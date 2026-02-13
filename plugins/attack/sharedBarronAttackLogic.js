@@ -180,7 +180,7 @@ async function barronHit(type, kid, options) {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo.splice(index, 1)[0]
+                let AI = sortedAreaInfo.toSpliced(index, 1)[0]
                 
                 // Simulating: Clicking on target (Reaction time ~300ms-600ms)
                 // await sleep(boxMullerRandom(300, 600, 1)) 
