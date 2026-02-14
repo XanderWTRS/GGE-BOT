@@ -255,13 +255,13 @@ webSocket.onmessage = e => {
         switch (data[0]) {
             case "gbd":
                 for (const [key, value] of Object.entries(JSON.parse(data[3])))
-                    xtHandler.emit(key, value, Number(data[2]), "str")
+                    xtHandler.emit(key, value, Number(data[2]))
                 break
             case "vck":
-                xtHandler.emit(data[0], data[3], Number(data[2]), "str");
+                xtHandler.emit(data[0], data[3], Number(data[2]));
                 break
             case "gfl":
-                xtHandler.emit(data[0], data[3], Number(data[2]), "str");
+                xtHandler.emit(data[0], data[3], Number(data[2]));
                 break
             default:
                 if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
@@ -272,7 +272,11 @@ webSocket.onmessage = e => {
             case "rlu":
                 if (xtHandler.listenerCount(data[0]) == 0)
                     return
-                xtHandler.emit(data[0], data[3] ? JSON.parse(data[3]) : undefined, Number(data[2]), "str");
+                try {
+                    data[3] = JSON.parse(data[3])
+                }
+                catch {}
+                xtHandler.emit(data[0], data[3], Number(data[2]))
         }
     }
 
