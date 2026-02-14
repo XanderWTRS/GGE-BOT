@@ -145,7 +145,7 @@ events.on("eventStart", async eventInfo => {
 
                 await skipTarget(AI)
 
-                const level = AI.extraData[1] + 70
+                const level = AI.extraData[1] + AI.extraData[6] == 100 ? 70 : 56
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
                 const attackerMeleeTroops = []
