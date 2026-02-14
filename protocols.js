@@ -188,69 +188,45 @@ const ServerGetAreaInfo = o => ({
     result: Number(o.result)
 })
 const limiter = new RateLimiter({ tokensPerInterval: 10, interval: "second" });
+
 /**
  * This will give you at max a 100x100 chunk of the map
 */
-const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
-    const gaaSize = Math.ceil(100 / 12)
-    const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => {
-        for (let x = 0; x < gaaSize; x++) {
-            for (let y = 0; y < gaaSize; y++) {
-                sendXT("gaa", JSON.stringify({
-                    KID: Number(kingdomID),
-                    AX1: Number(fromX + x * 12),
-                    AY1: Number(fromY + y * 12),
-                    AX2: Number(fromX + (x + 1) * 12),
-                    AY2: Number(fromY + (y + 1) * 12)
-                }))
-            }
-        }
-    }).then(async () => {
-        let promises = []
-        for (let x = 0; x < gaaSize; x++) {
-            for (let y = 0; y < gaaSize; y++) {
-                promises.push(waitForResult("gaa", 1000 * 10, (obj, result) => {
-                    let newFromX = fromX + x * 12
-                    let newFromY = fromY + y * 12
-                    let toX = newFromX + (x + 1) * 12
-                    let toY = fromY + (y + 1) * 12
-                    if (Number(result) != 0)
-                        return true
+const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
+    const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => 
+        sendXT("gaa", JSON.stringify({
+            KID: Number(kingdomID),
+            AX1: Number(fromX),
+            AY1: Number(fromY),
+            AX2: Number(toX),
+            AY2: Number(toY)
+        })))).then(() => {
+        return waitForResult("gaa", 1000 * 10, (obj, result) => {
+            if (Number(result) != 0)
+                return true
 
-                    if (obj.KID != kingdomID)
-                        return false
+            if (obj.KID != kingdomID)
+                return false
 
-                    let ai = obj.AI[0]
-                    if (ai == undefined)
-                        return false
+            let ai = obj.AI[0]
+            if (ai == undefined)
+                return false
 
-                    let aiX = ai[1]
-                    let aiY = ai[2]
+            let x = ai[1]
+            let y = ai[2]
 
-                    let startX = newFromX < toX ? newFromX : toX
-                    let startY = newFromY < toY ? newFromY : toY
-                    let endX = newFromX >= toX ? newFromX : toX
-                    let endY = newFromY >= toY ? newFromY : toY
+            let startX = fromX < toX ? fromX : toX
+            let startY = fromY < toY ? fromY : toY
+            let endX = fromX >= toX ? fromX : toX
+            let endY = fromY >= toY ? fromY : toY
 
-                    if (aiX < startX || aiX > endX ||
-                        aiY < startY || aiY > endY)
-                        return false
+            if (x < startX || x > endX ||
+                y < startY || y > endY)
+                return false
 
-                    return true
-                }))
-            }
-        }
-        let settledPromises = await Promise.all(promises)
-
-        settledPromises.forEach(([currentValue], i, arr) => {
-            if(i == 0)
-                return
-
-            settledPromises[0][0].AI.push(...currentValue.AI)
-            settledPromises[0][0].OI.push(...currentValue.OI)
+            return true
         })
-        return settledPromises[0]
-    }))
+    })
     return async () => {
         const [gaa, result] = await waitObject
         
@@ -258,6 +234,77 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
         return Number(result) == 0 ? ServerGetAreaInfo(gaa) : { result }
     }
 }
+
+/**
+ * This will give you at max a 100x100 chunk of the map
+*/
+// const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
+//     const gaaSize = Math.ceil(100 / 12)
+//     const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => {
+//         for (let x = 0; x < gaaSize; x++) {
+//             for (let y = 0; y < gaaSize; y++) {
+//                 sendXT("gaa", JSON.stringify({
+//                     KID: Number(kingdomID),
+//                     AX1: Number(fromX + x * 12),
+//                     AY1: Number(fromY + y * 12),
+//                     AX2: Number(fromX + (x + 1) * 12),
+//                     AY2: Number(fromY + (y + 1) * 12)
+//                 }))
+//             }
+//         }
+//     }).then(async () => {
+//         let promises = []
+//         for (let x = 0; x < gaaSize; x++) {
+//             for (let y = 0; y < gaaSize; y++) {
+//                 promises.push(waitForResult("gaa", 1000 * 10, (obj, result) => {
+//                     let newFromX = fromX + x * 12
+//                     let newFromY = fromY + y * 12
+//                     let toX = newFromX + (x + 1) * 12
+//                     let toY = fromY + (y + 1) * 12
+//                     if (Number(result) != 0)
+//                         return true
+
+//                     if (obj.KID != kingdomID)
+//                         return false
+
+//                     let ai = obj.AI[0]
+//                     if (ai == undefined)
+//                         return false
+
+//                     let aiX = ai[1]
+//                     let aiY = ai[2]
+
+//                     let startX = newFromX < toX ? newFromX : toX
+//                     let startY = newFromY < toY ? newFromY : toY
+//                     let endX = newFromX >= toX ? newFromX : toX
+//                     let endY = newFromY >= toY ? newFromY : toY
+
+//                     if (aiX < startX || aiX > endX ||
+//                         aiY < startY || aiY > endY)
+//                         return false
+
+//                     return true
+//                 }))
+//             }
+//         }
+//         let settledPromises = await Promise.all(promises)
+
+//         settledPromises.forEach(([currentValue], i, arr) => {
+//             if(i == 0)
+//                 return
+
+//             settledPromises[0][0].AI.push(...currentValue.AI)
+//             settledPromises[0][0].OI.push(...currentValue.OI)
+//         })
+//         return settledPromises[0]
+//     }))
+//     return async () => {
+//         const [gaa, result] = await waitObject
+        
+//         gaa.result = result
+//         return Number(result) == 0 ? ServerGetAreaInfo(gaa) : { result }
+//     }
+// }
 
 const clientGetAllianceInfluence = (allianceID) => {
     sendXT("gabgap", JSON.stringify({ AID: allianceID }))
