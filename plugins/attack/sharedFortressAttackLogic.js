@@ -3,7 +3,7 @@ if (require('node:worker_threads').isMainThread)
         hidden: true
     }
 
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols')
+const { Types, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
@@ -198,6 +198,10 @@ async function fortressHit(kid, level, options) {
                         return false
                     return true
                 })
+                
+                if(r == 0) {
+                    movements.push(AI)
+                }
                 return {...obj, result: r}
             })
             if (!attackInfo) {
