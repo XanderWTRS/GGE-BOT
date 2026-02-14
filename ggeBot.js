@@ -66,6 +66,9 @@ const xtHandler = new EventEmitter()
 
 const rawProtocolSeparator = "%"
 function sendXT(cmdName, paramObj) {
+    try {
+    console.debug(cmdName, JSON.parse(paramObj))
+    } catch {}
     webSocket.send(rawProtocolSeparator + ["xt", botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
 }
 
@@ -245,7 +248,10 @@ webSocket.onmessage = e => {
         let params = message.substr(1, message.length - 2).split(rawProtocolSeparator)
         let data = params.splice(1, params.length - 1)
         // _console.log(data.toString())
-
+        try {
+        // console.debug("recieved ", data[0], ' ', JSON.stringify(data[3]))
+        }
+        catch {}
         switch (data[0]) {
             case "gbd":
                 for (const [key, value] of Object.entries(JSON.parse(data[3])))
@@ -284,8 +290,13 @@ webSocket.onmessage = e => {
         }
     }
 }
-webSocket.onerror = () => { events.emit("unload"); process.exit(0) }
-webSocket.onclose = () => { events.emit("unload"); process.exit(0) }
+webSocket.onerror = () => {
+    events.emit("unload");
+    process.exit(0) }
+webSocket.onclose = () => {
+    events.emit("unload");
+    process.exit(0)
+}
 
 events.on("unload", () => {
     console.debug("errorCount", errorCount)

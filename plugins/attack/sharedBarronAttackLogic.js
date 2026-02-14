@@ -115,11 +115,11 @@ async function barronHit(type, kid, options) {
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const executionStartTime = Date.now() // Start timer for "human" interaction
-
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+                const executionStartTime = Date.now() // Start timer for "human" interaction
+
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
@@ -144,7 +144,7 @@ async function barronHit(type, kid, options) {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo.toSpliced(index, 1)[0]
+                let AI = sortedAreaInfo.splice(index, 1)[0]
                 
                 // Simulating: Clicking on target (Reaction time ~300ms-600ms)
                 // await sleep(boxMullerRandom(300, 600, 1)) 
@@ -256,6 +256,20 @@ async function barronHit(type, kid, options) {
                         return false
                     return true
                 })
+                if(r == 0) {
+                    attackInfo.A.forEach(wave => {
+                        wave.L.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+                        wave.R.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+                        wave.M.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+
+                        wave.L.T.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+                        wave.R.T.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+                        wave.M.T.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+
+                        attackInfo.RW.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
+                    })
+                    movements.push(AI)
+                }
                 
                 const executionDuration = ((Date.now() - executionStartTime) / 1000).toFixed(2);
                 obj.executionDuration = executionDuration; // Pass it out
