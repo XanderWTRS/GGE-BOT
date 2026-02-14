@@ -59,7 +59,7 @@ async function fortressHit(kid, level, options) {
     pluginOptions.useFeather = true
     
     let towerTime = new WeakMap()
-    let sortedAreaInfo = []
+    let areas = []
     const movements = []
 
     xtHandler.on("gam", obj => {
@@ -112,8 +112,8 @@ async function fortressHit(kid, level, options) {
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
                 const timeSinceEpoch = Date.now()
-                for (let i = 0; i < sortedAreaInfo.length; i++) {
-                    const areaInfo = sortedAreaInfo[i]
+                for (let i = 0; i < areas.length; i++) {
+                    const areaInfo = areas[i]
                     
                     if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
@@ -122,9 +122,8 @@ async function fortressHit(kid, level, options) {
                     if (time > 0)
                         continue
 
-                    Object.assign(areaInfo, 
-                        (await ClientCommands.getAreaInfo(
-                            kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo.find(e => e.type == type))
+                    sendXT("ssi", JSON.stringify({TX:areaInfo.x,TY:areaInfo.y,KID:kid}))
+                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11))[0].gaa.AI[0]))
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (areaInfo.extraData[2] > 0)
@@ -136,7 +135,7 @@ async function fortressHit(kid, level, options) {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo.toSpliced(index, 1)[0]
+                let AI = areas[index]
 
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
@@ -235,64 +234,48 @@ async function fortressHit(kid, level, options) {
             }
         }
     }
+    
+    sendXT("fnm", JSON.stringify({T:type,KID:kid,LMIN:-1,LMAX:-1,NID:-1}))
+    let AI = Types.GAAAreaInfo((await waitForResult("fnm", 1000 * 10, obj => {
+        return obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
+    }))[0].gaa.AI[0])
+
+    areas.push(AI)
+
+    const timeSinceEpoch = Date.now()
+    towerTime.set(AI, timeSinceEpoch + AI.extraData[2] * 1000)
+    
+    const startingX = AI.x
+    const startingY = AI.y
+
     done:
-    for (let i = 0, j = 0; i < 13 * 13 / 2; i++) {
-        let rX, rY
-        let rect
-        do {
+    for (let j = 0;; j++) {
+        let { x: rX, y: rY } = spiralCoordinates(j++)
+        let x = startingX + rX * 39
+        let y = startingY + rY * 39
 
-            ({ x: rX, y: rY } = spiralCoordinates(j++))
-            rX *= 100
-            rY *= 100
+        
+        sendXT("ssi", JSON.stringify({TX:x,TY:y,KID:kid}))
 
-            rect = {
-                x: sourceCastleArea.x + rX - 50,
-                y: sourceCastleArea.y + rY - 50,
-                w: sourceCastleArea.x + rX + 50,
-                h: sourceCastleArea.y + rY + 50
-            }
-            if (j > Math.pow(13 * 13, 2))
-                break done
-        } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
-        rect.x = rect.x < 0 ? 0 : rect.x
-        rect.y = rect.y < 0 ? 0 : rect.y
-        rect.w = rect.w < 0 ? 0 : rect.w
-        rect.h = rect.h < 0 ? 0 : rect.h
-        rect.x = rect.x > 1286 ? 1286 : rect.x
-        rect.y = rect.y > 1286 ? 1286 : rect.y
-        rect.w = rect.w > 1286 ? 1286 : rect.w
-        rect.h = rect.h > 1286 ? 1286 : rect.h
-        let gaa 
-        let attemptsLeft = 5
-        do {
-            try {
-                gaa = await getAreaCached(kid, rect.x, rect.y, rect.w, rect.h)
-            }
-            catch { attemptsLeft-- }
-            if(attemptsLeft <= 0)
-                continue done
-        } while (!gaa)
-
-        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => {
-            let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))
-            let d2 = Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2))
-            if (d1 < d2)
-                return -1
-            if (d1 > d2)
-                return 1
+        let [obj, result] = await waitForResult("ssi", 1000 * 10, (obj, r) => {
+            return r != 0 || obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
         })
-        const timeSinceEpoch = Date.now()
-        areaInfo.forEach(ai =>
-            towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
-        sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
+        if(result != 0)
+            break
+
+        let AI = Types.GAAAreaInfo(obj.gaa.AI[0])
+        areas.push(AI)
+        const timeSinceEpoch = Date.now()
+
+        towerTime.set(AI, timeSinceEpoch + AI.extraData[2] * 1000)
         
         while (await sendHit());
     }
-
+    
     while (true) {
         let minimumTimeTillHit = Infinity
-        sortedAreaInfo.forEach(e => {
+        areas.forEach(e => {
             if(!movements.find(a => a.x == e.x && a.y == e.y))
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
         })
