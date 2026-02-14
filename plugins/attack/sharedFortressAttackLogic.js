@@ -236,7 +236,7 @@ async function fortressHit(kid, level, options) {
         }
     }
     done:
-    for (let i = 0, j = 0; i < 13 * 13; i++) {
+    for (let i = 0, j = 0; i < 13 * 13 / 2; i++) {
         let rX, rY
         let rect
         do {
