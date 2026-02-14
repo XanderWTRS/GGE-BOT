@@ -187,7 +187,7 @@ const ServerGetAreaInfo = o => ({
     areaInfo: Array.from(o.AI).map(GAAAreaInfo),
     result: Number(o.result)
 })
-const limiter = new RateLimiter({ tokensPerInterval: 10, interval: "second" });
+const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" });
 
 /**
  * This will give you at max a 100x100 chunk of the map
