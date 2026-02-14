@@ -57,8 +57,11 @@ const { setTimeTillTimeout, setLastHitTime, setTimeSpentInTimeout } = (() => {
 })();
 
 
-let {timeTillTimeout, lastHitTime, timeSpentInTimeout: timeToSpendInTimeout} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
+let {timeTillTimeout, lastHitTime, timeSpentInTimeout} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
     .get(botConfig.id)
+
+timeTillTimeout = 0
+lastHitTime = 0
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -323,17 +326,17 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     const deltaTimeTillTimeout = timeTillTimeout - time
                     const takeBreak = async (timeTillNextHit) => {
                         if (timeTillNextHit > 0) {
-                            timeToSpendInTimeout = time + timeTillNextHit
+                            timeSpentInTimeout = time + timeTillNextHit
                             console.log("takingBreakPreventBan", Math.round(timeTillNextHit / 1000 / 60))
                             await sleep(timeTillNextHit)
                         }
                         timeTillTimeout = Date.now() + napTime
                         setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
-                        timeToSpendInTimeout = 0
-                        setTimeSpentInTimeout.run(timeToSpendInTimeout, botConfig.id)
+                        timeSpentInTimeout = 0
+                        setTimeSpentInTimeout.run(timeSpentInTimeout, botConfig.id)
                     }
-                    if(timeToSpendInTimeout > 0)
-                        await takeBreak(timeToSpendInTimeout - time)
+                    if(timeSpentInTimeout > 0)
+                        await takeBreak(timeSpentInTimeout - time)
                     else if (deltaTimeTillTimeout + deltaLastHitTime <= 0)
                         await takeBreak(1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime))
 
