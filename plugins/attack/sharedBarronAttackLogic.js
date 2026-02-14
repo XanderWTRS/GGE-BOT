@@ -320,7 +320,7 @@ async function barronHit(type, kid, options) {
         try {
             gaa = await ClientCommands.getAreaInfo(kid,
                 sourceCastleArea.x - 50, sourceCastleArea.y - 50,
-                sourceCastleArea.x + 50, sourceCastleArea.y + 50)
+                sourceCastleArea.x + 50, sourceCastleArea.y + 50)()
             error = false
         } catch (e) {
             console.warn(e)
