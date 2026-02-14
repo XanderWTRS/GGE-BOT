@@ -7,7 +7,6 @@ const { Types, getResourceCastleList, ClientCommands, AreaType, KingdomID } = re
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
-const getAreaCached = require('../../getMap.js')
 const err = require('../../err.json')
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -123,7 +122,7 @@ async function fortressHit(kid, level, options) {
                         continue
 
                     sendXT("ssi", JSON.stringify({TX:areaInfo.x,TY:areaInfo.y,KID:kid}))
-                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11))[0].gaa.AI[0]))
+                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == type))[0].gaa.AI[0]))
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (areaInfo.extraData[2] > 0)
