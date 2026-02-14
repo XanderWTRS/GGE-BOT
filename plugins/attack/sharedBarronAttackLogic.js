@@ -128,11 +128,12 @@ async function barronHit(type, kid, options) {
                     if(!options.useTimeSkips && movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
 
-                    let time = towerTime.get(areaInfo) - timeSinceEpoch
+                    let time = (towerTime.get(areaInfo) - timeSinceEpoch) / 1000
                     if (!options.useTimeSkips && time > 0)
                         continue
-
-                    Object.assign(areaInfo, (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)()).areaInfo.find(e => e.type == type))
+                    
+                    sendXT("ssi", JSON.stringify({TX:areaInfo.x,TY:areaInfo.y,KID:kid}))
+                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == type))[0].gaa.AI[0]))
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
@@ -317,7 +318,7 @@ async function barronHit(type, kid, options) {
     let gaa
     do {
         try {
-            gaa = await getAreaCached(kid,
+            gaa = await ClientCommands.getAreaInfo(kid,
                 sourceCastleArea.x - 50, sourceCastleArea.y - 50,
                 sourceCastleArea.x + 50, sourceCastleArea.y + 50)
             error = false
