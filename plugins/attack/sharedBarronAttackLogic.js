@@ -133,7 +133,9 @@ async function barronHit(type, kid, options) {
                         continue
                     
                     sendXT("ssi", JSON.stringify({TX:areaInfo.x,TY:areaInfo.y,KID:kid}))
-                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == type))[0].gaa.AI[0]))
+                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, 
+                        obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
+
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                     if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
