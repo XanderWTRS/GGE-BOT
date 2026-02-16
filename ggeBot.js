@@ -503,6 +503,11 @@ xtHandler.on("gcs", obj => {
 })
 
 require("./protocols.js")
+try {
+    if (botConfig.externalEvent)
+        require("./plugins-extra/externalEventHelper.js")
+} catch {}
+
 for (const [_, val] of Object.entries(botConfig.plugins)) {
     if (!val.state)
         continue
