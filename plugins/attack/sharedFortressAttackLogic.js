@@ -50,15 +50,11 @@ function spiralCoordinates(n) {
     return { x, y }
 }
 async function fortressHit(kid, level, options) {
-    let pluginOptions = {}
-    Object.assign(pluginOptions, options ?? {})
-    Object.assign(pluginOptions, botConfig.plugins["attack"] ?? {})
-
-    pluginOptions.useCoin = true
-    pluginOptions.useFeather = true
+    options.useCoin = true
+    options.useFeather = true
     
     let towerTime = new WeakMap()
-    let areas = []
+    const areas = []
     const movements = []
 
     xtHandler.on("gam", obj => {
@@ -94,8 +90,8 @@ async function fortressHit(kid, level, options) {
 
     const sendHit = async () => {
         let comList = undefined
-        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
-            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1)
+        if (![, 0, ""].includes(options.commanderWhiteList)) {
+            const [start, end] = options.commanderWhiteList.split("-").map(Number).map(a => a - 1)
             comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
         }
 
@@ -106,9 +102,6 @@ async function fortressHit(kid, level, options) {
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kid)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < areas.length; i++) {
@@ -121,12 +114,14 @@ async function fortressHit(kid, level, options) {
                     if (time > 0)
                         continue
 
-                    sendXT("ssi", JSON.stringify({TX:areaInfo.x,TY:areaInfo.y,KID:kid}))
-                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == type))[0].gaa.AI[0]))
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
+                    if (areaInfo.extraData[2] != 0) {
+                        sendXT("ssi", JSON.stringify({ TX: areaInfo.x, TY: areaInfo.y, KID: kid }))
+                        Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == type))[0].gaa.AI[0]))
+                        towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
-                    if (areaInfo.extraData[2] > 0)
-                        continue
+                        if (areaInfo.extraData[2] > 0)
+                            continue
+                    }
 
                     index = i
                     break
@@ -134,9 +129,13 @@ async function fortressHit(kid, level, options) {
                 if (index == -1)
                     return
 
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
+                    .castles.find(a => a.kingdomID == kid)
+                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+
                 let AI = areas[index]
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, options)
 
                 const attackerTroops = []
 
@@ -238,11 +237,35 @@ async function fortressHit(kid, level, options) {
         }
     }
     
-    sendXT("fnm", JSON.stringify({T:type,KID:kid,LMIN:-1,LMAX:-1,NID:-1}))
-    let AI = Types.GAAAreaInfo((await waitForResult("fnm", 1000 * 10, obj => {
-        return obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
-    }))[0].gaa.AI[0])
+    // sendXT("fnm", JSON.stringify({T:type,KID:kid,LMIN:-1,LMAX:-1,NID:-1}))
+    // let AI = Types.GAAAreaInfo((await waitForResult("fnm", 1000 * 10, obj => {
+    //     return obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
+    // }))[0].gaa.AI[0])
+    const getFirstFortress = async () => {
+        let error = false
+        let gaa
+        do {
+            try {
+                gaa = await ClientCommands.getAreaInfo(kid,
+                    (1300 / 2) - 50, (1300 / 2) - 50,
+                    (1300 / 2) + 50, (1300 / 2) + 50)()
+                error = false
+            } catch (e) {
+                console.warn(e)
+                error = true
+            }
+        } while (error);
 
+        return gaa.areaInfo.filter(e => e.type == type).sort((a, b) => {
+            let d1 = Math.sqrt(Math.pow((1300 / 2) - a.x, 2) + Math.pow((1300 / 2) - a.y, 2))
+            let d2 = Math.sqrt(Math.pow((1300 / 2) - b.x, 2) + Math.pow((1300 / 2) - b.y, 2))
+            if (d1 < d2)
+                return -1
+            if (d1 > d2)
+                return 1
+        })[0]
+    }
+    const AI = await getFirstFortress()
     areas.push(AI)
 
     const timeSinceEpoch = Date.now()
@@ -251,18 +274,24 @@ async function fortressHit(kid, level, options) {
     const startingX = AI.x
     const startingY = AI.y
 
-    done:
-    for (let j = 0;; j++) {
-        let { x: rX, y: rY } = spiralCoordinates(j++)
+    for (let j = 1;; j++) {
+        let { x: rX, y: rY } = spiralCoordinates(j)
         let x = startingX + rX * 39
-        let y = startingY + rY * 39
+        let y = startingY + rY * 39        
 
-        
-        sendXT("ssi", JSON.stringify({TX:x,TY:y,KID:kid}))
-
-        let [obj, result] = await waitForResult("ssi", 1000 * 10, (obj, r) => {
-            return r != 0 || obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
-        })
+        let error = false
+        do {
+            try {
+                sendXT("ssi", JSON.stringify({ TX: x, TY: y, KID: kid }))
+                var [obj, result] = await waitForResult("ssi", 1000 * 10, (obj, r) => {
+                    return r != 0 || obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
+                })
+                error = false
+            } catch (e) {
+                console.warn(e)
+                error = true
+            }
+        } while (error);
 
         if(result != 0)
             break
