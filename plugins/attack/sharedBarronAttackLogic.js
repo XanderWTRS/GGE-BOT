@@ -299,7 +299,7 @@ async function barronHit(type, kid, options) {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     try {
-                        if (botConfig.plugins["externalEventHelper"]?.state) {
+                        if (botConfig.externalEvent) {
                             await (require("../../plugins-extra/externalEventHelper.js"))
                                 .recruitTroops()
                             return true
