@@ -223,7 +223,7 @@ events.once("load", async () => {
                     if(!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
 
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[5] * 1000)
+                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[3] * 1000)
                     // if(areaInfo.extraData[3] > 0)
                         // continue
                     if (towerTime.get(areaInfo) - Date.now() > 0)
@@ -396,7 +396,7 @@ events.once("load", async () => {
         })
         const timeSinceEpoch = Date.now()
         areaInfo.forEach(ai =>
-            towerTime.set(ai, timeSinceEpoch + ai.extraData[5] * 1000))
+            towerTime.set(ai, timeSinceEpoch + ai.extraData[3] * 1000))
 
         sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
         sortedAreaInfo.sort((a, b) => {
