@@ -106,6 +106,28 @@ events.on("eventStart", async eventInfo => {
     
     quit = false
 
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+        .areaInfo.find(e => AreaType.mainCastle == e.type)
+
+    let error = false
+    let gaa
+    do {
+        try {
+            gaa = await getAreaCached(kid,
+                sourceCastleArea.x - 50, sourceCastleArea.y - 50,
+                sourceCastleArea.x + 50, sourceCastleArea.y + 50)
+            error = false
+        } catch (e) {
+            console.error(e)
+            error = true
+        }
+    } while (error);
+
+    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
+        .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
+            Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+        .sort((a, b) => a.extraData[2] > b.extraData[2])
+
     while (!quit) {
         let comList = undefined
         if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
@@ -116,34 +138,17 @@ events.on("eventStart", async eventInfo => {
         const commander = await waitForCommanderAvailable(comList)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
-                    .areaInfo.find(e => AreaType.mainCastle == e.type)
+                const AI = areaInfo[0]
+                sendXT("ssi", JSON.stringify({ TX: AI.x, TY: AI.y, KID: kid }))
+                Object.assign(AI, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
+                    obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
+
+                await skipTarget(AI)
+
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-
-                let error = false
-                let gaa
-                do {
-                    try {
-                        gaa = await getAreaCached(kid,
-                            sourceCastleArea.x - 50, sourceCastleArea.y - 50,
-                            sourceCastleArea.x + 50, sourceCastleArea.y + 50)
-                        error = false
-                    } catch (e) {
-                        console.error(e)
-                        error = true
-                    }
-                } while (error);
-                let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-                    .sort((a, b) => Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-                        Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
-                    .sort((a, b) => a.extraData[2] > b.extraData[2])
-
-                const AI = areaInfo[0]
-
-                await skipTarget(AI)
 
                 const level = AI.extraData[1] + AI.extraData[6] == 100 ? 70 : 56
                 const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
