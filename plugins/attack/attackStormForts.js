@@ -178,7 +178,8 @@ events.once("load", async () => {
             movements.push(targetAttack)
         })
     })
-    movementEvents.on("return", movementInfo => {
+    xtHandler.on("cat", obj => {
+        const movementInfo = Types.ReturningAttack(obj)
         const sourceAttack = movementInfo.movement.movement.sourceAttack
         if(kid != movementInfo.movement.movement.kingdomID ||
            type != sourceAttack.type)
@@ -202,9 +203,6 @@ events.once("load", async () => {
 
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kid)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
@@ -216,14 +214,14 @@ events.once("load", async () => {
                     let time = towerTime.get(areaInfo) - timeSinceEpoch
                     if (time > 0)
                         continue
-
-                    Object.assign(areaInfo, 
-                        (await ClientCommands.getAreaInfo(kid, areaInfo.x, areaInfo.y, areaInfo.x, areaInfo.y)())
-                        .areaInfo.find(e => e.type == type))
-
-                    if(!allowedLevels.includes(areaInfo.extraData[2])) {
-                        continue
+                    if (areaInfo.extraData[5] != 0) {
+                        sendXT("ssi", JSON.stringify({ TX: areaInfo.x, TY: areaInfo.y, KID: kid }))
+                        Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
+                            obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
                     }
+
+                    if(!allowedLevels.includes(areaInfo.extraData[2]))
+                        continue
 
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[5] * 1000)
                     if(areaInfo.extraData[3] > 0)
@@ -236,6 +234,10 @@ events.once("load", async () => {
                 }
                 if (index == -1)
                     return
+
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
+                    .castles.find(a => a.kingdomID == kid)
+                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 let AI = sortedAreaInfo.toSpliced(index, 1)[0]
 
@@ -306,6 +308,9 @@ events.once("load", async () => {
                         return false
                     return true
                 })
+                if(r == 0)
+                    movements.push(AI)
+                
                 return {...obj, result: r}
             })
             

@@ -37,8 +37,11 @@ const skips = {
     MS4: 0,
     MS5: 0,
     MS6: 0,
-    MS7: 0,
-};
+    MS7: 0
+}
+
+xtHandler.on("earlyLoad", () =>
+    sendXT("sce", "{}"))
 
 xtHandler.on("sce", (obj) => {
     obj.forEach(e => {
@@ -51,7 +54,7 @@ xtHandler.on("sce", (obj) => {
     })
 })
 
-const spendSkip = (time) => {
+const spendSkip = time => {
     time = (Math.max(time, 60 * 60)) / 60
     let skip = Object.entries(skips)
         .filter(e => e[1] > 0)
@@ -137,10 +140,10 @@ const FactionData = o => (o ? {
 } : undefined)
 
 const ServerUserAttackProtection = o => ({
-    kingdomID: Number(o.KID),
-    remainingNoobTime: Number(o.NS),
-    factionProtectionStatus: Number(o.PMS),
-    factionProtectionEndTime: Number(o.PMT)
+    kingdomID: Number(o?.KID),
+    remainingNoobTime: Number(o?.NS),
+    factionProtectionStatus: Number(o?.PMS),
+    factionProtectionEndTime: Number(o?.PMT)
 })
 
 const OwnerInfo = o => ({
@@ -182,12 +185,12 @@ const OwnerInfo = o => ({
 */
 const ServerGetAreaInfo = o => ({
     kingdomID: Number(o.KID),
-    userAttackProtection: ServerUserAttackProtection(o.uap),
-    ownerInfo: Array.from(o.OI).map(OwnerInfo),
-    areaInfo: Array.from(o.AI).map(GAAAreaInfo),
+    userAttackProtection: ServerUserAttackProtection(o?.uap),
+    ownerInfo: Array.from(o?.OI).map(OwnerInfo),
+    areaInfo: Array.from(o?.AI).map(GAAAreaInfo),
     result: Number(o.result)
 })
-const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" });
+const limiter = new RateLimiter({ tokensPerInterval: 2.5, interval: "second" });
 
 /**
  * This will give you at max a 100x100 chunk of the map
@@ -231,7 +234,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
         const [gaa, result] = await waitObject
         
         gaa.result = result
-        return Number(result) == 0 ? ServerGetAreaInfo(gaa) : { result }
+        return ServerGetAreaInfo(gaa)
     }
 }
 
@@ -732,15 +735,16 @@ xtHandler.on("fjf", (obj, result) =>
 
 const ResourceList = obj => {
     let resource = {}
-    obj.forEach(([type, ammount]) => {
-        resource[type] = ammount
-    })
+    obj.forEach(([type, ammount]) => resource[type] = ammount)
     return resource
 }
 
 let _ResourceList = {}
 
+let waitTillLoaded = new Promise(resolve => events.once("load", resolve))
+
 const getResources = async () => { //Never got
+    await waitTillLoaded
     if (!isEmpty(_ResourceList))
         return _ResourceList
 
@@ -1077,13 +1081,10 @@ let areaInfoLock = callback => new Promise(async (resolve, reject) => {
     //     const j = Math.floor(Math.random() * (i + 1));
     //     [areaInfoCallbacks[i], areaInfoCallbacks[j]] = [areaInfoCallbacks[j], areaInfoCallbacks[i]];
     // }
-    let data = []
     do {
-        data.push(areaInfoCallbacks.shift()())
+        await areaInfoCallbacks.shift()()
     }
     while (areaInfoCallbacks.length > 0);
-
-    await Promise.allSettled(data)
 
     kingdomLockInUse = false
 
@@ -1140,7 +1141,7 @@ const ActualMovement = e => ({
     sourceID: Number(e.SID),
     ownerID : Number(e.OID),
 
-    sourceAttack: GAAAreaInfo(e.TA),
+    sourceAttack: GAAAreaInfo(e.SA),
 })
 //TODO: Name
 // const L = e=> ({
