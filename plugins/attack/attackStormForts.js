@@ -214,11 +214,11 @@ events.once("load", async () => {
                     let time = towerTime.get(areaInfo) - timeSinceEpoch
                     if (time > 0)
                         continue
-                    if (areaInfo.extraData[5] != 0) {
+                    // if (areaInfo.extraData[5] != 0) {
                         sendXT("ssi", JSON.stringify({ TX: areaInfo.x, TY: areaInfo.y, KID: kid }))
                         Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
                             obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
-                    }
+                    // }
 
                     if(!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
