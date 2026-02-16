@@ -224,8 +224,8 @@ events.once("load", async () => {
                         continue
 
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[5] * 1000)
-                    if(areaInfo.extraData[3] > 0)
-                        continue
+                    // if(areaInfo.extraData[3] > 0)
+                        // continue
                     if (towerTime.get(areaInfo) - Date.now() > 0)
                         continue
 
@@ -239,7 +239,7 @@ events.once("load", async () => {
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
-                let AI = sortedAreaInfo.toSpliced(index, 1)[0]
+                let AI = sortedAreaInfo[index]
 
                 let toLevel = {
                     7: 60,
