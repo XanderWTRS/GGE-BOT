@@ -185,8 +185,9 @@ events.on("eventStart", async eventInfo => {
 
                 areaInfo.push(AI)
 
-                Object.assign(AI, (await ClientCommands.getAreaInfo(kid, AI.x, AI.y, AI.x, AI.y)()).areaInfo.find(e => e.type == type))
-
+                sendXT("ssi", JSON.stringify({ TX: AI.x, TY: AI.y, KID: kid }))
+                Object.assign(AI, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
+                    obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
 
                 await skipTarget(AI)
 
