@@ -249,7 +249,7 @@ async function fortressHit(kingdomID, level, options) {
             try {
                 gaa = await getAreaCached(kingdomID,
                     (1300 / 2) - 50, (1300 / 2) - 50,
-                    (1300 / 2) + 50, (1300 / 2) + 50)()
+                    (1300 / 2) + 50, (1300 / 2) + 50)
                 error = false
             } catch (e) {
                 console.warn(e)
