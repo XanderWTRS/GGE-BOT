@@ -237,7 +237,7 @@ class ServerGetAreaInfo {
 const clientPreSpyInfo = (x, y, kingdomID) => {
     /** @type {GAAAreaInfo} */
     const cachedMapData = map[`${kingdomID}_${x}_${y}`]?.deref()
-    if(cachedMapData?.timeSinceRequest - Date.now() <= 1000 * 10) {
+    if((Date.now() - cachedMapData?.timeSinceRequest) <= 1000 * 10) {
         console.debug("Using cached results")
         return async () => ({areaInfo: cachedMapData, result: 0})
     }
