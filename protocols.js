@@ -228,16 +228,18 @@ class ServerGetAreaInfo {
         this.result = Number(o.result)
     }
 }
-
-
-const limiter = new RateLimiter({ tokensPerInterval: 2.5, interval: "second" });
-
+/**
+ * 
+ * @param {Number} x 
+ * @param {Number} y 
+ * @param {Number} kingdomID
+ */
 const clientPreSpyInfo = (x, y, kingdomID) => {
     /** @type {GAAAreaInfo} */
     const cachedMapData = map[`${kingdomID}_${x}_${y}`]?.deref()
     if(cachedMapData?.timeSinceRequest - Date.now() <= 1000 * 10) {
         console.debug("Using cached results")
-        return () => ([cachedMapData, 0])
+        return async () => ({areaInfo: cachedMapData, result: 0})
     }
     sendXT("ssi", JSON.stringify({ TX: x, TY: y, KID: kingdomID }))
     
@@ -247,13 +249,19 @@ const clientPreSpyInfo = (x, y, kingdomID) => {
             obj?.gaa?.KID == kingdomID && 
             obj?.TX == x && 
             obj?.TY == y)
-            
-        if(result != 0)
-            return [undefined, result]
 
-        return ([new ServerGetAreaInfo(obj?.gaa, result).areaInfo[0], result])
+        if(result != 0)
+            return {areaInfo: undefined, result : result}
+
+        return {
+            areaInfo: new ServerGetAreaInfo(obj.gaa, result).areaInfo[0], 
+            result
+        }
     }
 }
+
+const limiter = new RateLimiter({ tokensPerInterval: 2.5, interval: "second" });
+
 /**
  * This will give you at max a 100x100 chunk of the map
 */
