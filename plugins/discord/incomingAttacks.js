@@ -57,8 +57,8 @@ clientReady.then(async client => {
     
             let e = movements.find((e) => e.M.MID == movement.M.MID)
     
-            let attacker = obj.O.find((e) => e.OID == movement.M.SA[4])
-            let victim = obj.O.find((e) => e.OID == movement.M.TA[4])
+            let attacker = obj.O.find((e) => e.M.OID == movement.M.SA[4])
+            let victim = obj.O.find((e) => e.M.OID == movement.M.TA[4])
     
             if (attacker.AID == playerInfo.alliance.id)
                 return
