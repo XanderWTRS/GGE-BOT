@@ -220,7 +220,7 @@ events.on("eventStart", async eventInfo => {
                 await skipTarget(AI)
 
                 const level = Number(eventAutoScalingCamps.find(obj => AI[9] == obj.eventAutoScalingCampID).camplevel)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, new Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -441,9 +441,9 @@ events.on("eventStart", async eventInfo => {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movement.kingdomID != kid)
+                        if (movementInfo.movement.movementData.kingdomID != kid)
                             return
-                        if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)
