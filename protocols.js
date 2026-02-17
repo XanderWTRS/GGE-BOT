@@ -54,14 +54,14 @@ const MapObject = (AI, kingdomID) => {
     const obj = map[`${kingdomID}_${AI.x}_${AI.y}`]?.deref()
         ?? (map[`${kingdomID}_${AI.x}_${AI.y}`] = new WeakRef(AI), AI)
 
+    Object.assign(obj, AI)
+
     if(JSON.stringify(obj.extraData) == JSON.stringify(AI.extraData))
         return obj
 
     console.debug("Monitored object changed")
-    console.debug("original: ", AI)
-    console.debug("changed: ", obj)
-
-    Object.assign(obj, AI)
+    console.debug("original: ", obj)
+    console.debug("changed: ", AI)
 
     events.emit(obj, obj)
 
