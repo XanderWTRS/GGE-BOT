@@ -11,6 +11,7 @@ const err = require('../../err.json')
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 const { getCommanderStats } = require('../../getEquipment.js')
+const getAreaCached = require('../../getMap.js')
 
 const minTroopCount = 100
 const minTroopCountCY = 500
@@ -49,7 +50,7 @@ function spiralCoordinates(n) {
 
     return { x, y }
 }
-async function fortressHit(kid, level, options) {
+async function fortressHit(kingdomID, level, options) {
     options.useCoin = true
     options.useFeather = true
     
@@ -60,10 +61,10 @@ async function fortressHit(kid, level, options) {
     xtHandler.on("gam", obj => {
         const movementsGAA = Types.GetAllMovements(obj)
         movementsGAA?.movements.forEach(movement => {
-            if(kid != movement.movement.kingdomID)
+            if(kingdomID != movement.movementData.kingdomID)
                 return
             
-            const targetAttack = movement.movement.targetAttack
+            const targetAttack = movement.movementData.targetAttack
 
             if(type != targetAttack.type)
                 return
@@ -75,8 +76,8 @@ async function fortressHit(kid, level, options) {
         })
     })
     movementEvents.on("return", movementInfo => {
-        const sourceAttack = movementInfo.movement.movement.sourceAttack
-        if(kid != movementInfo.movement.movement.kingdomID ||
+        const sourceAttack = movementInfo.movement.movementData.sourceAttack
+        if(kingdomID != movementInfo.movement.movementData.kingdomID ||
            type != sourceAttack.type)
            return
 
@@ -85,7 +86,7 @@ async function fortressHit(kid, level, options) {
             return
         movements.splice(index, 1)
     })
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => AreaType.externalKingdom == e.type);
 
     const sendHit = async () => {
@@ -115,9 +116,9 @@ async function fortressHit(kid, level, options) {
                         continue
 
                     // if (areaInfo.extraData[2] != 0) {
-                        sendXT("ssi", JSON.stringify({ TX: areaInfo.x, TY: areaInfo.y, KID: kid }))
-                        Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10, obj => obj.gaa.KID == kid && obj.gaa.AI[0][0] == type))[0].gaa.AI[0]))
-                        towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
+                    
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)()    
+                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
                         if (areaInfo.extraData[2] > 0)
                             continue
@@ -130,12 +131,12 @@ async function fortressHit(kid, level, options) {
                     return
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kid)
+                    .castles.find(a => a.kingdomID == kingdomID)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 let AI = areas[index]
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, options)
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, options)
 
                 const attackerTroops = []
 
@@ -146,7 +147,7 @@ async function fortressHit(kid, level, options) {
                         continue
 
                     if (unitInfo.fightType == 0) {
-                        if(kid == KingdomID.firePeaks && 
+                        if(kingdomID == KingdomID.firePeaks && 
                             unitInfo.wodID == 277 && !hasShieldMadiens)
                             continue
                         
@@ -167,9 +168,9 @@ async function fortressHit(kid, level, options) {
                     throw "NO_MORE_TROOPS"
 
                 attackInfo.A.forEach((wave, i) => {
-                    if(i > 2 && kid != KingdomID.firePeaks)
+                    if(i > 2 && kingdomID != KingdomID.firePeaks)
                         return
-                    if(i > 4 && kid == KingdomID.firePeaks)
+                    if(i > 4 && kingdomID == KingdomID.firePeaks)
                         return
                     
                     const maxTroopFlank = getAmountSoldiersFlank(level)
@@ -192,7 +193,7 @@ async function fortressHit(kid, level, options) {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
                 })
@@ -209,16 +210,16 @@ async function fortressHit(kid, level, options) {
             if(attackInfo.result != 0) 
                 throw err[attackInfo.result]
             
-            console.info("hittingTargetAttack", KingdomID[kid], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
+            console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movement.kingdomID != kid)
+                        if (movementInfo.movement.movementData.kingdomID != kingdomID)
                             return
-                        if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)
@@ -238,7 +239,7 @@ async function fortressHit(kid, level, options) {
     }
     
     // sendXT("fnm", JSON.stringify({T:type,KID:kid,LMIN:-1,LMAX:-1,NID:-1}))
-    // let AI = Types.GAAAreaInfo((await waitForResult("fnm", 1000 * 10, obj => {
+    // let AI = new Types.GAAAreaInfo((await waitForResult("fnm", 1000 * 10, obj => {
     //     return obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
     // }))[0].gaa.AI[0])
     const getFirstFortress = async () => {
@@ -246,7 +247,7 @@ async function fortressHit(kid, level, options) {
         let gaa
         do {
             try {
-                gaa = await ClientCommands.getAreaInfo(kid,
+                gaa = await getAreaCached(kingdomID,
                     (1300 / 2) - 50, (1300 / 2) - 50,
                     (1300 / 2) + 50, (1300 / 2) + 50)()
                 error = false
@@ -265,14 +266,14 @@ async function fortressHit(kid, level, options) {
                 return 1
         })[0]
     }
-    const AI = await getFirstFortress()
-    areas.push(AI)
+    const firstFortress = await getFirstFortress()
+    areas.push(firstFortress)
 
     const timeSinceEpoch = Date.now()
-    towerTime.set(AI, timeSinceEpoch + AI.extraData[2] * 1000)
+    towerTime.set(firstFortress, timeSinceEpoch + firstFortress.extraData[2] * 1000)
     
-    const startingX = AI.x
-    const startingY = AI.y
+    const startingX = firstFortress.x
+    const startingY = firstFortress.y
 
     for (let j = 1;; j++) {
         let { x: rX, y: rY } = spiralCoordinates(j)
@@ -282,10 +283,7 @@ async function fortressHit(kid, level, options) {
         let error = false
         do {
             try {
-                sendXT("ssi", JSON.stringify({ TX: x, TY: y, KID: kid }))
-                var [obj, result] = await waitForResult("ssi", 1000 * 10, (obj, r) => {
-                    return r != 0 || obj.gaa.KID == kid && obj.gaa.AI[0][0] == 11
-                })
+                var [nextFortress, result] = await ClientCommands.preSpyInfo(x, y, kingdomID)()
                 error = false
             } catch (e) {
                 console.warn(e)
@@ -296,11 +294,10 @@ async function fortressHit(kid, level, options) {
         if(result != 0)
             break
 
-        let AI = Types.GAAAreaInfo(obj.gaa.AI[0])
-        areas.push(AI)
+        areas.push(nextFortress)
         const timeSinceEpoch = Date.now()
 
-        towerTime.set(AI, timeSinceEpoch + AI.extraData[2] * 1000)
+        towerTime.set(nextFortress, timeSinceEpoch + nextFortress.extraData[2] * 1000)
         
         while (await sendHit());
     }

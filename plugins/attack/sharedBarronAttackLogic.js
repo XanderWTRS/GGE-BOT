@@ -18,7 +18,7 @@ const minTroopCount = 100
 
 const troopBlackList = [277]//, 34, 35]
 
-async function barronHit(type, kid, options) {
+async function barronHit(type, kingdomID, options) {
     function getLevel(victorys, kid) {
         function getKingdomOffset(e) {
             let t = 0
@@ -48,10 +48,10 @@ async function barronHit(type, kid, options) {
     xtHandler.on("gam", obj => {
         const movementsGAA = Types.GetAllMovements(obj)
         movementsGAA?.movements.forEach(movement => {
-            if (kid != movement.movement.kingdomID)
+            if (kingdomID != movement.movementData.kingdomID)
                 return
 
-            const targetAttack = movement.movement.targetAttack
+            const targetAttack = movement.movementData.targetAttack
 
             if (type != targetAttack.type)
                 return
@@ -69,13 +69,13 @@ async function barronHit(type, kid, options) {
             if (skip == undefined)
                 throw new Error("couldntFindSkip")
 
-            sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
+            sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
             let [obj2, result2] = await waitForResult("msd", 7000, (obj, result) => {
                 if (result != 0)
                     return true
 
                 if (obj.AI[0] != AI.type ||
-                    obj.AI[6] != kid ||
+                    obj.AI[6] != kingdomID ||
                     obj.AI[1] != AI.x ||
                     obj.AI[2] != AI.y)
                     return false
@@ -85,14 +85,14 @@ async function barronHit(type, kid, options) {
             if (Number(result2) != 0)
                 break
 
-            Object.assign(AI, Types.GAAAreaInfo(obj2.AI))
+            Object.assign(AI, new Types.GAAAreaInfo(obj2.AI))
         }
     }
 
     xtHandler.on("cat", obj => {
         const movementInfo = Types.ReturningAttack(obj)
-        const sourceAttack = movementInfo.movement.movement.sourceAttack
-        if (kid != movementInfo.movement.movement.kingdomID ||
+        const sourceAttack = movementInfo.movement.movementData.sourceAttack
+        if (kingdomID != movementInfo.movement.movementData.kingdomID ||
             type != sourceAttack.type)
             return
 
@@ -105,7 +105,7 @@ async function barronHit(type, kid, options) {
 
         movements.splice(index, 1)
     })
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
 
     const sendHit = async () => {
@@ -120,7 +120,7 @@ async function barronHit(type, kid, options) {
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kid)
+                    .castles.find(a => a.kingdomID == kingdomID)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
                 const executionStartTime = Date.now() // Start timer for "human" interaction
 
@@ -136,9 +136,7 @@ async function barronHit(type, kid, options) {
                     if (!options.useTimeSkips && time > 0)
                         continue
 
-                    sendXT("ssi", JSON.stringify({ TX: areaInfo.x, TY: areaInfo.y, KID: kid }))
-                    Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
-                        obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
+                    // await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)() Shouldn't need to
 
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
@@ -161,9 +159,9 @@ async function barronHit(type, kid, options) {
                 // Simulating: Opening Attack Dialog (Animation wait ~400ms-800ms)
                 // await sleep(boxMullerRandom(400, 800, 1))
 
-                const level = getLevel(AI.extraData[1], kid)
+                const level = getLevel(AI.extraData[1], kingdomID)
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, options)
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, options)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -259,7 +257,7 @@ async function barronHit(type, kid, options) {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
                 })
@@ -292,7 +290,7 @@ async function barronHit(type, kid, options) {
                 console.debug(`${JSON.stringify(attackInfo)}`)
                 throw err[attackInfo.result]
             }
-            console.info("hittingTargetAttack", KingdomID[kid], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
+            console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
             freeCommander(commander.lordID)
@@ -308,11 +306,11 @@ async function barronHit(type, kid, options) {
                     catch (e) {
                         console.debug(e)
                     }
-                    console.log(`[${KingdomID[kid]}] Waiting for more troops`)
+                    console.log(`[${KingdomID[kingdomID]}] Waiting for more troops`)
                     await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movement.kingdomID != kid)
+                        if (movementInfo.movement.movementData.kingdomID != kingdomID)
                             return
-                        if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)
@@ -334,7 +332,7 @@ async function barronHit(type, kid, options) {
     let gaa
     do {
         try {
-            gaa = await getAreaCached(kid,
+            gaa = await getAreaCached(kingdomID,
                 sourceCastleArea.x - 50, sourceCastleArea.y - 50,
                 sourceCastleArea.x + 50, sourceCastleArea.y + 50)
             error = false

@@ -117,8 +117,8 @@ xtHandler.on("cat", obj => {
     setTimeout(() =>
         movementEvents.emit("return", movementInfo),
 
-        movementInfo.movement.movement.totalTime -
-        (movementInfo.movement.movement.deltaTime -
+        movementInfo.movement.movementData.totalTime -
+        (movementInfo.movement.movementData.deltaTime -
         Date.now()))
 })
 

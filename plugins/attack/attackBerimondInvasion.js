@@ -53,7 +53,7 @@ const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
     botConfig.plugins["attack"] ?? {})
 
-const kid = KingdomID.greatEmpire
+const kingdomID = KingdomID.greatEmpire
 const type = AreaType.beriCamp
 const minTroopCount = 100
 const eventID = 85
@@ -65,14 +65,14 @@ const skipTarget = async AI => {
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
+        sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
-            Types.GAAAreaInfo(obj.AI).type == type)
+            new Types.GAAAreaInfo(obj.AI).type == type)
 
         if (Number(result) != 0)
             break
 
-        Object.assign(AI, Types.GAAAreaInfo(obj.AI))
+        Object.assign(AI, new Types.GAAAreaInfo(obj.AI))
     }
 }
 
@@ -85,7 +85,7 @@ xtHandler.on("cat", (obj, result) => {
     if (attackSource[0] != type)
         return
 
-    skipTarget(Types.GAAAreaInfo(attackSource))
+    skipTarget(new Types.GAAAreaInfo(attackSource))
 })
 
 let quit = false
@@ -106,14 +106,14 @@ events.on("eventStart", async eventInfo => {
     
     quit = false
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => AreaType.mainCastle == e.type)
 
     let error = false
     let gaa
     do {
         try {
-            gaa = await getAreaCached(kid,
+            gaa = await getAreaCached(kingdomID,
                 sourceCastleArea.x - 50, sourceCastleArea.y - 50,
                 sourceCastleArea.x + 50, sourceCastleArea.y + 50)
             error = false
@@ -138,20 +138,21 @@ events.on("eventStart", async eventInfo => {
         const commander = await waitForCommanderAvailable(comList)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const AI = areaInfo[0]
-                sendXT("ssi", JSON.stringify({ TX: AI.x, TY: AI.y, KID: kid }))
-                Object.assign(AI, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
-                    obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
+                const AI = areaInfo.shift()
 
+                areaInfo.push(AI)
+
+                // await ClientCommands.preSpyInfo(AI.x, AI.y, kingdomID)()
+                
                 await skipTarget(AI)
 
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kid)
+                    .castles.find(a => a.kingdomID == kingdomID)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 const level = AI.extraData[1] + AI.extraData[6] == 100 ? 70 : 56
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -349,7 +350,7 @@ events.on("eventStart", async eventInfo => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
                 })
@@ -370,9 +371,9 @@ events.on("eventStart", async eventInfo => {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movement.kingdomID != kid)
+                        if (movementInfo.movement.movementData.kingdomID != kingdomID)
                             return
-                        if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)

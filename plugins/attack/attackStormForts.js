@@ -103,7 +103,7 @@ if(pluginOptions.upgradeStormForts)
     }
 }
 
-const kid = KingdomID.stormIslands
+const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
@@ -121,12 +121,12 @@ events.once("load", async () => {
 
     if (allowedLevels.length === 0) allowedLevels = [7, 8, 9, 13, 14]
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => e.type == AreaType.externalKingdom);
         
     xtHandler.on("dcl", obj => {
         const castleProd = Types.DetailedCastleList(obj)
-            .castles.find(a => a.kingdomID == kid)
+            .castles.find(a => a.kingdomID == kingdomID)
             .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
         
         if (pluginOptions["buyCoins"]) {
@@ -164,10 +164,10 @@ events.once("load", async () => {
     xtHandler.on("gam", obj => {
         const movementsGAA = Types.GetAllMovements(obj)
         movementsGAA?.movements.forEach(movement => {
-            if(kid != movement.movement.kingdomID)
+            if(kingdomID != movement.movementData.kingdomID)
                 return
             
-            const targetAttack = movement.movement.targetAttack
+            const targetAttack = movement.movementData.targetAttack
 
             if(type != targetAttack.type)
                 return
@@ -180,8 +180,8 @@ events.once("load", async () => {
     })
     xtHandler.on("cat", obj => {
         const movementInfo = Types.ReturningAttack(obj)
-        const sourceAttack = movementInfo.movement.movement.sourceAttack
-        if(kid != movementInfo.movement.movement.kingdomID ||
+        const sourceAttack = movementInfo.movement.movementData.sourceAttack
+        if(kingdomID != movementInfo.movement.movementData.kingdomID ||
            type != sourceAttack.type)
            return
 
@@ -214,11 +214,8 @@ events.once("load", async () => {
                     let time = towerTime.get(areaInfo) - timeSinceEpoch
                     if (time > 0)
                         continue
-                    // if (areaInfo.extraData[5] != 0) {
-                        sendXT("ssi", JSON.stringify({ TX: areaInfo.x, TY: areaInfo.y, KID: kid }))
-                        Object.assign(areaInfo, Types.GAAAreaInfo((await waitForResult("ssi", 1000 * 10,
-                            obj => obj?.gaa.KID == kid && obj?.gaa.AI[0][0] == type))[0].gaa.AI[0]))
-                    // }
+
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)()
 
                     if(!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
@@ -236,7 +233,7 @@ events.once("load", async () => {
                     return
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kid)
+                    .castles.find(a => a.kingdomID == kingdomID)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 let AI = sortedAreaInfo[index]
@@ -253,7 +250,7 @@ events.once("load", async () => {
                 }
                 const level = toLevel[AI.extraData[2]]
 
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
                 attackInfo.LP = 3
                 const attackerMeleeTroops = []
@@ -304,7 +301,7 @@ events.once("load", async () => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kid || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
                         return false
                     return true
                 })
@@ -328,9 +325,9 @@ events.once("load", async () => {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movement.kingdomID != kid)
+                        if (movementInfo.movement.movementData.kingdomID != kingdomID)
                             return
-                        if (movementInfo.movement.movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)
@@ -379,7 +376,7 @@ events.once("load", async () => {
         let attemptsLeft = 5
         do {
             try {
-                gaa = await getAreaCached(kid, rect.x, rect.y, rect.w, rect.h)
+                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
             }
             catch { attemptsLeft-- }
             if (attemptsLeft <= 0)
