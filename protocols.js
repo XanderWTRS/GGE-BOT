@@ -221,7 +221,7 @@ const OwnerInfo = o => ({
 
 class ServerGetAreaInfo {
     constructor(o) {
-        this.kingdomID = Number(o.KID)
+        this.kingdomID = Number(o?.KID)
         this.userAttackProtection = ServerUserAttackProtection(o?.uap)
         this.ownerInfo = o?.OI ? Array.from(o.OI).map(OwnerInfo) : undefined
         this.areaInfo = o?.AI ? Array.from(o?.AI).map(o => MapObject(new GAAAreaInfo(o), this.kingdomID)) : undefined
@@ -247,6 +247,10 @@ const clientPreSpyInfo = (x, y, kingdomID) => {
             obj?.gaa?.KID == kingdomID && 
             obj?.TX == x && 
             obj?.TY == y)
+            
+        if(result != 0)
+            return [undefined, result]
+
         return ([new ServerGetAreaInfo(obj?.gaa, result).areaInfo[0], result])
     }
 }
