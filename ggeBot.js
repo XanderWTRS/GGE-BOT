@@ -72,6 +72,9 @@ function sendXT(cmdName, paramObj) {
     webSocket.send(rawProtocolSeparator + ["xt", botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
 }
 
+let lordErrors = 0
+let tooManyUnits = 0
+
 /**
  * 
  * @param {string} key 
@@ -79,9 +82,6 @@ function sendXT(cmdName, paramObj) {
  * @param {function(object,number)} func 
  * @returns {Promise<[obj: object, result: Number]>}
  */
-
-let lordErrors = 0
-let tooManyUnits = 0
 const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if (timeout == undefined)
         reject(`waitForResult: No timeout specified`)

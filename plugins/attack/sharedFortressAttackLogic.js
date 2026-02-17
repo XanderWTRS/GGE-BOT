@@ -50,6 +50,7 @@ function spiralCoordinates(n) {
 
     return { x, y }
 }
+
 async function fortressHit(kingdomID, level, options) {
     options.useCoin = true
     options.useFeather = true
@@ -283,7 +284,7 @@ async function fortressHit(kingdomID, level, options) {
         let error = false
         do {
             try {
-                var [nextFortress, result] = await ClientCommands.preSpyInfo(x, y, kingdomID)()
+                var {areaInfo: nextFortress, result} = await ClientCommands.preSpyInfo(x, y, kingdomID)()
                 error = false
             } catch (e) {
                 console.warn(e)
