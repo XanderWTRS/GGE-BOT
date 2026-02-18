@@ -27,7 +27,7 @@ events.once("load", async () => {
     /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
     const areas = []
     done:
-    for (let i = 0, j = 1; i < 13 * 13 / 2; i++) {
+    for (let i = 0, j = 1; i < 13 * 13; i++) {
         let rX, rY
         let rect
         do {

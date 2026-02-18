@@ -295,7 +295,7 @@ const clientPreSpyInfo = (x, y, kingdomID) => {
     }
 }
 
-const limiter = new RateLimiter({ tokensPerInterval: 2.5, interval: "second" });
+const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" });
 
 /**
  * This will give you at max a 100x100 chunk of the map
