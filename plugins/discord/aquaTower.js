@@ -3,157 +3,122 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Channel",
-                key: "channelID",
-            },
-
-            {
-                type: "Channel",
-                key: "alertChannelID",
+                key: "channelID"
             }
         ]
     }
 
 const { events, botConfig } = require("../../ggeBot.js")
-const { clientReady } = require('./discord.js')
-const { TargetType, mapObjects, addToWhiteList } = require("../getRegions.js")
-const { getKingdomInfoList, KingdomID } = require('../../protocols.js')
+const { ClientCommands: { preSpyInfo }, getResourceCastleList, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
+const getAreaCached = require('../../getMap.js')
+const { client } = require("./discord.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
-addToWhiteList(25)
-let aquaMapObjects = []
-let needSort = false
+const type = AreaType.stormTower
+const kingdomID = KingdomID.stormIslands
 
-let map = new Map()
-let aquaFortsAlert = []
-
-mapObjects[4][25].event.addListener("update", async (/**@type {TargetType}*/mapObject) => {
-    let type = mapObject.ai[5 - 3]
-    let deltaTime = mapObject.ai[8 - 3] - (Date.now() - mapObject.timeSinceRequest) / 1000
-
-    if (aquaMapObjects.find(e => mapObject == e)) {
-        let hitsLeft = 10 - mapObject.ai[7 - 3]
-        if ([9, 14].includes(type) && deltaTime <= 0 && map.get(mapObject) == undefined && hitsLeft == 10) {
-            map.set(mapObject, true)
-
-            let mention = "<@&1266227556529606676> "
-
-            if(pluginOptions.alertChannelID) {
-                try {
-                    const channel = channelID = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
-                    channel.send(mention + `${mapObject.x}:${mapObject.y} ${type == 9 ? "(Easy)" : "(Hard)"}`)
-                    return true
-                }
-                catch (e) {
-                    console.warn(e)
-                }
-            }
-        }
-
-        return
-    }
-    if (mapObject.ai[8 - 3] < 60 * 10) //mapObject.ai[8 - 3] == time in seconds
-        map.set(mapObject, true)
-
-    aquaMapObjects.push(mapObject)
-    needSort = true
-})
-let maxAquaTowers = 60
-
-events.once("load", async (_, r) => {
-        let kingdomInfoList = await getKingdomInfoList()
+events.once("load", async () => {
+    if (!(await getKingdomInfoList()).unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+        return console.warn("wontRunWithoutStormUnlocked")
     
-        if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-            return console.warn("wontRunWithoutStormUnlocked")
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
+        .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
+
+    /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
+    const areas = []
+    done:
+    for (let i = 0, j = 1; i < 13 * 13 / 2; i++) {
+        let rX, rY
+        let rect
+        do {
+
+            ({ x: rX, y: rY } = spiralCoordinates(j++))
+            rX *= 100
+            rY *= 100
+
+            rect = {
+                x: sourceCastleArea.x + rX - 50,
+                y: sourceCastleArea.y + rY - 50,
+                w: sourceCastleArea.x + rX + 50,
+                h: sourceCastleArea.y + rY + 50
+            }
+            if (j > Math.pow(13 * 13, 2))
+                break done
+        } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+        rect.x = rect.x < 0 ? 0 : rect.x
+        rect.y = rect.y < 0 ? 0 : rect.y
+        rect.w = rect.w < 0 ? 0 : rect.w
+        rect.h = rect.h < 0 ? 0 : rect.h
+        rect.x = rect.x > 1286 ? 1286 : rect.x
+        rect.y = rect.y > 1286 ? 1286 : rect.y
+        rect.w = rect.w > 1286 ? 1286 : rect.w
+        rect.h = rect.h > 1286 ? 1286 : rect.h
+        let gaa
+        let attemptsLeft = 5
+        do {
+            try {
+                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+            }
+            catch { attemptsLeft-- }
+            if (attemptsLeft <= 0)
+                continue done
+        } while (!gaa)
+        areas.push(...gaa.areaInfo.filter(ai => ai.type == type))
+    }
+    const sortData = () => {
+        areas.sort((a, b) => a.extraData[4] - b.extraData[4])
+            .sort((a, b) => (b.extraData[2] % 10) - (a.extraData[2] % 10))
+            .sort((a, b) => a.extraData[3] - b.extraData[3])
+    }
+
+    sortData()
+
+    const toLevel = {
+        7: 60,
+        8: 70,
+        9: 80,
+        10: 40,
+        11: 50,
+        12: 60,
+        13: 70,
+        14: 80,
+    }
 
     setInterval(async () => {
-        let currentDate = Date.now()
-        if (needSort) {
-            aquaMapObjects.sort((a, b) => {
-                //time
-                let deltaTimeA = Math.max(0, a.ai[8 - 3] - (currentDate - a.timeSinceRequest) / 1000)
-                let deltaTimeB = Math.max(0, b.ai[8 - 3] - (currentDate - b.timeSinceRequest) / 1000)
-                if (deltaTimeA < deltaTimeB) return -1
-                if (deltaTimeA > deltaTimeB) return 1
-                //level
-                if ((a.ai[5 - 3] % 10) > (b.ai[5 - 3] % 10)) return -1
-                if ((a.ai[5 - 3] % 10) < (b.ai[5 - 3] % 10)) return 1
-                //hits left
-                if (a.ai[7 - 3] < b.ai[7 - 3]) return -1
-                if (a.ai[7 - 3] > b.ai[7 - 3]) return 1
+        const date = Date.now()
+        let msg = "```Location           Coords  Time\n"
 
-                return 0
-            })
-            needSort = false
-        }
-
-        let msg = "Coords  Level        Hits Left\n"
-
-        aquaMapObjects.every((/**@type {TargetType}*/mapObject, index) => {
-            let type = mapObject.ai[5 - 3]
-            let deltaTime = mapObject.ai[8 - 3] - (currentDate - mapObject.timeSinceRequest) / 1000
-            let hitsLeft = 10 - mapObject.ai[7 - 3]
-
-            if (index >= maxAquaTowers || deltaTime > 0)
+        areas.every(area => {
+            const deltaTime = area.extraData[3] - (date - area.timeSinceRequest) / 1000
+            const type = area.extraData[2]
+            const hitsLeft = 10 - area.extraData[4]
+            
+            if(deltaTime > 0)
                 return false
 
-            let toLevel = {
-                7: 60,
-                8: 70,
-                9: 80,
-                10: 40,
-                11: 50,
-                12: 60,
-                13: 70,
-                14: 80,
-            }
+            if (deltaTime <= 0)
+                preSpyInfo(area.x, area.y, kingdomID)().then(({ areaInfo: area }) =>
+                    area.extraData[3] > 0 && sortData())
 
-            msg += `${mapObject.x}\:${mapObject.y} lv ${toLevel[type]} (${[7, 8, 9].includes(type) ? "Easy" : "Hard"}) ${hitsLeft}\n`
+            msg += `${area.x}\:${area.y} lv ${toLevel[type]} (${[7, 8, 9].includes(type) ? "Easy" : "Hard"}) ${hitsLeft}\n`
 
-            if (deltaTime <= 0 && !mapObject.updateRealtime) {
-                mapObject.updateRealtime = true
-                mapObject.event.addListener("update", function func(/**@type {TargetType}*/mapObject) {
-                    let time = mapObject.ai[8 - 3]
+            if (msg.length >= 2000 - 3)
+                return (msg = msg.replace(/\n.*\n$/, ''), false)
 
-                    if (hitsLeft != 10 - mapObject.ai[7 - 3])
-                        needSort = true
-
-                    if (time <= 0 && !(aquaMapObjects.indexOf(mapObject) >= maxAquaTowers))
-                        return
-
-                    map.set(mapObject, undefined)
-
-                    mapObject.updateRealtime = false
-                    needSort = true
-                    mapObject.event.removeListener("update", func)
-                })
-                needSort = true
-            }
             return true
         })
-        msg = "```ansi\n" + msg
-
-        while (msg.length >= 2000 - 3)
-            msg = msg.replace(/\n.*$/, '')
 
         msg += "```"
 
-            try {
-                const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
+        const channel = await client.channels.fetch(pluginOptions.channelID)
 
-                let message = ((await channel.messages.fetch({ limit: 1 })).first())
-                if (!message || message.author.id != (await clientReady).user.id) {
-                    message = await channel.send({ content: "```Loading...```", flags: [4096] })
-                    return true
-                }
+        let message = (await channel.messages.fetch({ limit: 1 })).first()
+        if (!message?.editable || message.author.id != client.user.id)
+            message = await channel.send({ content: "```Loading...```", flags: [4096] })
 
-                if (message.content == msg)
-                    return false
-                message.edit(msg)
-                return true
-            }
-            catch (e) {
-                console.warn(e)
-                return true
-            }
+        if (message.content == msg)
+            return
+        
+        message.edit(msg)
     }, 6 * 1000).unref()
 })

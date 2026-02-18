@@ -3,6 +3,40 @@ const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
 
+function spiralCoordinates(n) {
+    if (n === 0) return { x: 0, y: 0 }
+
+    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2)
+    const layerStart = (2 * (k - 1) + 1) ** 2
+    const offset = n - layerStart
+    const sideLength = 2 * k
+    const side = Math.floor(offset / sideLength)
+    const posInSide = offset % sideLength
+
+    let x, y
+
+    switch (side) {
+        case 0:
+            x = k
+            y = -k + 1 + posInSide
+            break
+        case 1:
+            x = k - 1 - posInSide
+            y = k
+            break
+        case 2:
+            x = -k
+            y = k - 1 - posInSide
+            break
+        case 3:
+            x = -k + 1 + posInSide
+            y = -k
+            break
+    }
+
+    return { x, y }
+}
+
 const map = {}
 const AreaType = Object.freeze({
     barron: 2,
@@ -1346,6 +1380,7 @@ xtHandler.on("msd", (obj, r) => {
 })
 
 module.exports = {
+    spiralCoordinates,
     ClientCommands: {
         preSpyInfo : clientPreSpyInfo,
         getHighScore: clientGetHighscore,
