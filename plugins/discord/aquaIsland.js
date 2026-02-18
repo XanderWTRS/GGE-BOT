@@ -3,151 +3,117 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Channel",
-                key: "channelID",
-            },
-
-            {
-                type: "Channel",
-                key: "alertChannelID",
+                key: "channelID"
             }
         ]
     }
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { clientReady } = require('./discord.js')
-const { TargetType, mapObjects, addToWhiteList } = require("../getRegions.js")
-const { getKingdomInfoList, KingdomID } = require('../../protocols.js')
+const { ClientCommands: { preSpyInfo }, getResourceCastleList, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
+const getAreaCached = require('../../getMap.js')
+const { client } = require("./discord.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
-addToWhiteList(24)
-
-let maxListedAquaObjects = 64
-
-let aquaMapObjects = []
-
-let needSort = false
-
-let map = new Map()
-
-mapObjects[4][24].event.addListener("update", (/**@type {TargetType}*/mapObject) => {
-    if (aquaMapObjects.find(e => mapObject == e) || ![3, 6].includes(mapObject.ai[8 - 3]))
-        return
-
-    if (mapObject.ai[9 - 3] < 60 * 10)
-        map.set(mapObject, true)
-
-    aquaMapObjects.push(mapObject)
-    needSort = true
-})
+const type = AreaType.stormIsland
+const kingdomID = KingdomID.stormIslands
 
 events.once("load", async () => {
-    let kingdomInfoList = await getKingdomInfoList()
-
-    if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+    if (!(await getKingdomInfoList()).unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
+    
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
+        .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
+
+    /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
+    const areas = []
+    done:
+    for (let i = 0, j = 1; i < 13 * 13 / 2; i++) {
+        let rX, rY
+        let rect
+        do {
+
+            ({ x: rX, y: rY } = spiralCoordinates(j++))
+            rX *= 100
+            rY *= 100
+
+            rect = {
+                x: sourceCastleArea.x + rX - 50,
+                y: sourceCastleArea.y + rY - 50,
+                w: sourceCastleArea.x + rX + 50,
+                h: sourceCastleArea.y + rY + 50
+            }
+            if (j > Math.pow(13 * 13, 2))
+                break done
+        } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+        rect.x = rect.x < 0 ? 0 : rect.x
+        rect.y = rect.y < 0 ? 0 : rect.y
+        rect.w = rect.w < 0 ? 0 : rect.w
+        rect.h = rect.h < 0 ? 0 : rect.h
+        rect.x = rect.x > 1286 ? 1286 : rect.x
+        rect.y = rect.y > 1286 ? 1286 : rect.y
+        rect.w = rect.w > 1286 ? 1286 : rect.w
+        rect.h = rect.h > 1286 ? 1286 : rect.h
+        let gaa
+        let attemptsLeft = 5
+        do {
+            try {
+                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+            }
+            catch { attemptsLeft-- }
+            if (attemptsLeft <= 0)
+                continue done
+        } while (!gaa)
+        areas.push(...gaa.areaInfo.filter(ai => ai.type == type)
+            .filter(ai => [3, 6].includes(ai.extraData[5])))
+    }
+    const sortData = () => { //6 is small
+        areas.sort((a, b) => b.extraData[5] - a.extraData[5])
+            .sort((a, b) => a.extraData[6] - b.extraData[6])
+            .sort((a, b) => a.extraData[1] - b.extraData[1])
+    }
+
+    sortData()
 
     setInterval(async () => {
-        let currentDate = Date.now()
-        if (needSort) {
-            aquaMapObjects.sort((a, b) => {
-                if (a.ai[4 - 3] < b.ai[4 - 3]) return -1
-                if (a.ai[4 - 3] > b.ai[4 - 3]) return 1
-                //time
-                let deltaTimeA = a.ai[9 - 3] - (currentDate - a.timeSinceRequest) / 1000
-                let deltaTimeB = b.ai[9 - 3] - (currentDate - b.timeSinceRequest) / 1000
-                if (deltaTimeA < deltaTimeB) return -1
-                if (deltaTimeA > deltaTimeB) return 1
-                //Island Type
-                if (a.ai[8 - 3] != 6 && b.ai[8 - 3] == 6)
-                    return -1
-                if (a.ai[8 - 3] = 6 && b.ai[8 - 3] != 6)
-                    return 1
+        const date = Date.now()
+        let msg = "```Coords  Time\n"
 
-                return 0
-            })
-            needSort = false
-        }
-
-        let msg = "Coords  Time\n"
-
-        aquaMapObjects.every(async (/**@type {TargetType}*/mapObject, index) => {
-            let deltaTime = mapObject.ai[9 - 3] - (currentDate - mapObject.timeSinceRequest) / 1000
-            let playerId = mapObject.ai[4 - 3]
-            let isSmallIsland = mapObject.ai[8 - 3] == 6
-
-            if (index >= maxListedAquaObjects || playerId > 0)
+        areas.every(area => {
+            const deltaTime = area.extraData[6] - (date - area.timeSinceRequest) / 1000
+            const playerId = area.extraData[1]
+            const isSmallIsland = area.extraData[5] == 6
+            
+            if(playerId > 0)
                 return false
 
-            let hour12 = new Date((deltaTime + 3600) * 1000 + currentDate).toLocaleTimeString()
+            if (deltaTime <= 0)
+                preSpyInfo(area.x, area.y, kingdomID)().then(({ areaInfo: area }) =>
+                    area.extraData[6] > 0 && sortData())
+
+            let hour12 = new Date((deltaTime + 3600) * 1000 + date).toLocaleTimeString()
             if (hour12.length <= 10)
                 hour12 += ' '
 
-            msg += `${mapObject.x}\:${mapObject.y}   ${isSmallIsland ? "(Small)" : "(Big)  "} ${hour12} ${pretty(Math.round(1000000000 * Math.abs(Math.max(0, deltaTime))), 's')}\n`
+            msg += `${area.x}\:${area.y}   ${isSmallIsland ? "(Small)" : "(Big)  "} ${hour12} ${pretty(Math.round(Math.max(0, Math.round(1000000000 * deltaTime))), 's')}\n`
 
-            if (map.get(mapObject) != true && deltaTime < 60 * 10) {
-                map.set(mapObject, true)
+            if (msg.length >= 2000 - 3)
+                return (msg = msg.replace(/\n.*\n$/, ''), false)
 
-                let mention = "<@&1266227924592496670> "
-
-                if (pluginOptions.alertChannelID) {
-                    try {
-                        const channel = await (await clientReady).channels.fetch(pluginOptions.alertChannelID)
-
-                        channel.send(
-                            mention +
-                            `${mapObject.x}:${mapObject.y} ${isSmallIsland ? "(Small)" : "(Large)"}` +
-                            ` <t:${Math.round(Date.now() / 1000 + deltaTime)}:R>`
-                        )
-                        return true
-                    }
-                    catch (e) {
-                        console.warn(e)
-                    }
-                }
-
-            }
-            if (deltaTime <= 0 && !mapObject.updateRealtime) {
-                mapObject.updateRealtime = true
-                mapObject.event.addListener("update", function func(/**@type {TargetType}*/mapObject) {
-                    let time = mapObject.ai[7 - 3]
-
-                    if (time <= 0 && !(aquaMapObjects.indexOf(mapObject) >= maxListedAquaObjects) && playerId == mapObject.ai[4 - 3])
-                        return
-
-                    map.set(mapObject, undefined)
-
-                    mapObject.updateRealtime = false
-                    needSort = true
-                    mapObject.event.removeListener("update", func)
-                })
-                needSort = true
-            }
             return true
         })
-        msg = "```ansi\n" + msg
-
-        while (msg.length >= 2000 - 3)
-            msg = msg.replace(/\n.*$/, '')
 
         msg += "```"
 
-        try {
-            const channel = await (await clientReady).channels.fetch(pluginOptions.channelID)
+        const channel = await client.channels.fetch(pluginOptions.channelID)
 
-            let message = ((await channel.messages.fetch({ limit: 1 })).first())
-            if (!message || message.author.id != (await clientReady).user.id)
-                message = await channel.send({ content: "```Loading...```", flags: [4096] })
+        let message = (await channel.messages.fetch({ limit: 1 })).first()
+        if (!message?.editable || message.author.id != client.user.id)
+            message = await channel.send({ content: "```Loading...```", flags: [4096] })
 
-            if (message.content == msg)
-                return false
-            message.edit(msg)
-            return true
-        }
-        catch (e) {
-            console.warn(e)
-            return true
-        }
-
+        if (message.content == msg)
+            return
+        
+        message.edit(msg)
     }, 6 * 1000).unref()
 })
