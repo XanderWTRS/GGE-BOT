@@ -388,7 +388,7 @@ async function start() {
           
           loggedInUsers[uuid].forEach(o =>
             o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]])))
-          return response.send('Successful!') //close page instead
+          return response.send('<html><script language="JavaScript" type="text/javascript">window.close()</script><body>Successful</body></html>')
         })
       })
     })

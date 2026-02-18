@@ -235,7 +235,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
             attackTarget.HBW = bestHorse
             attackTarget.PTT = 0
         } else {
-            console.warn("noStablesCoinHorse")
+            console.debug("noStablesCoinHorse")
             attackTarget.HBW = -1
             attackTarget.PTT = 0
         }
