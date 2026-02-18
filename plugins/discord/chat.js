@@ -99,7 +99,11 @@ clientReady.then(async client => {
 
         if (msg == "")
             return
+        
+        sendXT("acm", JSON.stringify({ 
+            M:`${!pluginOptions.hideDiscordName ? unparseMessage(name) + ": " : ""} ${msg}`
+        }))
 
-        sendXT("acm", "{ \"M\" : \"" + (!pluginOptions.hideDiscordName ? (unparseMessage(name) + ": ") : "") + msg + "\"}", "str")
+        sendXT("acm", "{ \"M\" : \"" +  + "\"}", "str")
     })
 })
