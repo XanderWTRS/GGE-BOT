@@ -247,11 +247,7 @@ webSocket.onmessage = e => {
     if (message.charAt(0) == rawProtocolSeparator) {
         let params = message.substr(1, message.length - 2).split(rawProtocolSeparator)
         let data = params.splice(1, params.length - 1)
-        // _console.log(data.toString())
-        try {
-        // console.debug("recieved ", data[0], ' ', JSON.stringify(data[3]))
-        }
-        catch {}
+
         switch (data[0]) {
             case "gbd":
                 for (const [key, value] of Object.entries(JSON.parse(data[3])))
@@ -358,16 +354,6 @@ let retry = async () => {
 
         return
     }
-    // const RCT = await new Promise(resolve => {
-    //     const messageCallback = (obj) => {
-    //         if(obj[0] != ActionType.CAPTCHA)
-    //             return
-    //         parentPort.off('message', messageCallback)
-    //         resolve(obj[1])
-    //     }
-    //     parentPort.on('message', messageCallback)
-    //     parentPort.postMessage([ActionType.CAPTCHA])
-    // })
     if (botConfig.lt) {
         sendXT("lli", JSON.stringify({
             "CONM": 350,
@@ -383,8 +369,7 @@ let retry = async () => {
             "REF": "https://empire.goodgamestudios.com",
             "GCI": "",
             "SID": 9,
-            "PLFID": 1,
-            // "RCT" : 0
+            "PLFID": 1
         }))
     }
     else {
@@ -403,8 +388,7 @@ let retry = async () => {
             REF: "https://empire.goodgamestudios.com",
             GCI: "",
             SID: 9,
-            PLFID: 1,
-            // RCT : 0
+            PLFID: 1
         }))
     }
 }
