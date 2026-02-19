@@ -38,8 +38,6 @@ const client = new Client(clientOptions)
 
 console.info(i18n.__("startBanner"))
 
-console.warn("*IF YOU ARE CURRENTLY FACING ISSUES WITH THIS NEW VERSION PLEASE REINSTALL BOT!*")
-
 const ggeConfigExample = `{
     "webPort" : "3001",
     "fontPath" : "",
@@ -158,6 +156,8 @@ async function start() {
     console.info(i18n.__('ggeConfigGenerated'))
   }
   const ggeConfig = JSON.parse((await fs.readFile('./ggeConfig.json')).toString())
+
+  console.debug = ggeConfig.debug ? console.debug : _ => { }
 
   ggeConfig.webPort ??= '3001'
 
