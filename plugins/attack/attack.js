@@ -273,7 +273,7 @@ let attackCount = undefined
 let attackThreshold = undefined
 
 if([,""].includes(pluginOptions.attackLimit))
-    pluginOptions.attackLimit = Infinity
+    pluginOptions.attackLimit = undefined
     
 xtHandler.on("gai", obj => {
     attackCount = obj.AC
@@ -281,7 +281,7 @@ xtHandler.on("gai", obj => {
 })
 let announced = false
 const waitToAttack = callback => new Promise((resolve, reject) => {
-    if(!botConfig.externalEvent && attackCount >= Math.min(Number(pluginOptions.attackLimit), attackThreshold)) {
+    if(!botConfig.externalEvent && attackCount >= Number(pluginOptions.attackLimit ?? attackThreshold)) {
         if(!announced) {
             announced = true
             console.log("Max attacks reached")
