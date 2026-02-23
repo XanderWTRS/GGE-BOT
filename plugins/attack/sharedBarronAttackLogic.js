@@ -128,20 +128,22 @@ async function barronHit(type, kingdomID, options) {
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const areaInfo = sortedAreaInfo[i]
+                    if (!options.useTimeSkips) {
+                        if (movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
+                            continue
 
-                    if (!options.useTimeSkips && movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
-                        continue
-
-                    let time = (towerTime.get(areaInfo) - timeSinceEpoch) / 1000
-                    if (!options.useTimeSkips && time > 0)
-                        continue
-
-                    // await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)() Shouldn't need to
-
-                    //towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
-
-                    //if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
-                    //    continue
+                        if ((towerTime.get(areaInfo) - timeSinceEpoch) > 0)
+                            continue
+                    }
+                    else {
+                        try {
+                            await skipTarget(AI)
+                        }
+                        catch(e) {
+                            console.warn(e)
+                            continue
+                        }
+                    }
 
                     index = i
                     break
@@ -149,18 +151,8 @@ async function barronHit(type, kingdomID, options) {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo[index]//.splice(index, 1)[0]
-
-                // Simulating: Clicking on target (Reaction time ~300ms-600ms)
-                // await sleep(boxMullerRandom(300, 600, 1)) 
-                if(options.useTimeSkips)
-                    await skipTarget(AI)
-
-                // Simulating: Opening Attack Dialog (Animation wait ~400ms-800ms)
-                // await sleep(boxMullerRandom(400, 800, 1))
-
+                const AI = sortedAreaInfo[index]
                 const level = getLevel(AI.extraData[1], kingdomID)
-
                 const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, options)
 
                 const attackerMeleeTroops = []
@@ -189,13 +181,9 @@ async function barronHit(type, kingdomID, options) {
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
-
-                // Simulating: Selecting Units and filling waves (Cognitive processing ~100ms per wave/calculation)
-                // await sleep(boxMullerRandom(200, 400, 1))
-
-                // Get user options, defaulting to full attack if not set
+                
                 let maxWaves = parseInt(options.attackWaves)
-                if (maxWaves == undefined || isNaN(maxWaves) || maxWaves == 0)
+                if (isNaN(maxWaves) || maxWaves == 0)
                     maxWaves = Infinity
 
                 let doLeft = !!(options.attackLeft)
@@ -253,7 +241,7 @@ async function barronHit(type, kingdomID, options) {
 
                 sendXT("cra", JSON.stringify(attackInfo))
 
-                let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
+                let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
 
@@ -261,7 +249,7 @@ async function barronHit(type, kingdomID, options) {
                         return false
                     return true
                 })
-                if (r == 0) {
+                if (result == 0) {
                     attackInfo.A.forEach(wave => {
                         wave.L.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
                         wave.R.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
@@ -280,7 +268,7 @@ async function barronHit(type, kingdomID, options) {
                 const executionDuration = ((Date.now() - executionStartTime) / 1000).toFixed(2);
                 obj.executionDuration = executionDuration; // Pass it out
 
-                return { ...obj, attackInfo, result: r, executionDuration }
+                return { ...obj, attackInfo, result, executionDuration }
             })
 
             if (!attackInfo) {
@@ -298,7 +286,7 @@ async function barronHit(type, kingdomID, options) {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     try {
-                        if (botConfig.externalEvent) {
+                        if (botConfig.externalEvent && kingdomID == KingdomID.greatEmpire) {
                             await (require("../../plugins-extra/externalEventHelper.js"))
                                 .recruitTroops()
                             return true
