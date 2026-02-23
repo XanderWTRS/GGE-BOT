@@ -258,14 +258,9 @@ async function fortressHit(kingdomID, level, options) {
             }
         } while (error);
 
-        return gaa.areaInfo.filter(e => e.type == type).sort((a, b) => {
-            let d1 = Math.sqrt(Math.pow((1300 / 2) - a.x, 2) + Math.pow((1300 / 2) - a.y, 2))
-            let d2 = Math.sqrt(Math.pow((1300 / 2) - b.x, 2) + Math.pow((1300 / 2) - b.y, 2))
-            if (d1 < d2)
-                return -1
-            if (d1 > d2)
-                return 1
-        })[0]
+        return gaa.areaInfo.filter(e => e.type == type).sort((a, b) => 
+            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
+            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))[0]
     }
     const firstFortress = await getFirstFortress()
     areas.push(firstFortress)
