@@ -138,10 +138,10 @@ async function barronHit(type, kingdomID, options) {
 
                     // await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)() Shouldn't need to
 
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
+                    //towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
 
-                    if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
-                        continue
+                    //if (!options.useTimeSkips && areaInfo.extraData[2] > 0)
+                    //    continue
 
                     index = i
                     break
