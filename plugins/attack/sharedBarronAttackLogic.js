@@ -153,8 +153,8 @@ async function barronHit(type, kingdomID, options) {
 
                 // Simulating: Clicking on target (Reaction time ~300ms-600ms)
                 // await sleep(boxMullerRandom(300, 600, 1)) 
-
-                await skipTarget(AI)
+                if(options.useTimeSkips)
+                    await skipTarget(AI)
 
                 // Simulating: Opening Attack Dialog (Animation wait ~400ms-800ms)
                 // await sleep(boxMullerRandom(400, 800, 1))
@@ -273,7 +273,8 @@ async function barronHit(type, kingdomID, options) {
 
                         attackInfo.RW.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
                     })
-                    movements.push(AI)
+                    if (!options.useTimeSkips)
+                        movements.push(AI)
                 }
 
                 const executionDuration = ((Date.now() - executionStartTime) / 1000).toFixed(2);
@@ -342,14 +343,9 @@ async function barronHit(type, kingdomID, options) {
         }
     } while (error);
 
-    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => {
-        let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))
-        let d2 = Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2))
-        if (d1 < d2)
-            return -1
-        if (d1 > d2)
-            return 1
-    })
+    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
+            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
+            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
     const timeSinceEpoch = Date.now()
     areaInfo.forEach(ai =>
         towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))

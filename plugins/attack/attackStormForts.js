@@ -221,8 +221,7 @@ events.once("load", async () => {
                         continue
 
                     towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[3] * 1000)
-                    // if(areaInfo.extraData[3] > 0)
-                        // continue
+                    
                     if (towerTime.get(areaInfo) - Date.now() > 0)
                         continue
 
@@ -253,6 +252,7 @@ events.once("load", async () => {
                 const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
 
                 attackInfo.LP = 3
+
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
 
@@ -382,20 +382,20 @@ events.once("load", async () => {
             if (attemptsLeft <= 0)
                 continue done
         } while (!gaa)
-        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-        .sort((a, b) => {
-            let d1 = Math.sqrt(Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2))
-            let d2 = Math.sqrt(Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2))
-            if (d1 < d2)
-                return -1
-            if (d1 > d2)
-                return 1
-        })
+        
+        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
+            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
+            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+
         const timeSinceEpoch = Date.now()
         areaInfo.forEach(ai =>
             towerTime.set(ai, timeSinceEpoch + ai.extraData[3] * 1000))
 
-        sortedAreaInfo = sortedAreaInfo.concat(areaInfo)
+        sortedAreaInfo.push(...areaInfo)
+
+        if(sortedAreaInfo.every(ai => ![7,8,9].includes(ai.extraData[2]))) //Find and hit a good one before continuing scanning
+            continue
+
         sortedAreaInfo.sort((a, b) => {
             if ((a.extraData[2] % 10) > (b.extraData[2] % 10)) 
                 return -1

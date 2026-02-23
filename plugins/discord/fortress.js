@@ -29,8 +29,8 @@ events.once("load", async () => {
                         (1300 / 2) - 50, (1300 / 2) - 50,
                         (1300 / 2) + 50, (1300 / 2) + 50))
                         .areaInfo.filter(e => e.type == type).sort((a, b) =>
-                            Math.sqrt(Math.pow((1300 / 2) - a.x, 2) + Math.pow((1300 / 2) - a.y, 2)) -
-                            Math.sqrt(Math.pow((1300 / 2) - b.x, 2) + Math.pow((1300 / 2) - b.y, 2))
+                            (Math.pow((1300 / 2) - a.x, 2) + Math.pow((1300 / 2) - a.y, 2)) -
+                            (Math.pow((1300 / 2) - b.x, 2) + Math.pow((1300 / 2) - b.y, 2))
                         )[0]
                 } catch (e) {
                     console.warn(e)
