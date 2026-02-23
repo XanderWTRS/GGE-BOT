@@ -55,7 +55,6 @@ async function fortressHit(kingdomID, level, options) {
     options.useCoin = true
     options.useFeather = true
     
-    let towerTime = new WeakMap()
     const areas = []
     const movements = []
 
@@ -112,18 +111,13 @@ async function fortressHit(kingdomID, level, options) {
                     if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
 
-                    let time = towerTime.get(areaInfo) - timeSinceEpoch
+                    let time = (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch
                     if (time > 0)
                         continue
 
-                    // if (areaInfo.extraData[2] != 0) {
-                    
-                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)()    
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[2] * 1000)
-
-                        if (areaInfo.extraData[2] > 0)
-                            continue
-                    // }
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)()
+                    if ((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - Date.now() > 0)
+                        continue
 
                     index = i
                     break
@@ -266,7 +260,6 @@ async function fortressHit(kingdomID, level, options) {
     areas.push(firstFortress)
 
     const timeSinceEpoch = Date.now()
-    towerTime.set(firstFortress, timeSinceEpoch + firstFortress.extraData[2] * 1000)
     
     const startingX = firstFortress.x
     const startingY = firstFortress.y
@@ -291,18 +284,15 @@ async function fortressHit(kingdomID, level, options) {
             break
 
         areas.push(nextFortress)
-        const timeSinceEpoch = Date.now()
 
-        towerTime.set(nextFortress, timeSinceEpoch + nextFortress.extraData[2] * 1000)
-        
         while (await sendHit());
     }
     
     while (true) {
         let minimumTimeTillHit = Infinity
-        areas.forEach(e => {
-            if(!movements.find(a => a.x == e.x && a.y == e.y))
-                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
+        areas.forEach(areaInfo => {
+            if(!movements.find(a => a.x == areaInfo.x && a.y == areaInfo.y))
+                minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
         })
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
         console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")

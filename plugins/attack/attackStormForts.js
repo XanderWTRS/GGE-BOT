@@ -157,7 +157,6 @@ events.once("load", async () => {
     if (pluginOptions["addworserforts"])
         allowedLevels.push(11, 10)
     
-    let towerTime = new WeakMap()
     let sortedAreaInfo = []
     const movements = []
 
@@ -211,7 +210,7 @@ events.once("load", async () => {
                     if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                         continue
 
-                    let time = towerTime.get(areaInfo) - timeSinceEpoch
+                    let time = (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch
                     if (time > 0)
                         continue
 
@@ -220,9 +219,7 @@ events.once("load", async () => {
                     if(!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
 
-                    towerTime.set(areaInfo, timeSinceEpoch + areaInfo.extraData[3] * 1000)
-                    
-                    if (towerTime.get(areaInfo) - Date.now() > 0)
+                    if ((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now() > 0)
                         continue
 
                     index = i
@@ -387,10 +384,6 @@ events.once("load", async () => {
             (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
             (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
 
-        const timeSinceEpoch = Date.now()
-        areaInfo.forEach(ai =>
-            towerTime.set(ai, timeSinceEpoch + ai.extraData[3] * 1000))
-
         sortedAreaInfo.push(...areaInfo)
 
         if(sortedAreaInfo.every(ai => ![7,8,9].includes(ai.extraData[2]))) //Find and hit a good one before continuing scanning
@@ -419,11 +412,11 @@ events.once("load", async () => {
             const areaInfo = sortedAreaInfo[i]
 
             if (!allowedLevels.includes(areaInfo.extraData[2]))
-                if((towerTime.get(areaInfo) - Date.now()) <= 0)
+                if(((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now()) <= 0)
                     continue
             
             if (!movements.find(movement => movement.x == areaInfo.x && movement.y == areaInfo.y))
-                minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(areaInfo))
+                minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000))
         }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
