@@ -41,7 +41,7 @@ async function barronHit(type, kingdomID, options) {
         return (0 | Math.floor(1.9 * Math.pow(Math.abs(victorys), .555))) + n
     }
 
-    let towerTime = new WeakMap()
+    /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
     let sortedAreaInfo = []
     const movements = []
 
@@ -132,7 +132,7 @@ async function barronHit(type, kingdomID, options) {
                         if (movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                             continue
 
-                        if ((towerTime.get(areaInfo) - timeSinceEpoch) > 0)
+                        if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > 0)
                             continue
                     }
                     else {
@@ -318,6 +318,7 @@ async function barronHit(type, kingdomID, options) {
             }
         }
     }
+    /** @type {import("../../protocols.js").Types.ServerGetAreaInfo} */
     let gaa
     do {
         try {
@@ -335,8 +336,6 @@ async function barronHit(type, kingdomID, options) {
             (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
             (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
     const timeSinceEpoch = Date.now()
-    areaInfo.forEach(ai =>
-        towerTime.set(ai, timeSinceEpoch + ai.extraData[2] * 1000))
 
     sortedAreaInfo.push(...areaInfo)
 
@@ -344,9 +343,9 @@ async function barronHit(type, kingdomID, options) {
         if (!options.useTimeSkips) {
             let minimumTimeTillHit = Infinity
 
-            sortedAreaInfo.forEach(e => {
-                if (!movements.find(a => a.x == e.x && a.y == e.y))
-                    minimumTimeTillHit = Math.min(minimumTimeTillHit, towerTime.get(e))
+            sortedAreaInfo.forEach(ai => {
+                if (!movements.find(a => a.x == ai.x && a.y == ai.y))
+                    minimumTimeTillHit = Math.min(minimumTimeTillHit, (ai.timeSinceRequest + ai.extraData[2] * 1000))
             })
             let time = (Math.max(0, minimumTimeTillHit - Date.now()))
             if (time > 0)

@@ -2,7 +2,15 @@ const NodeCache = require( "node-cache" );
 const myCache = new NodeCache({useClones : false});
 
 const {ClientCommands} = require("./protocols.js");
-
+/**
+ * 
+ * @param {Number} kid 
+ * @param {Number} fromX 
+ * @param {Number} fromY 
+ * @param {Number} toX 
+ * @param {Number} toY 
+ * @returns {Promise<import("./protocols.js").Types.ServerGetAreaInfo>}
+ */
 async function getAreaCached(kid, fromX, fromY, toX, toY) {
     const key = `${kid}_${fromX}_${fromY}_${fromX}_${fromY}`
     let response = myCache.get(key)
