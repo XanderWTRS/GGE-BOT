@@ -296,9 +296,9 @@ async function start() {
   app.use(bodyParser.urlencoded({ extended: true }))
   app.get('/', (_, res) => res.redirect('/index.html'))
 
-  app.get('/lang', (_, res) => {
-    
-  })
+  // app.get('/lang', (_, res) => {
+
+  // })
   app.get('/lang.json', (_, res) => { 
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.sendFile('lang.json', { root: '.' }) 
