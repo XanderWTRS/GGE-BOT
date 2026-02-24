@@ -67,6 +67,22 @@ xtHandler.on("gam", func = async obj => {
             victimName = victimName.replace(/_[^_]+$/, '')
         }
 
+        let channelAlert
+        try {
+            channelAlert = await client.channels.fetch(pluginOptions.channelID)
+        }
+        catch (e) {
+            console.warn(e)
+        }
+        let channelAquaAlert
+        try {
+            if (pluginOptions.channelAquaAlert)
+                channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
+        }
+        catch (e) {
+            console.warn(e)
+        }
+        
         let member = channelAlert.members.find((e) => e.displayName == victimName)
         let mention = member?.displayName ? `<@${member.id}> ` : ``
 
@@ -90,22 +106,6 @@ xtHandler.on("gam", func = async obj => {
         let y2 = movement.M.SA[2]
 
         let clicks = Math.round(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 10) / 10
-
-        let channelAlert
-        try {
-            channelAlert = await client.channels.fetch(pluginOptions.channelID)
-        }
-        catch (e) {
-            console.warn(e)
-        }
-        let channelAquaAlert
-        try {
-            if (pluginOptions.channelAquaAlert)
-                channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
-        }
-        catch (e) {
-            console.warn(e)
-        }
 
         let channel = ((movement.M.KID != 4) ? channelAlert : channelAquaAlert)
         if (channel == undefined)

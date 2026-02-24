@@ -278,7 +278,9 @@ async function start() {
 
   try {
     pluginData.push(...require('./plugins-extra'))
-  } catch {}
+  } catch(e) {
+    console.debug(e)
+  }
   try {
     pluginData.push(...require('./plugins-exploits'))
   } catch {}
