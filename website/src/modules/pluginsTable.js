@@ -20,9 +20,7 @@ import Typography from '@mui/material/Typography'
 import { Container } from '@mui/material'
 
 function PluginOption({ pluginData, channels, userPlugins: userPlugins, plugin, __ }) {
-    const [value, setValue] = React.useState(userPlugins[plugin.key][pluginData.key])
-    
-    userPlugins[plugin.key][pluginData.key] ??= pluginData.default
+    const [value, setValue] = React.useState(userPlugins[plugin.key][pluginData.key] ??= pluginData.default)
 
     const onChange = value => {
         userPlugins[plugin.key][pluginData.key] = value
