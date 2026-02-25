@@ -25,6 +25,7 @@ const { DatabaseSync } = require('node:sqlite')
 const { getPermanentCastle } = require('../../protocols')
 const { botConfig, playerInfo, xtHandler } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
+const { getCommanderStats } = require('../../getEquipment')
 
 const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
 
