@@ -439,10 +439,7 @@ xtHandler.on("lli", async (obj, r) => {
 
     status.hasError = true
     parentPort.postMessage([ActionType.StatusUser, status])
-    const userDatabase = new DatabaseSync('./user.db')
-    userDatabase.prepare(`UPDATE SubUsers SET state = ? WHERE id = ?`)
-        .run(0, botConfig.gameID)
-    userDatabase.close()
+    parentPort.postMessage([ActionType.KillBot])
 })
 
 xtHandler.on("sne", obj => {
