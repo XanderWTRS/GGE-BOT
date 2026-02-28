@@ -4,17 +4,17 @@ if (require('node:worker_threads').isMainThread) {
             {
                 type: "Text",
                 key: "feastFoodReduction",
-                default: 150000
+                default: "150000"
             },
             {
                 type: "Text",
                 key: "minimumFood",
-                default: 150000
+                default: "150000"
             },
             {
                 type: "Text",
                 key: "minimumFoodRate",
-                default: 0
+                default: "0"
             },
         ]
     }

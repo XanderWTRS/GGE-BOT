@@ -1,7 +1,7 @@
-const { waitForResult, sendXT, xtHandler, events } = require("./ggeBot.js")
 const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
+const { waitForResult, sendXT, xtHandler, events } = require("./ggeBot.js")
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -342,77 +342,6 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
         return new ServerGetAreaInfo(gaa)
     }
 }
-
-/**
- * This will give you at max a 100x100 chunk of the map
-*/
-// const clientGetAreaInfo = (kingdomID, fromX, fromY) => {
-//     const gaaSize = Math.ceil(100 / 12)
-//     const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => {
-//         for (let x = 0; x < gaaSize; x++) {
-//             for (let y = 0; y < gaaSize; y++) {
-//                 sendXT("gaa", JSON.stringify({
-//                     KID: Number(kingdomID),
-//                     AX1: Number(fromX + x * 12),
-//                     AY1: Number(fromY + y * 12),
-//                     AX2: Number(fromX + (x + 1) * 12),
-//                     AY2: Number(fromY + (y + 1) * 12)
-//                 }))
-//             }
-//         }
-//     }).then(async () => {
-//         let promises = []
-//         for (let x = 0; x < gaaSize; x++) {
-//             for (let y = 0; y < gaaSize; y++) {
-//                 promises.push(waitForResult("gaa", 1000 * 10, (obj, result) => {
-//                     let newFromX = fromX + x * 12
-//                     let newFromY = fromY + y * 12
-//                     let toX = newFromX + (x + 1) * 12
-//                     let toY = fromY + (y + 1) * 12
-//                     if (Number(result) != 0)
-//                         return true
-
-//                     if (obj.KID != kingdomID)
-//                         return false
-
-//                     let ai = obj.AI[0]
-//                     if (ai == undefined)
-//                         return false
-
-//                     let aiX = ai[1]
-//                     let aiY = ai[2]
-
-//                     let startX = newFromX < toX ? newFromX : toX
-//                     let startY = newFromY < toY ? newFromY : toY
-//                     let endX = newFromX >= toX ? newFromX : toX
-//                     let endY = newFromY >= toY ? newFromY : toY
-
-//                     if (aiX < startX || aiX > endX ||
-//                         aiY < startY || aiY > endY)
-//                         return false
-
-//                     return true
-//                 }))
-//             }
-//         }
-//         let settledPromises = await Promise.all(promises)
-
-//         settledPromises.forEach(([currentValue], i, arr) => {
-//             if(i == 0)
-//                 return
-
-//             settledPromises[0][0].AI.push(...currentValue.AI)
-//             settledPromises[0][0].OI.push(...currentValue.OI)
-//         })
-//         return settledPromises[0]
-//     }))
-//     return async () => {
-//         const [gaa, result] = await waitObject
-        
-//         gaa.result = result
-//         return Number(result) == 0 ? new ServerGetAreaInfo(gaa) : { result }
-//     }
-// }
 
 const clientGetAllianceInfluence = (allianceID) => {
     sendXT("gabgap", JSON.stringify({ AID: allianceID }))

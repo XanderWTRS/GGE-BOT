@@ -23,7 +23,7 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Text",
                 key: "wavesTillChests",
-                default: 4
+                default: "4"
             },
             {
                 type: "Checkbox",
