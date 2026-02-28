@@ -1,8 +1,9 @@
-const PImage = require("pureimage");
-const fs = require('fs')
-const { getAsset } = require("./units.js")
-const { all_units } = require("./ids.js")
 const { Stream } = require("stream")
+const PImage = require("pureimage")
+const fs = require('fs')
+
+const { getAsset } = require("./units.js")
+const units = require("./items/units.json")
 const ggeConfig = require("./ggeConfig.json")
 
 let wavePattern = {
@@ -45,7 +46,7 @@ let createLayout = ((GA) => {
 
       let displayAttack = (attack, attackSection) => 
         attack.map((wave, index) => addUnit(
-          all_units[wave[0]],
+          units.find(e => e?.wodID == wave[0]),
           ctx,
           attackSection.startX,
           attackSection.startY,

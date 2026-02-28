@@ -1,6 +1,6 @@
-const fs = require('fs');
+const fs = require('fs')
 const sharp = require("sharp")
-const { Readable } = require('stream');
+const { Readable } = require('stream')
 
 let asset = {
             Deco_Building_springBonfire : "itemassets/Building/Deco/Deco_Building_springBonfire/Deco_Building_springBonfire--1616681902168",
@@ -7270,54 +7270,54 @@ let asset = {
 }
 
 let getAsset = (key, hardFail) => new Promise(async (resolve, reject) => {
-    if(key == undefined || key == "undefined_undefined_undefined") 
+    if (key == undefined || key == "undefined_undefined_undefined")
         return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
-    
+
     try {
-    let data = fs.createReadStream(`./assets/${asset[key]}.png`)
-    data.on("error", async function(err) {
-        console.error(err)
-        try {
-        let imageFile = await fetch(`https://empire-html5.goodgamestudios.com/default/assets/${asset[key]}.webp`)
-        if(imageFile.status != 200) {
-            if(hardFail) {
-                throw "Could not get soldier"
+        let data = fs.createReadStream(`./assets/${asset[key]}.png`)
+        data.on("error", async function (err) {
+            console.error(err)
+            try {
+                let imageFile = await fetch(`https://empire-html5.goodgamestudios.com/default/assets/${asset[key]}.webp`)
+                if (imageFile.status != 200) {
+                    if (hardFail) {
+                        throw "Could not get soldier"
+                    }
+                    return resolve(getAsset(`Unknown_Unit_Soldiers`, true))
+                }
+                let imageBlob = await imageFile.blob()
+
+                if (imageBlob.size == 0) {
+                    console.warn("couldntGetAsset")
+                    return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
+                }
+                let sharpImg = sharp(await imageBlob.arrayBuffer())
+
+                sharpImg.on("error", reject)
+
+                let convertedImage = sharpImg.png().resize(24, 24)
+                let convertedImageBuffer = await convertedImage.toBuffer()
+
+                if (convertedImageBuffer.byteLength == 0) {
+                    console.warn("couldntGetAsset")
+                    return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
+                }
+
+                let data = Readable.from(convertedImageBuffer)
+
+                fs.mkdirSync(`./assets/${asset[key].replace(/\/[^\/]+\/?$/, '')}`, { recursive: true })
+                await convertedImage.toFile(`./assets/${asset[key]}.png`)
+                resolve(data)
             }
-            return resolve(getAsset(`Unknown_Unit_Soldiers`, true))
-        }
-        let imageBlob = await imageFile.blob()
+            catch (e) {
+                if (hardFail) return reject(e)
+                resolve(getAsset(`Unknown_Unit_Soldiers`, true))
+            }
+        })
 
-        if(imageBlob.size == 0){
-            console.warn("couldntGetAsset")
-            return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
-        }
-        let sharpImg = sharp(await imageBlob.arrayBuffer())
-        
-        sharpImg.on("error", reject)
-
-        let convertedImage = sharpImg.png().resize(24,24)
-        let convertedImageBuffer = await convertedImage.toBuffer()
-        
-        if(convertedImageBuffer.byteLength == 0) {
-            console.warn("couldntGetAsset")
-            return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
-        }
-
-        let data = Readable.from(convertedImageBuffer)
-
-        fs.mkdirSync(`./assets/${asset[key].replace(/\/[^\/]+\/?$/, '')}`, { recursive: true })
-        await convertedImage.toFile(`./assets/${asset[key]}.png`)
-        resolve(data)
-        }
-        catch(e) {
-            if(hardFail) return reject(e)
-            resolve(getAsset(`Unknown_Unit_Soldiers`, true))
-        }
-    })
-
-    data.on("open", () => resolve(data))
+        data.on("open", () => resolve(data))
     }
-    catch(err) {
+    catch (err) {
         reject(err)
     }
 })

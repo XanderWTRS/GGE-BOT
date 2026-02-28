@@ -35,7 +35,7 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Text",
                 key: "wavesTillChests",
-                default: 4
+                default: "4"
             },
             {
                 type: "Checkbox",
@@ -45,7 +45,7 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Checkbox",
                 key: "useCoin",
-                default: false
+                default: true
             },
             {
                 type: "Checkbox",
@@ -59,7 +59,8 @@ if (require('node:worker_threads').isMainThread)
             },
             {
                 type: "Text",
-                key: "scoreShutoff"
+                key: "scoreShutoff",
+                default: "881100"
             }
         ]
 

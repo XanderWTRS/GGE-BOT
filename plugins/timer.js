@@ -6,7 +6,7 @@ if (isMainThread) {
             {
                 type: "Text",
                 key: "hours",
-                default: 2
+                default: "2"
             },
         ]
     };
