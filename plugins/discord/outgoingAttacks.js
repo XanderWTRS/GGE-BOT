@@ -13,6 +13,7 @@ const { xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
 const { clientReady, client } = require('./discord')
 const path = require('path')
 const pluginOptions = botConfig.plugins[path.basename(__filename).slice(0, -3)] ?? {}
+const { I18n, __ } = require('i18n')
 
 const i18n = new I18n({
     locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
