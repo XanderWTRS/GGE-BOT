@@ -125,6 +125,8 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             result = -1
             console.debug(key, "timedOut")
 
+            console.warn(msg)
+
             reject(msg)
         }, timeout * (ggeConfig.timeoutMultiplier ?? 1))
     }
@@ -132,6 +134,10 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     const helperFunction = (data, _result) => {
         if (result != 0)
             result = _result
+
+        const msg = (_result == undefined || _result == 0) ? "TIMED_OUT" : !err[_result] ? _result : err[_result]
+        console.warn(msg)
+        
         checkForLordIssues()
         if (!func(Object(data), Number(_result)))
             return

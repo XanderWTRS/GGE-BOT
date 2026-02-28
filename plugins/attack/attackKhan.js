@@ -25,7 +25,8 @@ if (require('node:worker_threads').isMainThread)
             },
             {
                 type: "Checkbox",
-                key: "eventWallToolsFirst"
+                key: "eventWallToolsFirst",
+                default: false
             },
             {
                 type: "Checkbox",
@@ -285,8 +286,8 @@ events.on("eventStart", async eventInfo => {
                     throw "NO_MORE_TROOPS"
 
                 attackerBannerKhanTools.sort((a, b) =>
-                    Number(b[0].ragePointBonus + (b[0].khanTabletBooster ?? 0)) -
-                    Number(a[0].ragePointBonus + (a[0].khanTabletBooster ?? 0)))
+                    Number(b[0].ragePointBonus + Number(b[0].khanTabletBooster ?? 0)) -
+                    Number(a[0].ragePointBonus + Number(a[0].khanTabletBooster ?? 0)))
 
                 attackerNomadTools.sort((a, b) =>
                     Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
