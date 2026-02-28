@@ -1035,10 +1035,10 @@ const clientSearchPlayerName = (playerName) => {
     sendXT("wsp", JSON.stringify({ PN: playerName }))
 
     const waitObject = waitForResult("wsp", 1000 * 10, obj => {
-                if (obj.gaa.OI[0].N != playerName)
-                    return false
+                if (obj.gaa?.OI.find(e => e.N == playerName))
+                    return true
 
-                return true
+                return false
             })
 
     return async () => {
