@@ -137,7 +137,7 @@ async function barronHit(type, kingdomID, options) {
                     }
                     else {
                         try {
-                            await skipTarget(AI)
+                            await skipTarget(areaInfo)
                         }
                         catch(e) {
                             console.warn(e)
