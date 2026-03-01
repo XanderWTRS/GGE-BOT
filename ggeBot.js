@@ -123,9 +123,9 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             xtHandler.removeListener(key, helperFunction)
             const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
             result = -1
-            console.debug(key, "timedOut")
+            // console.debug(key, "timedOut")
 
-            console.warn(msg)
+            console.warn(key, msg)
 
             reject(msg)
         }, timeout * (ggeConfig.timeoutMultiplier ?? 1))
@@ -136,7 +136,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             result = _result
 
         const msg = (_result == undefined || _result == 0) ? "TIMED_OUT" : !err[_result] ? _result : err[_result]
-        console.warn(msg)
+        console.warn(key, msg)
         
         checkForLordIssues()
         if (!func(Object(data), Number(_result)))
