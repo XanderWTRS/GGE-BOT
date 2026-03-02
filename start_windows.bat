@@ -24,6 +24,7 @@ if not exist ".git"\ (
 
 echo "Last commit message:"
 git show --format=%s -s
+git config pull.rebase false
 git pull origin main --recurse-submodules
 
 if not exist "website\build\index.html" goto rebuild

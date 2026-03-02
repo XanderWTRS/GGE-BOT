@@ -26,6 +26,7 @@ fi
 
 echo "Last commit message:"
 git show --format=%s -s
+git config pull.rebase false
 git pull origin main --recurse-submodules
 
 if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
