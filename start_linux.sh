@@ -37,7 +37,7 @@ if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
   cd ..
 fi
 
-if test -f .update; then
+if test -f .update || [ ! -d "node_modules" ]; then
   npm i
   rm -f .update
 fi
