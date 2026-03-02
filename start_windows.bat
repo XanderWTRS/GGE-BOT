@@ -34,7 +34,7 @@ if exist "website\.needsRebuild" goto rebuild
 
 if exist ".update" \ (
   call npm install
-  del /f /q .build
+  del /f /q ".update"
 )
 
 start http://127.0.0.1:3001
