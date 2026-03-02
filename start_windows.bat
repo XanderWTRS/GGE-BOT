@@ -45,6 +45,6 @@ exit
 cd website
 call npm install
 call npm run build
-if exist "website\.needsRebuild" del /f /q .build
+if exist "website\.needsRebuild" del /f /q ".needsRebuild"
 cd ..
 goto start
