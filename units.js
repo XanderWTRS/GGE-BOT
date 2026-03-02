@@ -1,5 +1,5 @@
 const fs = require('fs')
-const sharp = require("sharp")
+const sharp = require('sharp')
 const { Readable } = require('stream')
 
 let asset = {
