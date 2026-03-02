@@ -32,10 +32,8 @@ if exist "website\.needsRebuild" goto rebuild
 
 :start
 
-if exist ".update" \ (
-  call npm install
-  del /f /q ".update"
-)
+CD node_modules 2>NUL && CD .. || goto update
+if exist ".update" goto update
 
 start http://127.0.0.1:3001
 node --no-warnings main.js
@@ -47,4 +45,8 @@ call npm install
 call npm run build
 if exist "website\.needsRebuild" del /f /q ".needsRebuild"
 cd ..
+goto start
+:update
+call npm install
+if exist ".update" del /f /q ".update"
 goto start
