@@ -22,7 +22,6 @@ if not exist ".git"\ (
   cd ..
 )
 
-git config pull.rebase true
 echo "Last commit message:"
 git show --format=%s -s
 git pull origin main --recurse-submodules
