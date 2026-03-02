@@ -38,7 +38,7 @@ if exist ".update" \ (
 )
 
 start http://127.0.0.1:3001
-call node --no-warnings main.js
+node --no-warnings main.js
 pause
 exit
 :rebuild
