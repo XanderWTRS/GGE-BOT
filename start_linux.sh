@@ -24,12 +24,11 @@ else
   cd ..
 fi
 
-git config pull.rebase true
 echo "Last commit message:"
 git show --format=%s -s
 git pull origin main --recurse-submodules
 
-if [ ! -d "build" ] || test -f .needsRebuild; then
+if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
   cd website
   npm install
   npm run build
