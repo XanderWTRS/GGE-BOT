@@ -15,31 +15,36 @@ if not exist ".git"\ (
   
   git submodule deinit -f plugins-extra >NUL 2>&1
   git submodule init plugins-extra >NUL 2>&1
-) else (
+  git submodule deinit -f website
+  git submodule init website
+  cd website 
   git config --local core.hooksPath .githooks/
-  git config --unset credential.helper
+  cd ..
 )
 
-git config pull.rebase true
 echo "Last commit message:"
 git show --format=%s -s
-gh auth status >NUL 2>&1
-if %ERRORLEVEL% EQU 0 (
-  git pull origin main --recurse-submodules
-) else (
-  git pull origin main
-)
+git config pull.rebase false
+git pull origin main --recurse-submodules
 
-cd website
-if not exist "build"\ (
+if not exist "website\build\index.html" goto rebuild
+if exist "website\.needsRebuild" goto rebuild
+
+:start
+
+if exist ".update" \ (
   call npm install
-  call npm run build
-  cd ..
-  call npm install
-) else (
-  cd ..
+  del /f /q .build
 )
 
 start http://127.0.0.1:3001
-node --no-warnings main.js
+call node --no-warnings main.js
 pause
+exit
+:rebuild
+cd website
+call npm install
+call npm run build
+if exist "website\.needsRebuild" del /f /q .build
+cd ..
+goto start

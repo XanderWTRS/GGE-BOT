@@ -9,33 +9,37 @@ if [ ! -d ".git" ]; then
   git reset --hard 
   git clean -f -d
   git config --local core.hooksPath .githooks/
-  git config --unset credential.helper
   git pull origin main
   git submodule deinit -f plugins-extra
   git submodule init plugins-extra
+  git submodule deinit -f website
+  git submodule init website
+  cd website 
+  git config --local core.hooksPath .githooks/
+  cd ..
 else
   git config --local core.hooksPath .githooks/
-  git config --unset credential.helper
+  cd website 
+  git config --local core.hooksPath .githooks/
+  cd ..
 fi
 
-git config pull.rebase true
 echo "Last commit message:"
 git show --format=%s -s
+git config pull.rebase false
+git pull origin main --recurse-submodules
 
-if ! command -v gh >/dev/null 2>&1; then
-  git pull origin main 
-elif gh auth status >/dev/null 2>&1; then
-  git pull origin main --recurse-submodules
-fi
-
-cd website
-if [ ! -d "build" ]; then
+if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
+  cd website
   npm install
   npm run build
+  rm -f .needsRebuild
   cd ..
-  npm install
-else
-  cd ..
+fi
+
+if test -f .update; then
+  npm i
+  rm -f .update
 fi
  
 if which xdg-open > /dev/null
