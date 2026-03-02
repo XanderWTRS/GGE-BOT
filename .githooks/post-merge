@@ -1,7 +1,4 @@
 #!/bin/sh
-
-echo "Running Post Merge Hook"
+touch .update
 npm i
-cd website
-npm i
-npm run build
+rm -f .update
