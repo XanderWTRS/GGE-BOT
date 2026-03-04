@@ -77,6 +77,7 @@ xtHandler.on("cat", obj => {
     setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID),
         (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
 })
+const returningLords = []
 xtHandler.on("gam", async obj => {
     if (playerInfo.playerID == NaN) {
         playerInfo.playerID = await new Promise(resolve => {
@@ -86,21 +87,19 @@ xtHandler.on("gam", async obj => {
     for (let i = 0; i < obj.M.length; i++) {
         const o = obj.M[i]
         try {
-            if (o.M.OID != playerInfo.playerID)
-                continue
-            
             let lordID = o?.UM?.L?.ID
             if (lordID == undefined)
                 continue
 
-            if (usedCommanders.includes(lordID))
-                continue
-
-            useCommander(lordID)
-
-            if(o.M.TA[4] == playerInfo.playerID) {
-                setTimeout(() => freeCommander(lordID),
-                (o.M.TT - o.M.PT + 1) * 1000).unref()
+            if(!usedCommanders.includes(lordID) && o.M.OID == playerInfo.playerID) 
+                useCommander(lordID)
+            const index = returningLords.findIndex(e => e == lordID)
+            if (index == -1 && o.M.SID == playerInfo.playerID) {
+                returningLords.push(lordID)
+                setTimeout(() => {
+                    freeCommander(lordID)
+                    returningLords.splice(index, 1)
+                }, (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
         }
         catch (e) {
