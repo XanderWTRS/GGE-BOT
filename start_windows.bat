@@ -30,7 +30,12 @@ git show --format=%s -s
 git config pull.rebase false
 git pull origin main
 git submodule update --init -f website
-git submodule update --init -f plugins-extra
+
+
+gh auth status >NUL 2>&1
+if %ERRORLEVEL% EQU 0 (
+  git submodule update --init -f plugins-extra
+)
 if not exist "website\build\index.html" goto rebuild
 if exist "website\.needsRebuild" goto rebuild
 

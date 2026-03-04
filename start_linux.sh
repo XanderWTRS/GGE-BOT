@@ -30,7 +30,11 @@ git show --format=%s -s
 git config pull.rebase false
 git pull origin main
 git submodule update --init -f website
-git submodule update --init -f plugins-extra
+
+if gh auth status >/dev/null 2>&1; then
+  git submodule update --init -f plugins-extra
+fi
+
 if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
   cd website
   npm install
