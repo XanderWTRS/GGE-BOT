@@ -13,20 +13,24 @@ if not exist ".git"\ (
   git config --unset credential.helper
   git pull origin main >NUL 2>&1
   
-  git submodule deinit -f plugins-extra >NUL 2>&1
-  git submodule init plugins-extra >NUL 2>&1
+
   git submodule deinit -f website
   git submodule init website
+  git submodule update --init -f website
   cd website 
   git config --local core.hooksPath .githooks/
   cd ..
+  git submodule deinit -f plugins-extra >NUL 2>&1
+  git submodule init plugins-extra >NUL 2>&1
+
 )
 
 echo "Last commit message:"
 git show --format=%s -s
 git config pull.rebase false
-git pull origin main --recurse-submodules
-
+git pull origin main
+git submodule update --init -f website
+git submodule update --init -f plugins-extra
 if not exist "website\build\index.html" goto rebuild
 if exist "website\.needsRebuild" goto rebuild
 

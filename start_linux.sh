@@ -14,6 +14,7 @@ if [ ! -d ".git" ]; then
   git submodule init plugins-extra
   git submodule deinit -f website
   git submodule init website
+  git submodule update --init -f website
   cd website 
   git config --local core.hooksPath .githooks/
   cd ..
@@ -27,8 +28,9 @@ fi
 echo "Last commit message:"
 git show --format=%s -s
 git config pull.rebase false
-git pull origin main --recurse-submodules
-
+git pull origin main
+git submodule update --init -f website
+git submodule update --init -f plugins-extra
 if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
   cd website
   npm install
