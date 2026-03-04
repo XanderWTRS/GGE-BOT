@@ -772,25 +772,10 @@ const ResourceList = obj => {
     return resource
 }
 
-let _ResourceList = {}
+let resources = {}
 
-let waitTillLoaded = new Promise(resolve => events.once("load", resolve))
-
-const getResources = async () => { //Never got
-    await waitTillLoaded
-    if (!isEmpty(_ResourceList))
-        return _ResourceList
-
-    let [obj,r] = await waitForResult("sce", 1000 * 10)
-    if(r != 0)
-        return _ResourceList
-
-    Object.assign(_ResourceList, ResourceList(obj))
-
-    return _ResourceList
-}
 xtHandler.on("sce", obj =>
-    Object.assign(_ResourceList, ResourceList(obj)))
+    Object.assign(resources, ResourceList(obj)))
 
 const PermanentCastleData = e => e.map(e => ({
     //Units? : Array.from(U.U).map(Number), 
@@ -1345,7 +1330,7 @@ module.exports = {
     getKingdomInfoList,
     getEventList,
     getPermanentCastle,
-    getResources,
+    resources,
     HighscoreType,
     Types: {
         OwnerInfo,
