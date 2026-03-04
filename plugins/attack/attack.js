@@ -255,7 +255,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
         if(resources.PTT > 0) {
             attackTarget.PTT = options.useFeather ? 1 : 0
         } else {
-            console.warn("Ran out of fast feathers")
+            console.warn("Ran out of fast feathers.")
             attackTarget.PTT = 0
         }
     }
