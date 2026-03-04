@@ -22,7 +22,7 @@ if (require('node:worker_threads').isMainThread) {
     return
 }
 const { DatabaseSync } = require('node:sqlite')
-const { getPermanentCastle } = require('../../protocols')
+const { getPermanentCastle, resources } = require('../../protocols')
 const { botConfig, playerInfo, xtHandler } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
 const { getCommanderStats } = require('../../getEquipment')
@@ -128,7 +128,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
         AV: 0,
         LP: 0,
         FC: 0,
-        PTT: 1,
+        PTT: 0,
         SD: 0,
         ICA: 0,
         CD: 99,
@@ -252,7 +252,12 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
     }
     else {
         attackTarget.HBW = -1
-        attackTarget.PTT = options.useFeather ? 1 : 0
+        if(resources.PTT > 0) {
+            attackTarget.PTT = options.useFeather ? 1 : 0
+        } else {
+            console.warn("Ran out of fast feathers")
+            attackTarget.PTT = 0
+        }
     }
     
     return attackTarget
