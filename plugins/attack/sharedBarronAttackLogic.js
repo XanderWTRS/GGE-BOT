@@ -153,7 +153,8 @@ async function barronHit(type, kingdomID, options) {
 
                 const AI = sortedAreaInfo[index]
                 const level = getLevel(AI.extraData[1], kingdomID)
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, options)
+
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, parseInt(options.attackWaves), options)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -181,10 +182,6 @@ async function barronHit(type, kingdomID, options) {
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
-                
-                let maxWaves = parseInt(options.attackWaves)
-                if (isNaN(maxWaves) || maxWaves == 0)
-                    maxWaves = Infinity
 
                 let doLeft = !!(options.attackLeft)
                 let doRight = !!(options.attackRight)
@@ -201,27 +198,25 @@ async function barronHit(type, kingdomID, options) {
                         doCourtyard = hasShieldMadiens ? false : true
                 }
 
-                attackInfo.A.forEach((wave, waveIndex) => {
-                    if (waveIndex >= maxWaves) return;
-
+                attackInfo.A.forEach(wave => {
                     let maxTroops = maxTroopFlank
 
                     if (doLeft) {
-                        wave.L.U.forEach((unitSlot, i) =>
+                        wave.L.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     }
 
                     if (doRight) {
                         maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
+                        wave.R.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     }
 
                     if (doMiddle) {
                         maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
+                        wave.M.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     }
@@ -250,17 +245,6 @@ async function barronHit(type, kingdomID, options) {
                     return true
                 })
                 if (result == 0) {
-                    attackInfo.A.forEach(wave => {
-                        wave.L.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-                        wave.R.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-                        wave.M.U.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-
-                        wave.L.T.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-                        wave.R.T.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-                        wave.M.T.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-
-                        attackInfo.RW.forEach(slot => slot[0] != -1 && (sourceCastle.unitInventory.find(e => e?.unitID == slot[0]).ammount -= slot[1]))
-                    })
                     if (!options.useTimeSkips)
                         movements.push(AI)
                 }
