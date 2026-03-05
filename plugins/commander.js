@@ -74,8 +74,16 @@ xtHandler.on("cat", obj => {
 
     useCommander(obj?.A?.UM?.L?.ID)
 
-    setTimeout(() => freeCommander(obj?.A?.UM?.L?.ID),
-        (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
+    setTimeout(() => {
+        const lordID = obj?.A?.UM?.L?.ID
+        let index = usedCommanders.findIndex(e => e == lordID)
+        if (index == -1)
+            return
+
+        freeCommander(lordID)
+
+        movementEvents.emit("return", movementInfo)
+    }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
 })
 const returningLords = []
 xtHandler.on("gam", async obj => {
@@ -97,9 +105,15 @@ xtHandler.on("gam", async obj => {
             if (index == -1 && o.M.SID == playerInfo.playerID) {
                 returningLords.push(lordID)
                 setTimeout(() => {
-                    freeCommander(lordID)
-                    movementEvents.emit("return", movementInfo)
                     returningLords.splice(index, 1)
+
+                    let index = usedCommanders.findIndex(e => e == lordID)
+                    if (index == -1)
+                        return
+                    
+                    freeCommander(lordID)
+
+                    movementEvents.emit("return", movementInfo)
                 }, (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
         }
