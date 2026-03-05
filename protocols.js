@@ -1308,7 +1308,7 @@ async function deconstructBuilding(castle, ownerID) {
         throw new Error("BUILDING_INFO_NOT_FOUND")
 
     sendXT("edo", JSON.stringify({ OID: ownerID, PWR: 0, PO: -1 }))
-    let [obj] = await waitForResult("eup", 1000 * 10, obj => obj?.O?.find(e => e[1] == ownerID))
+    let [obj] = await waitForResult("edo", 1000 * 10, obj => obj?.O?.find(e => e[1] == ownerID))
 
     let timeToSkip = Number(buildingInfo.buildDuration) / 2 / castle.areaInfo.getProductionData.buildSpeedBoost - obj.O[0][5]
 
