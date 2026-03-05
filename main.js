@@ -301,15 +301,16 @@ async function start() {
   // })
   app.get('/lang.json', (_, res) => { 
     res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Content-Type', 'application/json')
     res.sendFile('lang.json', { root: '.' }) 
   })
   app.get('/1.xml', (_, res) => { 
     res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Content-Type', 'application/xml')
     res.sendFile('1.xml', { root: "." }) 
   })
   app.post('/api', bodyParser.json(), async (req, res) => {
     let json = req.body
-
     res.setHeader('Content-Type', 'application/json')
     if (json.id == 0) {
       const row = userDatabase.prepare('Select * FROM Users WHERE username = ?')
