@@ -193,7 +193,10 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
         return waves
     }
     
-    waves = Math.min(waves ?? Infinity, getMaxWaves())
+    if (isNaN(waves) || waves <= 0)
+        waves = Infinity
+
+    waves = Math.min(waves, getMaxWaves())
 
     for (let i = 0; i < waves; i++) {
         const wave = {
