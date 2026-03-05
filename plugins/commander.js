@@ -99,15 +99,15 @@ xtHandler.on("gam", async obj => {
 
             if(!usedCommanders.includes(lordID) && o.M.OID == playerInfo.playerID) 
                 useCommander(lordID)
-            const index = returningLords.findIndex(e => e == lordID)
-            if (index == -1 && o.M.SID == playerInfo.playerID) {
+            
+            if (returningLords.findIndex(e => e == lordID) == -1 && o.M.SID == playerInfo.playerID) {
                 returningLords.push(lordID)
                 setTimeout(() => {
-                    returningLords.splice(index, 1)
-
                     let index = usedCommanders.findIndex(e => e == lordID)
                     if (index == -1)
                         return
+                    
+                    returningLords.splice(index, 1)
                     
                     freeCommander(lordID)
 
