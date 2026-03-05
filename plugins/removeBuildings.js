@@ -1,14 +1,23 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = {
+        pluginOptions: [
+            {
+                type: "Text",
+                key: "wodID",
+                default: "154"
+            }
+        ]
     }
 
-const { waitForResult, xtHandler, sendXT, events } = require("../ggeBot")
+const { waitForResult, xtHandler, sendXT, events, botConfig } = require("../ggeBot")
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+
 const buildings = require("../items/buildings.json")
 const { spendSkip, Types, MinuteSkipType, ClientCommands, KingdomID, kingdomLock, getResourceCastleList, AreaType, deconstructBuilding } = require("../protocols")
 
 const list = []
 
-for (let start = 154; true;) {
+for (let start = pluginOptions.wodID; true;) {
     let item = buildings.find(building => building.wodID == start)
     if (!item.upgradeWodID)
         break
@@ -41,8 +50,8 @@ events.once("load", async () => {
             const guardhouse = listOfGuardhouses[i]
             
             await deconstructBuilding(castle, guardhouse.ownerID)
-            console.log("removed a guardhouse")
+            console.log("removed building")
         }
-        console.log("Removed Guardhouses")
+        console.log("Removed buildings")
     })
 })
