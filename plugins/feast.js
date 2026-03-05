@@ -27,7 +27,8 @@ const pluginOptions = botConfig.plugins[require('path').basename(__filename).sli
 const feastFoodReduction = pluginOptions.feastFoodReduction ? Number(pluginOptions.feastFoodReduction): 150000
 const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood): 150000
 const minimumFoodRate = pluginOptions.minimumFoodRate ? Number(pluginOptions.minimumFoodRate) : 0
-events.once("load", async () => {
+
+const tryToFeast = async () => {
     let dcl = await ClientCommands.getDetailedCastleList()
     let resourceCastleList = await getResourceCastleList()
     let mainCastleAreaID = Number(resourceCastleList.castles.find(e => e.kingdomID == KingdomID.greatEmpire)
@@ -60,4 +61,9 @@ events.once("load", async () => {
     else {
         console.log("notEnoughFoodToFeast")
     }
+}
+
+events.once("load", () => {
+    tryToFeast()
+    setInterval(tryToFeast, 1000 * 60 * 8);
 })
