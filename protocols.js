@@ -2,6 +2,7 @@ const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
 const { waitForResult, sendXT, xtHandler, events } = require("./ggeBot.js")
+const buildings = require("./items/buildings.json")
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -1293,10 +1294,46 @@ xtHandler.on("msd", (obj, r) => {
 
     MapObject(areaInfo, getKingdomID(areaInfo))
 })
+async function deconstructBuilding(castle, ownerID) {
+    // if (castle.getCastleArea.buildingSlots.find(e => e == -1) == undefined)
+        // throw new Error("NO_FREE_BUILDING_SLOTS")
+
+    let currentBuilding = castle.getCastleArea.buildings?.find(e => 
+            e.ownerID == ownerID)
+    if (currentBuilding == undefined)
+        throw new Error("BUILDING_NOT_FOUND")
+
+    let buildingInfo = buildings.find(e => e?.wodID == currentBuilding.wodID)
+    if (buildingInfo == undefined)
+        throw new Error("BUILDING_INFO_NOT_FOUND")
+
+    sendXT("edo", JSON.stringify({ OID: ownerID, PWR: 0, PO: -1 }))
+    let [obj] = await waitForResult("eup", 1000 * 10, obj => obj?.O?.find(e => e[1] == ownerID))
+
+    let timeToSkip = Number(buildingInfo.buildDuration) / 2 / castle.areaInfo.getProductionData.buildSpeedBoost - obj.O[0][5]
+
+    do {
+        if (timeToSkip <= 4 * 60) {
+            sendXT("fco", JSON.stringify({ OID: ownerID, FS: 1 }))
+            await waitForResult("fco", 1000 * 10, obj => obj?.O.find(e => e[1] == ownerID))
+            break
+        }
+
+        const skip = spendSkip(timeToSkip - 4 * 60)
+        if (!skip)
+            throw new Error("FAILED_TO_SKIP")
+
+        sendXT("msb", JSON.stringify({ OID: ownerID, MST: skip }))
+        timeToSkip -= MinuteSkipType[skip] * 60
+    } while (timeToSkip > 0)
+    await new Promise(r => setTimeout(r, 1000)) //TODO: NOT THIS
+    // return waitForResult("ego", 1000 * 10, obj => obj?.O.find(e => e[1] == ownerID))
+}
 
 module.exports = {
     spiralCoordinates,
     ClientCommands: {
+        deconstructBuilding,
         preSpyInfo : clientPreSpyInfo,
         getHighScore: clientGetHighscore,
         getAreaInfo: clientGetAreaInfo,
@@ -1330,6 +1367,7 @@ module.exports = {
     getKingdomInfoList,
     getEventList,
     getPermanentCastle,
+    deconstructBuilding,
     resources,
     HighscoreType,
     Types: {
