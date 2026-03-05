@@ -81,8 +81,6 @@ xtHandler.on("cat", obj => {
             return
 
         freeCommander(lordID)
-
-        movementEvents.emit("return", movementInfo)
     }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
 })
 const returningLords = []
