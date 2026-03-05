@@ -98,6 +98,7 @@ xtHandler.on("gam", async obj => {
                 returningLords.push(lordID)
                 setTimeout(() => {
                     freeCommander(lordID)
+                    movementEvents.emit("return", movementInfo)
                     returningLords.splice(index, 1)
                 }, (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
