@@ -48,6 +48,7 @@ const ggeConfigExample = `{
     "discordClientId" : "",
     "discordClientSecret" : "",
     "timeoutMultiplier" : 1,
+    "secondsTillRestartBot": 10,
     "debug" : false
 }`
 
@@ -568,7 +569,7 @@ async function start() {
              } else {
                  console.debug(`[${user.name}] ${i18n.__("restartCanceledReasonBotStoppedByUser")}`)
              }
-          }, 10000)
+          }, 1000 * ggeConfig.secondsTillRestartBot ?? 10)
         }
       }
     }
