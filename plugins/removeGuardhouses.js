@@ -42,5 +42,6 @@ events.once("load", async () => {
             
             await deconstructBuilding(castle, guardhouse.ownerID)
         }
+        console.log("Removed Guardhouses")
     })
 })
