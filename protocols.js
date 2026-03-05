@@ -1295,8 +1295,8 @@ xtHandler.on("msd", (obj, r) => {
     MapObject(areaInfo, getKingdomID(areaInfo))
 })
 async function deconstructBuilding(castle, ownerID) {
-    // if (castle.getCastleArea.buildingSlots.find(e => e == -1) == undefined)
-        // throw new Error("NO_FREE_BUILDING_SLOTS")
+    if (castle.getCastleArea.buildingSlots.find(e => e == -1) == undefined)
+        throw new Error("NO_FREE_BUILDING_SLOTS")
 
     let currentBuilding = castle.getCastleArea.buildings?.find(e => 
             e.ownerID == ownerID)
