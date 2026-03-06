@@ -47,7 +47,7 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
                 return resolve(currentEvent.detail)
             if(!arr.includes(com.VIS))
                 return
-            if(!filterCallback(new Types.Lord(com)))
+            if(!(!filterCallback || filterCallback(new Types.Lord(com))))
                 return
             
             currentEvent.stopImmediatePropagation()
