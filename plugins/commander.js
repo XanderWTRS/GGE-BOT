@@ -92,7 +92,7 @@ xtHandler.on("gam", async obj => {
     const allMovements = Types.GetAllMovements(obj)
 
     allMovements.movements.forEach(movement => {
-        const lordID = movement.lordMovement.lord.lordID
+        const lordID = movement.lordMovement?.lord?.lordID
         
         if(movement.movementData.ownerID == playerInfo.playerID)
             useCommander(lordID)
