@@ -111,7 +111,7 @@ xtHandler.on("gam", async obj => {
                     
                     freeCommander(lordID)
 
-                    movementEvents.emit("return", movementInfo)
+                    // movementEvents.emit("return", movementInfo)
                 }, (o.M.TT - o.M.PT + 1) * 1000).unref()
             }
         }
