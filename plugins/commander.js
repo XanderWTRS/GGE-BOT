@@ -74,8 +74,10 @@ xtHandler.on("cat", obj => {
     useCommander(lordID)
 
     setTimeout(() => {
-        if (usedCommanders.findIndex(e => e == lordID) != -1)
-            freeCommander(lordID)
+        if (usedCommanders.findIndex(e => e == lordID) == -1)
+            return
+        
+        freeCommander(lordID)
 
         movementEvents.emit("return", movementInfo)
     }, movementInfo.movement.movementData.totalTime -
@@ -97,16 +99,13 @@ xtHandler.on("gam", async obj => {
 
         if (returningLords.findIndex(e => e == lordID) == -1 && movement.movementData.ownerID == playerInfo.playerID) {
             setTimeout(() => {
-                let index = returningLords.findIndex(e => e == lordID)
-                if (index == -1)
+                if (usedCommanders.findIndex(e => e == lordID) == -1)
                     return
-
-                returningLords.splice(index, 1)
 
                 freeCommander(lordID)
                 
                 movementEvents.emit("return", { movement, ownerInfo: allMovements.ownerInfo})
-            }, (movement.movementData.totalTime - (movement.movementData.deltaTime - Date.now()))).unref()
+            }, (movement.movementData.totalTime - (movement.movementData.deltaTime - Date.now())) + 1).unref()
         }
     })
 })
