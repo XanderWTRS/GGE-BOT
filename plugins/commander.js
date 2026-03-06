@@ -26,7 +26,7 @@ function useCommander(LID) {
 
 const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     if (commanders.length == 0) {
-        parseGLI((await waitForResult("gli", 1000 * 10))[0].C)
+        commanders = (await waitForResult("gli", 1000 * 10))[0].C
     }
     let usableCommanders = commanders.map(e => new Types.Lord(e))
         .filter(e => ((!arr || arr.includes(e.lordPosition)) &&
