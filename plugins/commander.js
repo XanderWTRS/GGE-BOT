@@ -66,7 +66,7 @@ const returningLords = []
 xtHandler.on("cat", obj => {
     const movementInfo = Types.ReturningAttack(obj)
     const movement = movementInfo.movement
-    const lordID = movement.lordMovement.lord
+    const lordID = movement.lordMovement.lord.lordID
 
     if (movement.movementData.ownerID != playerInfo.playerID)
         return
