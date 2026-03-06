@@ -61,7 +61,6 @@ xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : void 0)
 xtHandler.on("gli", (obj, r) => !r ? commanders = obj.C : void 0)
 
 const movementEvents = new EventEmitter()
-const returningLords = []
 
 xtHandler.on("cat", obj => {
     const movementInfo = Types.ReturningAttack(obj)
@@ -97,7 +96,7 @@ xtHandler.on("gam", async obj => {
         if(movement.movementData.ownerID == playerInfo.playerID)
             useCommander(lordID)
 
-        if (returningLords.findIndex(e => e == lordID) == -1 && movement.movementData.ownerID == playerInfo.playerID) {
+        if (usedCommanders.findIndex(e => e == lordID) == -1 && movement.movementData.ownerID == playerInfo.playerID) {
             setTimeout(() => {
                 if (usedCommanders.findIndex(e => e == lordID) == -1)
                     return
