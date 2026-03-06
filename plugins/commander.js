@@ -41,13 +41,17 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
 
     LID ??= await new Promise(resolve => {
         const checkForCommander = currentEvent => {
-            currentEvent.stopImmediatePropagation()
             event.removeEventListener("freedCommander", checkForCommander)
             const com = commanders.find(e => e.ID == currentEvent.detail)
-            if ((!arr || arr.includes(com.VIS))
-                && (!filterCallback || filterCallback(new Types.Lord(com)))) {
-                resolve(currentEvent.detail)
-                }
+            if(!arr)
+                return resolve(currentEvent.detail)
+            if(!arr.includes(com.VIS))
+                return
+            if(!filterCallback(new Types.Lord(com)))
+                return
+            
+            currentEvent.stopImmediatePropagation()
+            resolve(currentEvent.detail)
         }
         event.addEventListener("freedCommander", checkForCommander)
     })
@@ -80,7 +84,7 @@ xtHandler.on("cat", obj => {
 
         movementEvents.emit("return", movementInfo)
     }, movementInfo.movement.movementData.totalTime -
-        (movementInfo.movement.movementData.deltaTime - Date.now())).unref()
+        (movementInfo.movement.movementData.deltaTime - Date.now()) + 1).unref()
 })
 xtHandler.on("gam", async obj => {
     if (playerInfo.playerID == NaN) {
