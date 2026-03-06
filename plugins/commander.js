@@ -1,7 +1,7 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = { hidden: true }
 
-const { xtHandler, playerInfo, waitForResult } = require('../ggeBot.js')
+const { xtHandler, playerInfo } = require('../ggeBot.js')
 const { Types } = require('../protocols.js')
 const EventEmitter = require('node:events')
 
@@ -11,8 +11,6 @@ let commanders = []
 let usedCommanders = [] 
 
 function freeCommander(LID) {
-    if (LID == undefined)
-        return
     let index = usedCommanders.findIndex(e => e == LID)
     if (index == -1)
         return
@@ -21,13 +19,13 @@ function freeCommander(LID) {
     event.dispatchEvent(new CustomEvent('freedCommander', { detail: LID }))
 }
 function useCommander(LID) {
-    if (LID != undefined && !usedCommanders.includes(LID))
+    if (!usedCommanders.includes(LID))
         usedCommanders.push(LID)
     return LID
 }
 
 const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
-    if(commanders.length == 0) {
+    if (commanders.length == 0) {
         parseGLI((await waitForResult("gli", 1000 * 10))[0].C)
     }
     let usableCommanders = commanders.map(e => new Types.Lord(e))
@@ -44,10 +42,6 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     LID ??= await new Promise(resolve => {
         const checkForCommander = currentEvent => {
             currentEvent.stopImmediatePropagation()
-            if(usedCommanders.find(e => e == currentEvent.detail)) {
-                debugger
-                return
-            }
             event.removeEventListener("freedCommander", checkForCommander)
             const com = commanders.find(e => e.ID == currentEvent.detail)
             if ((!arr || arr.includes(com.VIS))
@@ -62,76 +56,59 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     return new Types.Lord(commanders.find(e => e.ID == LID))
 }
 
-let parseGLI = e => commanders = e
+xtHandler.on("aci", (obj, r) => !r ? commanders = obj.gli.C : void 0)
+xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : void 0)
+xtHandler.on("gli", (obj, r) => !r ? commanders = obj.C : void 0)
 
-xtHandler.on("aci", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
-xtHandler.on("adi", (obj, r) => !r ? parseGLI(obj.gli.C) : void 0)
-xtHandler.on("gli", (obj, r) => !r ? parseGLI(obj.C) : void 0)
+const movementEvents = new EventEmitter()
+const returningLords = []
 
 xtHandler.on("cat", obj => {
-    if (obj.A.M.OID != playerInfo.playerID)
-        return
+    const movementInfo = Types.ReturningAttack(obj)
+    const movement = movementInfo.movement
+    const lordID = movement.lordMovement.lord
 
-    useCommander(obj?.A?.UM?.L?.ID)
+    if (movement.movementData.ownerID != playerInfo.playerID)
+        return
+    
+    useCommander(lordID)
 
     setTimeout(() => {
-        const lordID = obj?.A?.UM?.L?.ID
-        let index = usedCommanders.findIndex(e => e == lordID)
-        if (index == -1)
-            return
+        if (usedCommanders.findIndex(e => e == lordID) != -1)
+            freeCommander(lordID)
 
-        freeCommander(lordID)
-    }, (obj.A.M.TT - obj.A.M.PT + 1) * 1000).unref()
+        movementEvents.emit("return", movementInfo)
+    }, movementInfo.movement.movementData.totalTime -
+        (movementInfo.movement.movementData.deltaTime - Date.now())).unref()
 })
-const returningLords = []
 xtHandler.on("gam", async obj => {
     if (playerInfo.playerID == NaN) {
         playerInfo.playerID = await new Promise(resolve => {
             xtHandler.once("gpi", obj => resolve(Number(obj.PID)))
         })
     }
-    for (let i = 0; i < obj.M.length; i++) {
-        const o = obj.M[i]
-        try {
-            let lordID = o?.UM?.L?.ID
-            if (lordID == undefined)
-                continue
+    const allMovements = Types.GetAllMovements(obj)
 
-            if(!usedCommanders.includes(lordID) && o.M.OID == playerInfo.playerID) 
-                useCommander(lordID)
-            
-            if (returningLords.findIndex(e => e == lordID) == -1 && o.M.SID == playerInfo.playerID) {
-                returningLords.push(lordID)
-                setTimeout(() => {
-                    let index = returningLords.findIndex(e => e == lordID)
-                    if (index == -1)
-                        return
-                    
-                    returningLords.splice(index, 1)
-                    
-                    freeCommander(lordID)
+    allMovements.movements.forEach(movement => {
+        const lordID = movement.lordMovement.lord.lordID
+        
+        if(movement.movementData.ownerID == playerInfo.playerID)
+            useCommander(lordID)
 
-                    // movementEvents.emit("return", movementInfo)
-                }, (o.M.TT - o.M.PT + 1) * 1000).unref()
-            }
+        if (returningLords.findIndex(e => e == lordID) == -1 && movement.movementData.ownerID == playerInfo.playerID) {
+            setTimeout(() => {
+                let index = returningLords.findIndex(e => e == lordID)
+                if (index == -1)
+                    return
+
+                returningLords.splice(index, 1)
+
+                freeCommander(lordID)
+                
+                movementEvents.emit("return", { movement, ownerInfo: allMovements.ownerInfo})
+            }, (movement.movementData.totalTime - (movement.movementData.deltaTime - Date.now()))).unref()
         }
-        catch (e) {
-            console.warn(e)
-        }
-    }
-})
-
-const movementEvents = new EventEmitter()
-
-xtHandler.on("cat", obj => {
-    const movementInfo = Types.ReturningAttack(obj)
-
-    setTimeout(() =>
-        movementEvents.emit("return", movementInfo),
-
-        movementInfo.movement.movementData.totalTime -
-        (movementInfo.movement.movementData.deltaTime -
-        Date.now()))
+    })
 })
 
 module.exports = {
