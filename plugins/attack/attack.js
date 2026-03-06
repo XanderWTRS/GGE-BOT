@@ -5,12 +5,12 @@ if (require('node:worker_threads').isMainThread) {
             {
                 type: "Text",
                 key: "attackDelaySeconds",
-                default: "4.0"
+                default: "4.5"
             },
             {
                 type: "Text",
                 key: "attackDelayRandomizationSeconds",
-                default: "3.0"
+                default: "2.5"
             },
             {
                 "type": "Text",
