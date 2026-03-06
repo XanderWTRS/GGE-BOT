@@ -103,7 +103,7 @@ xtHandler.on("gam", async obj => {
             if (returningLords.findIndex(e => e == lordID) == -1 && o.M.SID == playerInfo.playerID) {
                 returningLords.push(lordID)
                 setTimeout(() => {
-                    let index = usedCommanders.findIndex(e => e == lordID)
+                    let index = returningLords.findIndex(e => e == lordID)
                     if (index == -1)
                         return
                     
