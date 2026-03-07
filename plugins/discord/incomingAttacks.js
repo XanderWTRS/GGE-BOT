@@ -40,13 +40,13 @@ xtHandler.on("gam", func = async obj => {
         if(movement.M.TID <= 0)
             return
 
-        let e = movements.find((e) => e.M.MID == movement.M.MID)
-
         let attacker = obj.O.find((e) => e.OID == movement.M.SID)
         let victim = obj.O.find((e) => e.OID == movement.M.TID)
 
         if (attacker.AID == playerInfo.alliance.id)
             return
+
+        let e = movements.find((e) => e.M.MID == movement.M.MID)
 
         if (e) {
             if (movement.GA && movement.M.KID != 4 && (await e.message)?.attachments.size == 0) {
