@@ -34,14 +34,13 @@ xtHandler.on("gam", func = async obj => {
         if (![0, 25, 31, 24, 29].includes(movement.M.T))
             return
 
-
-        let movement = movements.find((e) => e.M.MID == movement.M.MID)
-
         if(movement.M.SID <= 0)
             return
 
         if(movement.M.TID <= 0)
             return
+
+        let e = movements.find((e) => e.M.MID == movement.M.MID)
 
         let attacker = obj.O.find((e) => e.OID == movement.M.SID)
         let victim = obj.O.find((e) => e.OID == movement.M.TID)
@@ -49,12 +48,12 @@ xtHandler.on("gam", func = async obj => {
         if (attacker.AID == playerInfo.alliance.id)
             return
 
-        if (movement) {
-            if (movement.GA && movement.M.KID != 4 && (await movement.message)?.attachments.size == 0) {
+        if (e) {
+            if (movement.GA && movement.M.KID != 4 && (await e.message)?.attachments.size == 0) {
                 let stream = await createLayout(movement.GA)
                 stream.on("error", console.warn)
                 const file = new AttachmentBuilder(stream)
-                await (await movement.message).edit({ content: (await movement.message).content, files: [file] })
+                await (await e.message).edit({ content: (await e.message).content, files: [file] })
             }
             return
         }
