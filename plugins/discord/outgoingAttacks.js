@@ -48,6 +48,7 @@ xtHandler.addListener("gam", async obj => {
 
         let attackerName = attacker.N
         let attackerArea = movement.M.SA[10]
+        let attackerAlliance = victim.AN
 
         let victimName = victim.N
         let victimArea = movement.M.TA[10]
@@ -77,7 +78,7 @@ xtHandler.addListener("gam", async obj => {
         const channel = await client.channels.fetch(pluginOptions.channelID)
         channel.send( //<-- asyncronous bastard causing my fucking hack
             "```ansi\n" +
-            `${attackerName} (${attackerArea})${i18n.__("incomingFrom")}${attackerAlliance}${i18n.__("incomingIsAttacking")}${victimName} (${victimArea})${i18n.__("incomingIn")}${kidName[movement.M.KID]} ${clicks}${i18n.__("incomingClicks")}` +
+            `${attackerName} (${attackerArea})${i18n.__("incomingFrom")}${attackerAlliance}${i18n.__("incomingIsAttacking")}${victimName} (${victimArea}) ${victimAlliance} ${i18n.__("incomingIn")}${kidName[movement.M.KID]} ${clicks}${i18n.__("incomingClicks")}` +
             "```" +
             `<t:${Math.round(Date.now() / 1000 + time)}:R>`)
 
