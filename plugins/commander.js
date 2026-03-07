@@ -84,7 +84,7 @@ xtHandler.on("cat", obj => {
 
         movementEvents.emit("return", movementInfo)
     }, movementInfo.movement.movementData.totalTime -
-        (movementInfo.movement.movementData.deltaTime - Date.now()) + 1).unref()
+        (movementInfo.movement.movementData.deltaTime - Date.now()) + 1000).unref()
 })
 xtHandler.on("gam", async obj => {
     if (playerInfo.playerID == NaN) {
@@ -108,7 +108,7 @@ xtHandler.on("gam", async obj => {
                 freeCommander(lordID)
                 
                 movementEvents.emit("return", { movement, ownerInfo: allMovements.ownerInfo})
-            }, (movement.movementData.totalTime - (movement.movementData.deltaTime - Date.now())) + 1).unref()
+            }, (movement.movementData.totalTime - (movement.movementData.deltaTime - Date.now())) + 1000).unref()
         }
     })
 })

@@ -773,7 +773,15 @@ const ResourceList = obj => {
     return resource
 }
 
-let resources = {}
+let resources = {
+    coins : 0,
+    rubies : 0
+}
+
+xtHandler.on("gcu", obj => {
+    resources.coins = obj.C1
+    resources.rubies = obj.C2
+})
 
 xtHandler.on("sce", obj =>
     Object.assign(resources, ResourceList(obj)))
