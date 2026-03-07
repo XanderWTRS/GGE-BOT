@@ -3,6 +3,7 @@ const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
 const { waitForResult, sendXT, xtHandler, events } = require("./ggeBot.js")
 const buildings = require("./items/buildings.json")
+const currencies = require("./items/currencies.json")
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -769,13 +770,114 @@ xtHandler.on("fjf", (obj, result) =>
 
 const ResourceList = obj => {
     let resource = {}
-    obj.forEach(([type, ammount]) => resource[type] = ammount)
+    function decapitalizeFirstLetter(val) {
+        return String(val).charAt(0).toLocaleLowerCase() + String(val).slice(1);
+    }
+    
+    obj.forEach(([type, ammount]) => resource[decapitalizeFirstLetter(currencies.find(e => e.JSONKey == type).Name)] = ammount)
     return resource
 }
 
-let resources = {
-    coins : 0,
-    rubies : 0
+const resources = {
+    "10MinSkip": NaN,
+    "1MinSkip": NaN,
+    "24HourSkip": NaN,
+    "30MinSkip": NaN,
+    "5HourSkip": NaN,
+    "5MinSkip": NaN,
+    allianceCoin: NaN,
+    barinToken: NaN,
+    cargoPoints: NaN,
+    castlePassageToken: NaN,
+    coins: NaN,
+    commonBricks: NaN,
+    commonFinesand: NaN,
+    commonStraw: NaN,
+    commonTimber: NaN,
+    component1: NaN,
+    component2: NaN,
+    component3: NaN,
+    component4: NaN,
+    component5: NaN,
+    component6: NaN,
+    component7: NaN,
+    component8: NaN,
+    decoCatalyst30: NaN,
+    decoCatalyst60: NaN,
+    decoCatalyst70: NaN,
+    decoDust: NaN,
+    dragonCharm: NaN,
+    dragonriderLTPEToken: NaN,
+    dragonScaleSplinters: NaN,
+    dragonScaleTile: NaN,
+    epicBoosterConsumable: NaN,
+    epicCobblestone: NaN,
+    epicMysteryBoxKey: NaN,
+    epicPreciousmetals: NaN,
+    epicResin: NaN,
+    essence: NaN,
+    fatKingToken: NaN,
+    floraToken: NaN,
+    fusionCurrency: NaN,
+    generalsSkillsResetToken: NaN,
+    goldToken: NaN,
+    hasanToken: NaN,
+    iceLTPEToken: NaN,
+    imperialDucat: NaN,
+    kaelrithToken: NaN,
+    khanMedal: NaN,
+    khanTablet: NaN,
+    knightToken: NaN,
+    legendaryBoosterConsumable: NaN,
+    legendaryFabric: NaN,
+    legendaryMaterial: NaN,
+    legendaryRiftCoin: NaN,
+    legendarySoulstone: NaN,
+    legendaryToken: NaN,
+    luckyWheelTicket: NaN,
+    newKingLTPEToken: NaN,
+    pearlRelic: NaN,
+    pegasusTicket: NaN,
+    plaster: NaN,
+    princessToken: NaN,
+    questTicket: NaN,
+    rareBoosterConsumable: NaN,
+    rareFarmingtools: NaN,
+    rareFlint: NaN,
+    rareGlue: NaN,
+    rareNails: NaN,
+    refinedLumber: NaN,
+    refinedStone: NaN,
+    relicFragment: NaN,
+    resourceVillageToken: NaN,
+    riftCoin: NaN,
+    rubies: NaN,
+    saleDaysLuckyWheelTicket: NaN,
+    samuraiMedal: NaN,
+    samuraiMedalBoosterKey: NaN,
+    samuraiToken: NaN,
+    sceatToken: NaN,
+    shardAlice: NaN,
+    shardAlyssa: NaN,
+    shardAshira: NaN,
+    shardDiana: NaN,
+    shardEdric: NaN,
+    shardGarrik: NaN,
+    shardHasan: NaN,
+    shardHoratio: NaN,
+    shardKaelrith: NaN,
+    shardLeo: NaN,
+    shardSasaki: NaN,
+    shardTizi: NaN,
+    shardToril: NaN,
+    shardValenta: NaN,
+    shogunPointBoosterKey: NaN,
+    silverToken: NaN,
+    soldierBiscuit: NaN,
+    tiziToken: NaN,
+    xmasLTPEToken: NaN,
+    dragonGlass: NaN,
+    steel: NaN,
 }
 
 xtHandler.on("gcu", obj => {
