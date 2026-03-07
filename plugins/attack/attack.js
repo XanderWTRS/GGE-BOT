@@ -255,7 +255,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
     }
     else {
         attackTarget.HBW = -1
-        if(resources.PTT > 0) {
+        if(resources.pegasusTicket > 0) {
             attackTarget.PTT = options.useFeather ? 1 : 0
         } else {
             console.warn("Ran out of fast feathers.")
