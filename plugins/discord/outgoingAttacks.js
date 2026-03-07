@@ -48,7 +48,7 @@ xtHandler.addListener("gam", async obj => {
 
         let attackerName = attacker.N
         let attackerArea = movement.M.SA[10]
-        let attackerAlliance = victim.AN
+        let attackerAlliance = attacker.AN
 
         let victimName = victim.N
         let victimArea = movement.M.TA[10]
