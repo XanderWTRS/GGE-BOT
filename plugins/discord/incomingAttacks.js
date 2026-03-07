@@ -34,10 +34,16 @@ xtHandler.on("gam", func = async obj => {
         if (![0, 25, 31, 24, 29].includes(movement.M.T))
             return
 
+        if(movement.M.SID <= 0)
+            return
+
+        if(movement.M.TID <= 0)
+            return
+
         let e = movements.find((e) => e.M.MID == movement.M.MID)
 
-        let attacker = obj.O.find((e) => e.OID == movement.M.SA[4])
-        let victim = obj.O.find((e) => e.OID == movement.M.TA[4])
+        let attacker = obj.O.find((e) => e.OID == movement.M.SID)
+        let victim = obj.O.find((e) => e.OID == movement.M.TID)
 
         if (attacker.AID == playerInfo.alliance.id)
             return
