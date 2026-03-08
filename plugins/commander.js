@@ -42,8 +42,11 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     LID ??= await new Promise(resolve => {
         const checkForCommander = currentEvent => {
             const com = commanders.find(e => e.ID == currentEvent.detail)
-            if(!arr)
+            if (!arr) {
+                event.removeEventListener("freedCommander", checkForCommander)
+                currentEvent.stopImmediatePropagation()
                 return resolve(currentEvent.detail)
+            }
             if(!arr.includes(com.VIS))
                 return
             if(!(!filterCallback || filterCallback(new Types.Lord(com))))
