@@ -773,8 +773,21 @@ const ResourceList = obj => {
     function decapitalizeFirstLetter(val) {
         return String(val).charAt(0).toLocaleLowerCase() + String(val).slice(1);
     }
-    
-    obj.forEach(([type, ammount]) => resource[decapitalizeFirstLetter(currencies.find(e => e.JSONKey == type).Name)] = ammount)
+    obj.forEach(([type, ammount]) => {
+        const nameOverrides = {
+            component1: "screws",
+            component2: "blackPowder",
+            component3: "saws",
+            component4: "drills",
+            component5: "crowbars",
+            component6: "leatherStrips",
+            component7: "chains",
+            component8: "metalPlates",
+        }
+        let name = decapitalizeFirstLetter(currencies.find(e => e.JSONKey == type).Name)
+        let realName = nameOverrides[name] ?? name
+        resource[realName] = ammount
+    })
     return resource
 }
 
@@ -794,14 +807,14 @@ const resources = {
     commonFinesand: NaN,
     commonStraw: NaN,
     commonTimber: NaN,
-    component1: NaN,
-    component2: NaN,
-    component3: NaN,
-    component4: NaN,
-    component5: NaN,
-    component6: NaN,
-    component7: NaN,
-    component8: NaN,
+    screws : NaN,
+    blackPowder : NaN,
+    saws : NaN,
+    drills : NaN,
+    crowbars : NaN,
+    leatherStrips : NaN,
+    chains : NaN,
+    metalPlates : NaN,
     decoCatalyst30: NaN,
     decoCatalyst60: NaN,
     decoCatalyst70: NaN,
