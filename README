@@ -48,11 +48,11 @@ Optionally if you are hosting for others:
 Extra Plugins (Not Public):
   Berimond Kingdom
   Barracks
-  Small BtH/OR automation
-  Flee
+  <!-- Small BtH/OR automation -->
+  Station on hit
   Grab Tools (Blacksmith, Nomads, Samurai)
   Help requests
-  Grand Tornament (Reroll at selected time)
+  <!-- Grand Tornament (Reroll at selected time) -->
   Affluence Ticket spender
   Birded players slash commands
   Automatic storm cargo upgrade
