@@ -180,10 +180,11 @@ async function start() {
 
   if (!ggeConfig.fontPath) {
     try {
-      ggeConfig.fontPath ??= process.platform == "linux" ? 
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" : 
-        'C:\\Windows\\Fonts\\segoeui.ttf'
-        
+      if ([, ''].includes(ggeConfig.fontPath))
+        ggeConfig.fontPath = process.platform == "linux" ?
+          "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" :
+          'C:\\Windows\\Fonts\\segoeui.ttf'
+
       await fs.access(ggeConfig.fontPath)
     }
     catch {
