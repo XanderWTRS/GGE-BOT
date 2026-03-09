@@ -180,7 +180,10 @@ async function start() {
 
   if (!ggeConfig.fontPath) {
     try {
-      ggeConfig.fontPath ??= 'C:\\Windows\\Fonts\\segoeui.ttf'
+      ggeConfig.fontPath ??= process.platform == "linux" ? 
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" : 
+        'C:\\Windows\\Fonts\\segoeui.ttf'
+        
       await fs.access(ggeConfig.fontPath)
     }
     catch {
@@ -296,7 +299,9 @@ async function start() {
   const app = express()
   app.use(bodyParser.urlencoded({ extended: true }))
   app.get('/', (_, res) => res.redirect('/index.html'))
-
+  // apt.get(/ggeproxy\/.*/, (req,res) => {
+  //res.setHeader('Access-Control-Allow-Origin', '*')
+  // })
   // app.get('/lang', (_, res) => {
 
   // })
