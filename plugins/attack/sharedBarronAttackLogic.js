@@ -88,7 +88,7 @@ async function barronHit(type, kingdomID, options) {
             Object.assign(AI, new Types.GAAAreaInfo(obj2.AI))
         }
     }
-
+    
     xtHandler.on("cat", obj => {
         const movementInfo = Types.ReturningAttack(obj)
         const sourceAttack = movementInfo.movement.movementData.sourceAttack
@@ -324,7 +324,7 @@ async function barronHit(type, kingdomID, options) {
 
     while (true) {
         if (!options.useTimeSkips) {
-            let minimumTimeTillHit = Infinity
+            let minimumTimeTillHit = 5 * 1000 + Date.now()
 
             sortedAreaInfo.forEach(ai => {
                 if (!movements.find(a => a.x == ai.x && a.y == ai.y))
