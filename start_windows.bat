@@ -27,6 +27,7 @@ if not exist ".git"\ (
 git config --local core.hooksPath .githooks/
 cd website 
 git config --local core.hooksPath .githooks/
+npm i
 cd ..
 npm i
 
