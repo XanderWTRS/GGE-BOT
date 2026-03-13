@@ -25,8 +25,6 @@ if not exist ".git"\ (
 )
 
 git config --local core.hooksPath .githooks/
-cd website 
-git config --local core.hooksPath .githooks/
 
 echo "Last commit message:"
 git show --format=%s -s
@@ -34,7 +32,10 @@ git config pull.rebase false
 git pull origin main
 git submodule update --init -f website
 
+cd website 
+git config --local core.hooksPath .githooks/
 call npm i
+call npm run build
 cd ..
 call npm i
 
