@@ -7,7 +7,7 @@ package-lock.json
 assets/itemassets
 items
 ItemsVersion.properties
-lang.json
+lang/*
 1.xml
 test.js
 plugins-exploits

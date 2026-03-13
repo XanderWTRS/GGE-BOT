@@ -3,6 +3,7 @@ const crypto = require('crypto')
 const undici = require('undici')
 const fs = require('fs/promises')
 const http = require('node:http')
+const {createProxyMiddleware} = require("http-proxy-middleware")
 const express = require('express')
 const https = require('node:https')
 const bodyParser = require('body-parser')
@@ -237,17 +238,19 @@ async function start() {
 
   async function getLangJSON() {
     try {
-      await fs.access('./lang.json')
+      await fs.access(`./lang/${i18n.getLocale()}.json`)
     }
     catch {
       needLang = true
     }
-    //https://empire-html5.goodgamestudios.com/config/languages/version.json
-    if (needLang) { // https://empire-html5.goodgamestudios.com/default/config/country/latest/country.xml
-      const response = await fetch('https://empire-html5.goodgamestudios.com/config/languages/latest/en.json')
+    if (needLang) {
+      const response = await new Promise(async resolve => {
+        const version = (await (await fetch(`https://empire-html5.goodgamestudios.com/config/languages/version.json`)).json()).languages[i18n.getLocale()]
+        resolve(fetch(`https://empire-html5.goodgamestudios.com/config/languages/${version}/${i18n.getLocale()}.json`))
+      })
       const str = await response.text()
 
-      await fs.writeFile('./lang.json', str)
+      await fs.writeFile(`./lang/${i18n.getLocale()}.json`, str)
     }
   }
   async function getServerXML() {
@@ -298,23 +301,24 @@ async function start() {
     !!userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid ?? "")
 
   const app = express()
+  
+  app.use("/ggeProxyEmpire5", createProxyMiddleware({
+    target: 'https://empire-html5.goodgamestudios.com',
+    changeOrigin: true,
+    followRedirects: true,
+  }))
+  
   app.use(bodyParser.urlencoded({ extended: true }))
   app.get('/', (_, res) => res.redirect('/index.html'))
-  // apt.get(/ggeproxy\/.*/, (req,res) => {
-  //res.setHeader('Access-Control-Allow-Origin', '*')
-  // })
-  // app.get('/lang', (_, res) => {
-
-  // })
-  app.get('/lang.json', (_, res) => { 
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Content-Type', 'application/json')
-    res.sendFile('lang.json', { root: '.' }) 
-  })
   app.get('/1.xml', (_, res) => { 
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Content-Type', 'application/xml')
     res.sendFile('1.xml', { root: "." }) 
+  })
+  app.get('/assets.json', (_, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Content-Type', 'application/json')
+    res.sendFile('assets.json', { root: "." })
   })
   app.post('/api', bodyParser.json(), async (req, res) => {
     let json = req.body

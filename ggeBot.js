@@ -171,6 +171,8 @@ const playerInfo = {
     }
 }
 
+let status = {}
+
 module.exports = {
     sendXT,
     xtHandler,
@@ -178,10 +180,10 @@ module.exports = {
     webSocket,
     events,
     botConfig,
-    playerInfo
+    playerInfo,
+    status
 }
 
-let status = {}
 events.once("load", async (_, r) => {
     const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
@@ -398,6 +400,7 @@ let retry = async () => {
             PLFID: 1
         }))
     }
+    events.emit("sentLLI")
 }
 xtHandler.on("vck", _ => retry())
 

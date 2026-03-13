@@ -1,10 +1,11 @@
 const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
-const { waitForResult, sendXT, xtHandler, events } = require("./ggeBot.js")
+const { waitForResult, sendXT, xtHandler, events, status } = require("./ggeBot.js")
 const buildings = require("./items/buildings.json")
 const currencies = require("./items/currencies.json")
-
+const { parentPort } = require("node:worker_threads")
+const ActionType = require("./actions.json")
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
 
@@ -1452,6 +1453,14 @@ async function deconstructBuilding(castle, ownerID) {
     await new Promise(r => setTimeout(r, 1000)) //TODO: NOT THIS
     // return waitForResult("ego", 1000 * 10, obj => obj?.O.find(e => e[1] == ownerID))
 }
+
+function updateStatus() {
+    status.resources = resources
+    parentPort.postMessage([ActionType.StatusUser, status])
+}
+
+xtHandler.on("gcu", updateStatus)
+xtHandler.on("sce", updateStatus)
 
 module.exports = {
     spiralCoordinates,
