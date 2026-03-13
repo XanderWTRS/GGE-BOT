@@ -10,7 +10,6 @@ if not exist ".git"\ (
   git reset --hard >NUL 2>&1
   git clean -f -d >NUL 2>&1
   git config --local core.hooksPath .githooks/
-  git config --unset credential.helper
   git pull origin main >NUL 2>&1
   
 
@@ -24,6 +23,12 @@ if not exist ".git"\ (
   git submodule init plugins-extra >NUL 2>&1
 
 )
+
+git config --local core.hooksPath .githooks/
+cd website 
+git config --local core.hooksPath .githooks/
+cd ..
+npm i
 
 echo "Last commit message:"
 git show --format=%s -s
