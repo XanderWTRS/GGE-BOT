@@ -238,6 +238,9 @@ async function start() {
 
   async function getLangJSON() {
     try {
+      if (!fs.access("./lang")) {
+        await fs.mkdir("./lang")
+      }
       await fs.access(`./lang/${i18n.getLocale()}.json`)
     }
     catch {
