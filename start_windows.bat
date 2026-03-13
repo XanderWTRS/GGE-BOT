@@ -27,9 +27,9 @@ if not exist ".git"\ (
 git config --local core.hooksPath .githooks/
 cd website 
 git config --local core.hooksPath .githooks/
-npm i
+call npm i
 cd ..
-npm i
+call npm i
 
 echo "Last commit message:"
 git show --format=%s -s
