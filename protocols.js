@@ -793,12 +793,12 @@ const ResourceList = obj => {
 }
 
 const resources = {
-    "10MinSkip": NaN,
     "1MinSkip": NaN,
-    "24HourSkip": NaN,
+    "5MinSkip": NaN,
+    "10MinSkip": NaN,
     "30MinSkip": NaN,
     "5HourSkip": NaN,
-    "5MinSkip": NaN,
+    "24HourSkip": NaN,
     allianceCoin: NaN,
     barinToken: NaN,
     cargoPoints: NaN,
