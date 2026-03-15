@@ -523,9 +523,9 @@ const Unit = e => ({
 })
 
 const UnitInventory = e => ({
-    unitInventory: Array.from(e.I).map(Unit),
-    strongHoldInventory: Array.from(e.SHI).map(Unit),
-    hospitalInventory: Array.from(e.HI).map(Unit)
+    unitInventory: Array.from(e.I ?? []).map(Unit),
+    strongHoldInventory: Array.from(e.SHI ?? []).map(Unit),
+    hospitalInventory: Array.from(e.HI ?? []).map(Unit)
 })
 const DCLAreaInfo = e => ({
     areaID: Number(e.AID),
@@ -1503,6 +1503,7 @@ module.exports = {
     resources,
     HighscoreType,
     Types: {
+        UnitInventory,
         OwnerInfo,
         GetAllMovements,
         CRAMovement,
