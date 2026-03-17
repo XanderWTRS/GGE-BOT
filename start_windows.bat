@@ -12,33 +12,22 @@ if not exist ".git"\ (
   git config --local core.hooksPath .githooks/
   git pull origin main >NUL 2>&1
   
-
-  git submodule deinit -f website
-  git submodule init website
-  git submodule update --init -f website
-  cd website 
-  git config --local core.hooksPath .githooks/
-  cd ..
-  git submodule deinit -f plugins-extra >NUL 2>&1
-  git submodule init plugins-extra >NUL 2>&1
+  git submodule deinit -f website >NUL 2 >&1
+  git submodule init website >NUL 2 >&1
+  git submodule deinit -f plugins-extra >NUL 2 >&1
+  git submodule init plugins-extra >NUL 2 >&1
 
 )
 
 git config --local core.hooksPath .githooks/
 
-git pull origin main
-echo "Last commit message:"
-git show --format=%s -s
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
-git submodule update website
+git pull --recurse-submodules
+echo "Last commit message:"
+git show --format=%s -s
 
-
-gh auth status >NUL 2>&1
-if %ERRORLEVEL% EQU 0 (
-  git submodule update --init -f plugins-extra
-)
 if not exist "website\build\index.html" goto rebuild
 if exist "website\.needsRebuild" goto rebuild
 
