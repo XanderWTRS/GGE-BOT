@@ -26,14 +26,13 @@ if not exist ".git"\ (
 
 git config --local core.hooksPath .githooks/
 
+git pull origin main
 echo "Last commit message:"
 git show --format=%s -s
-git config pull.rebase false
-git pull origin main
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
-git submodule update --init -f website
+git submodule update website
 
 
 gh auth status >NUL 2>&1
