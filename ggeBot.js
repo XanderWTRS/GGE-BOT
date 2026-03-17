@@ -461,7 +461,7 @@ xtHandler.on("sne", obj => {
 })
 
 xtHandler.on("qli", obj => obj.QL.forEach(quest => {
-    if ([3000, 3002, 3019, 3490].includes(quest.QID))
+    if ([3000, 3002, 3019, 3490, 84].includes(quest.QID))
         sendXT("qsc", JSON.stringify({ QID: quest.QID }))
 }))
 

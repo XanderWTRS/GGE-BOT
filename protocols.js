@@ -6,6 +6,7 @@ const buildings = require("./items/buildings.json")
 const currencies = require("./items/currencies.json")
 const { parentPort } = require("node:worker_threads")
 const ActionType = require("./actions.json")
+
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
 
@@ -39,13 +40,12 @@ function spiralCoordinates(n) {
 
     return { x, y }
 }
-
-const map = {}
 const AreaType = Object.freeze({
     barron: 2,
     outpost: 4,
     externalKingdom: 12,
     mainCastle: 1,
+    bloodcrowCastle: 34,
     nomadCamp: 27,
     stormIsland: 24,
     samCamp: 29,
@@ -80,6 +80,22 @@ const skips = {
     MS7: 0
 }
 
+xtHandler.on("earlyLoad", () =>
+    sendXT("sce", "{}"))
+
+xtHandler.on("sce", (obj) => {
+    obj.forEach(e => {
+        let type = e[0]
+        let ammount = e[1]
+        if (skips[type] == undefined)
+            return
+
+        skips[type] = ammount
+    })
+})
+
+const map = {}
+
 /**
  * @param {GAAAreaInfo} AI 
  * @param {Number} kingdomID 
@@ -113,20 +129,6 @@ new PerformanceObserver(_ => {
             delete map[key]
     }
 }).observe({ entryTypes: ['gc'] })
-
-xtHandler.on("earlyLoad", () =>
-    sendXT("sce", "{}"))
-
-xtHandler.on("sce", (obj) => {
-    obj.forEach(e => {
-        let type = e[0]
-        let ammount = e[1]
-        if (skips[type] == undefined)
-            return
-
-        skips[type] = ammount
-    })
-})
 
 const spendSkip = time => {
     time = (Math.max(time, 60 * 60)) / 60

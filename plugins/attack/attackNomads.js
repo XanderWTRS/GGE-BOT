@@ -50,7 +50,8 @@ if (require('node:worker_threads').isMainThread)
             },
             {
                 type: "Text",
-                key: "commanderWhiteList"
+                key: "commanderWhiteList",
+                default: "1-99"
             },
             {
                 type: "Text",
@@ -115,11 +116,12 @@ xtHandler.on("cat", (obj, result) => {
 let quit = false
 
 xtHandler.on("pep", obj => {
+    if (obj.EID != eventID)
+        return
+
     if (pluginOptions.nomadsScoreShutoff <= 0)
         pluginOptions.nomadsScoreShutoff = Infinity
 
-    if (obj.EID != eventID)
-        return
     nomadsPoints = Number(obj.OP[0])
     if (nomadsPoints >= pluginOptions.nomadsScoreShutoff) {
         console.log("shuttingDownEvent", "scoreReached")

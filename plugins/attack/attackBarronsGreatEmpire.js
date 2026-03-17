@@ -40,11 +40,13 @@ if (require('node:worker_threads').isMainThread)
             },
             {
                 type: "Text",
-                key: "commanderWhiteList"
+                key: "commanderWhiteList",
+                default: "1-99"
             },
             {
                 type: "Text",
-                key: "attackWaves"
+                key: "attackWaves",
+                default: "2"
             }
         ]
     }

@@ -21,7 +21,8 @@ if (require('node:worker_threads').isMainThread)
             },
             {
                 type: "Text",
-                key: "commanderWhiteList"
+                key: "commanderWhiteList",
+                default: "1-99"
             },
             {
                 type: "Checkbox",
@@ -146,16 +147,17 @@ xtHandler.on("rpr", obj => {
 })
 let nomadsPoints = 0
 let quit = false
-xtHandler.on("pep", obj => {
-    if (pluginOptions.nomadsScoreShutoff <= 0)
-        pluginOptions.nomadsScoreShutoff = Infinity
 
+xtHandler.on("pep", obj => {
     if (obj.EID != eventID)
         return
     nomadsPoints = Number(obj.OP[0])
     
     if(quit)
         return
+
+    if (pluginOptions.nomadsScoreShutoff <= 0)
+        pluginOptions.nomadsScoreShutoff = Infinity
 
     if (nomadsPoints >= pluginOptions.nomadsScoreShutoff) {
         console.log("shuttingDownEvent", "scoreReached")

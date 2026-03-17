@@ -17,11 +17,12 @@ if (require('node:worker_threads').isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default : 3
+                default : "3"
             },
             {
                 type: "Text",
-                key: "commanderWhiteList"
+                key: "commanderWhiteList",
+                default: "1-99"
             },
             {
                 type: "Checkbox",

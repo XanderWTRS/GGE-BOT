@@ -3,7 +3,8 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Text",
-                key: "commanderWhiteList"
+                key: "commanderWhiteList",
+                default: "1-99"
             }
         ]
     }
