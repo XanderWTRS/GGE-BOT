@@ -178,7 +178,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
 
     const getMaxWaves = () => {
         let waves = getMaxWaveCount(playerInfo.level)
-
+        waves += options.extraWaves ? 2 : 0
         try {
             commander.EQ[4][5].forEach(([id, effectarray]) =>
                 id == 21 ? waves += effectarray[0] : void 0)
