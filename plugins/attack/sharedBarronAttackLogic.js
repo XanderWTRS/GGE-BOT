@@ -154,8 +154,6 @@ async function barronHit(type, kingdomID, options) {
                 const AI = sortedAreaInfo[index]
                 const level = getLevel(AI.extraData[1], kingdomID)
 
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, parseInt(options.attackWaves), options)
-
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
 
@@ -189,8 +187,9 @@ async function barronHit(type, kingdomID, options) {
                 let doCourtyard = !!(options.attackCourtyard)
 
                 const commanderStats = getCommanderStats(commander)
-                const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
-                const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
+                const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
+                const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
 
                 if (!(doLeft || doRight || doMiddle)) {
                     doLeft = true
@@ -223,7 +222,7 @@ async function barronHit(type, kingdomID, options) {
                 })
 
                 if (doCourtyard) {
-                    let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
+                    let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                     attackInfo.RW.forEach((unitSlot, i) => {
                         let attacker = i & 1 ?
                             (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :

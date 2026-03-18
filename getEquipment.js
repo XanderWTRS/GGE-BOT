@@ -80,6 +80,10 @@ function getCommanderStats(commander, AI) {
         activeEffects[effectType.name] ??= 0
         activeEffects[effectType.name] += ungroupedActiveEffects[key]
     }
+    //HACK:
+    commander.EQ[4][5].forEach(([id, effectarray]) =>
+        id == 21 ? activeEffects.additionalWaves += effectarray[0] : void 0)
+
     return activeEffects
 }
 

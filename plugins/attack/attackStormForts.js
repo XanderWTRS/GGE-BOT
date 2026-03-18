@@ -246,11 +246,6 @@ events.once("load", async () => {
                     14: 80,
                 }
                 const level = toLevel[AI.extraData[2]]
-
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, pluginOptions)
-
-                attackInfo.LP = 3
-
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
 
@@ -276,12 +271,12 @@ events.once("load", async () => {
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
 
+                const commanderStats = getCommanderStats(commander)
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, 4, pluginOptions, commanderStats.additionalWaves)
+                const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
+
+                attackInfo.LP = 3
                 attackInfo.A.forEach((wave, i) => {
-                    if(i > 4)
-                        return
-                    const commanderStats = getCommanderStats(commander)
-                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
-                    
                     let maxTroops = maxTroopFlank
 
                     wave.L.U.forEach((unitSlot, i) =>

@@ -224,7 +224,6 @@ events.on("eventStart", async eventInfo => {
                 await skipTarget(AI)
 
                 const level = Number(eventAutoScalingCamps.find(obj => AI[9] == obj.eventAutoScalingCampID).camplevel)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, new Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -318,14 +317,14 @@ events.on("eventStart", async eventInfo => {
                 attackerShieldNomadTools.push(...attackerShieldTools)
 
                 const commanderStats = getCommanderStats(commander)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, new Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
+                const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
+                const maxToolsFront = getTotalAmountToolsFront(level)
+                const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
+                const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
+                const desiredToolCount = attackerNomadTools.length == 0 ? 20 : 10
+
                 attackInfo.A.forEach((wave, index) => {
-                    const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
-                    const maxToolsFront = getTotalAmountToolsFront(level)
-
-                    const desiredToolCount = attackerNomadTools.length == 0 ? 20 : 10
-                    const maxTroopFront = Math.floor(getAmountSoldiersFront(level) * (1 + (commanderStats.relicAttackUnitAmountFront ?? 0) / 100)) - 1
-                    const maxTroopFlank = Math.floor(getAmountSoldiersFlank(level) * (1 + (commanderStats.relicAttackUnitAmountFlank ?? 0) / 100)) - 1
-
                     let maxTools = maxToolsFlank
                     if (index == 0) {
                         wave.L.T.forEach((unitSlot, i) =>
@@ -410,7 +409,7 @@ events.on("eventStart", async eventInfo => {
                         maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                             attackerMeleeTroops : attackerRangeTroops, maxTroops))
                 });
-                let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
+                let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                 attackInfo.RW.forEach((unitSlot, i) => {
                     let attacker = i & 1 ? 
                         (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
