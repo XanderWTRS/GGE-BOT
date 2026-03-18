@@ -179,23 +179,11 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
         ASCT: 0
     }
 
-    const getMaxWaves = () => {
-        let waves = getMaxWaveCount(playerInfo.level)
-        if(additionalWaves)
-            waves += additionalWaves
-        // try {
-        //     commander.EQ[4][5].forEach(([id, effectarray]) =>
-        //         id == 21 ? waves += effectarray[0] : void 0)
-        // }
-        // catch { }
-
-        return waves
-    }
     
     if (isNaN(waves) || waves <= 0)
         waves = Infinity
 
-    waves = Math.min(waves, getMaxWaves())
+    waves = Math.min(waves, getMaxWaveCount(playerInfo.level) + additionalWaves)
 
     for (let i = 0; i < waves; i++) {
         const wave = {
