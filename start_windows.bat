@@ -40,7 +40,7 @@ node --no-warnings main.js
 pause
 exit
 :rebuild
-copy /b NUL "website\needsRebuild"
+echo. 2> "website\needsRebuild"
 cd website
 call npm install
 call npm run build
@@ -48,7 +48,7 @@ if exist "website\needsRebuild" del /f /q "needsRebuild"
 cd ..
 goto start
 :update
-copy /b NUL "update"
+echo. 2> "update"
 call npm install
 if exist "update" del /f /q "update"
 goto start
