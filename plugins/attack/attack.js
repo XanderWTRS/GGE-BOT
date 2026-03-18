@@ -73,15 +73,18 @@ const getTotalAmountTools = (e, t, n) =>
             t < 50 ? 20 :
                 t < 69 ? 30 : 0 | Math.ceil(40 + n)
 
-const getTotalAmountToolsFlank = (e, t) => getTotalAmountTools(0, e, t)
+const getTotalAmountToolsFlank = (e, t) => getTotalAmountTools(0, e, 0 | t)
 const getTotalAmountToolsFront = e => getTotalAmountTools(1, e, 0)
 
 const getMaxAttackers = targetLevel =>
     targetLevel <= 69 ? Math.min(260, 5 * targetLevel + 8) : 320
-const getAmountSoldiersFlank = e => Math.floor(0 | Math.ceil(.2 * getMaxAttackers(e)))
-const getAmountSoldiersFront = e => Math.floor(0 | Math.ceil(getMaxAttackers(e) - 2 * getAmountSoldiersFlank(e)))
-const getMaxUnitsInReinforcementWave = (playerlevel, targetLevel) =>
-    0 | Math.round(20 * Math.sqrt(playerlevel) + 50 + 20 * targetLevel)
+const getAmountSoldiersFlank = (level, multiplier) => 
+    Math.ceil(.2 * getMaxAttackers(level) * (1 + (0 | multiplier) / 100))
+const getAmountSoldiersFront = (level, multiplier) => 
+    Math.ceil((getMaxAttackers(level) - 2 * getAmountSoldiersFlank(level)) * (1 + (0 | multiplier) / 100))
+const getMaxUnitsInReinforcementWave = (playerLevel, targetLevel, additionalUnits, additionalUnitsMultiplyer) =>
+    Math.round((20 * Math.sqrt(Math.min(playerLevel, 70)) + 50 + 20 * targetLevel + (0 | additionalUnits)) * 
+        (1 + (0 | additionalUnitsMultiplyer) / 100))
 
 function getMaxWaveCount(e) {
     const waveUnlockLevelList = [0, 13, 26, 51]
@@ -113,7 +116,7 @@ function assignUnit(unitSlot, units, maxUnits) {
 
     return unitAmmount
 }
-function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) {
+function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, additionalWaves) {
     const attackTarget = {
         SX: sourceCastle.x,
         SY: sourceCastle.y,
@@ -178,17 +181,13 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options) 
 
     const getMaxWaves = () => {
         let waves = getMaxWaveCount(playerInfo.level)
-        waves += options.extraWaves ? 2 : 0
-        try {
-            commander.EQ[4][5].forEach(([id, effectarray]) =>
-                id == 21 ? waves += effectarray[0] : void 0)
-        }
-        catch { }
-
-        const commanderStats = getCommanderStats(commander)
-
-        if (commanderStats.relicAdditionalWaves)
-            waves += commanderStats.relicAdditionalWaves
+        if(additionalWaves)
+            waves += additionalWaves
+        // try {
+        //     commander.EQ[4][5].forEach(([id, effectarray]) =>
+        //         id == 21 ? waves += effectarray[0] : void 0)
+        // }
+        // catch { }
 
         return waves
     }
