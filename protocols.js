@@ -799,7 +799,7 @@ const resources = {
     "5MinSkip": NaN,
     "10MinSkip": NaN,
     "30MinSkip": NaN,
-    "1HourSkip": NaN,
+    "60MinSkip": NaN,
     "5HourSkip": NaN,
     "24HourSkip": NaN,
     allianceCoin: NaN,
