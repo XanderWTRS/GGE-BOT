@@ -9,7 +9,6 @@ if not exist ".git"\ (
   git fetch origin >NUL 2>&1
   git reset --hard >NUL 2>&1
   git clean -f -d >NUL 2>&1
-  git config --local core.hooksPath .githooks/
   git pull origin main >NUL 2>&1
   
   git submodule deinit -f website >NUL 2 >&1
@@ -20,36 +19,36 @@ if not exist ".git"\ (
 )
 
 git config --local core.hooksPath .githooks/
-
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
+
 git pull --recurse-submodules
 echo "Last commit message:"
 git show --format=%s -s
 
 if not exist "website\build\index.html" goto rebuild
-if exist "website\.needsRebuild" goto rebuild
+if exist "website\needsRebuild" goto rebuild
 
 :start
 
-CD node_modules 2>NUL && CD .. || goto update
-if exist ".update" goto update
+CD node_modules 2 >NUL && CD .. || goto update
+if exist "update" goto update
 
 start http://127.0.0.1:3001
 node --no-warnings main.js
 pause
 exit
 :rebuild
-copy /b NUL "website\.needsRebuild"
+copy /b NUL "website\needsRebuild"
 cd website
 call npm install
 call npm run build
-if exist "website\.needsRebuild" del /f /q ".needsRebuild"
+if exist "website\needsRebuild" del /f /q "needsRebuild"
 cd ..
 goto start
 :update
-copy /b NUL ".update"
+copy /b NUL "update"
 call npm install
-if exist ".update" del /f /q ".update"
+if exist "update" del /f /q "update"
 goto start
