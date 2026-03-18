@@ -8,34 +8,24 @@ if [ ! -d ".git" ]; then
   git fetch origin
   git reset --hard 
   git clean -f -d
-  git config --local core.hooksPath .githooks/
   git pull origin main
   git submodule deinit -f plugins-extra
   git submodule init plugins-extra
   git submodule deinit -f website
   git submodule init website
   git submodule update --init -f website
-  cd website 
-  git config --local core.hooksPath .githooks/
-  cd ..
-else
-  git config --local core.hooksPath .githooks/
-  cd website 
-  git config --local core.hooksPath .githooks/
-  cd ..
 fi
 
+git config --local core.hooksPath .githooks/
+cd website 
+git config --local core.hooksPath .githooks/
+cd ..
+
+git pull --recurse-submodules
 echo "Last commit message:"
 git show --format=%s -s
-git config pull.rebase false
-git pull origin main
-git submodule update --init -f website
 
-if gh auth status >/dev/null 2>&1; then
-  git submodule update --init -f plugins-extra
-fi
-
-if [ ! -d "website/build" ] || test -f website/.needsRebuild; then
+if test -f website/build/index.html || test -f website/.needsRebuild; then
   cd website
   npm install
   npm run build
