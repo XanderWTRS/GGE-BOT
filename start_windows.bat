@@ -23,7 +23,7 @@ cd website
 git config --local core.hooksPath .githooks/
 cd ..
 
-git pull --no-recurse-submodules
+git pull origin main --no-recurse-submodules
 git submodule update -f website
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
