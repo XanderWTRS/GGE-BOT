@@ -98,7 +98,7 @@ async function fortressHit(kingdomID, level, options) {
 
         const commander = await waitForCommanderAvailable(comList,
             undefined,
-            (a, b) => getCommanderStats(b).relicSpeedBonus - getCommanderStats(a).relicSpeedBonus)
+            (a, b) => getCommanderStats(b).speedBonus - getCommanderStats(a).speedBonus)
 
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {

@@ -199,7 +199,7 @@ events.once("load", async () => {
         }
 
         const commander = await waitForCommanderAvailable(comList, undefined, 
-            (a, b) => getCommanderStats(b).relicLootBonus - getCommanderStats(a).relicLootBonus)
+            (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
 
         try {
             const attackInfo = await waitToAttack(async () => {
