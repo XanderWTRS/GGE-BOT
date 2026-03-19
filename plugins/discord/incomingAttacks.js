@@ -26,7 +26,7 @@ const i18n = new I18n({
   updateFiles: false,
 })
 
-const movements = []
+let movements = []
 
 xtHandler.on("gam", func = async obj => {
     await clientReady
