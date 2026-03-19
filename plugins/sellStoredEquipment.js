@@ -6,7 +6,7 @@ if (require('node:worker_threads').isMainThread)
 const gems = require("../items/gems.json")
 const sellGems = e => {
     let gemsSold = 0
-    Array.from(e.GEM).map(([id, ammount]) => ({id, ammount})).forEach(({id, ammount}) => {
+    Array.from(e.GEM).forEach(([id, ammount]) => {
         const gem = gems.find(e => e.gemID == id)
         if(gem.setID != undefined)
             return
