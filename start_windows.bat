@@ -32,7 +32,7 @@ if exist "website\needsRebuild" goto rebuild
 
 :start
 
-@REM if exist "node_modules\" goto update
+if NOT exist "node_modules\" goto update
 if exist "update" goto update
 
 start http://127.0.0.1:3001
