@@ -32,9 +32,15 @@ function getCommanderStats(commander, AI) {
     })
 
     commander.EQ.forEach(equipment => {
-        equipment[5].forEach(([id, _, effectValues]) => {
-            let effectID = Array.isArray(effectValues) ? relicEffects.find(e => e.id == id)?.effectID :
-                Array.isArray(_) ? (effectValues = _, equipmentEffects.find(e => e.effectID)) : undefined
+        const isRelic = equipment[11] == 3
+        equipment[5].forEach(([id, var1, var2]) => {
+            let effectValues = isRelic ? var2 : var1
+            let effectID = undefined
+            if(isRelic) {
+                effectID = relicEffects.find(e => e.id == id)?.effectID
+            } else {
+                effectID = equipmentEffects.find(e => e.equipmentEffectID == id)?.effectID
+            }
 
             if(effectID == undefined)
                 return
@@ -44,7 +50,7 @@ function getCommanderStats(commander, AI) {
             if (effect == undefined)
                 return
             
-            if(effect.areaTypeID && AI && !effect.areaTypeID.split(',').map(Number).includes(AI.type))
+            if(effect.areaTypeID && !effect.areaTypeID.split(',').map(Number).includes(aci.gaa.AI[0]))
                 return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID).maxTotalBonus ?? Infinity)
@@ -52,7 +58,7 @@ function getCommanderStats(commander, AI) {
             ungroupedActiveEffects[effectID] = Math.min(maxCap, (ungroupedActiveEffects[effectID] ?? 0) + Number(effectValues[0]))
         })
         
-        equipment[12]?.[3][4]?.forEach(([id, _, effectValues]) => {
+        equipment[12]?.[3]?.[4]?.forEach(([id, _, effectValues]) => {
             let effectID = Array.isArray(effectValues) ? relicEffects.find(e => e.id == id)?.effectID :
                 Array.isArray(_) ? (effectValues = _, equipmentEffects.find(e => e.effectID)) : undefined
 
@@ -64,7 +70,7 @@ function getCommanderStats(commander, AI) {
             if (effect == undefined)
                 return
 
-            if(effect.areaTypeID && AI && !effect.areaTypeID.split(',').map(Number).includes(AI.type))
+            if(effect.areaTypeID && !effect.areaTypeID.split(',').map(Number).includes(aci.gaa.AI[0]))
                 return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID).maxTotalBonus ?? Infinity)
@@ -80,12 +86,6 @@ function getCommanderStats(commander, AI) {
         activeEffects[effectType.name] ??= 0
         activeEffects[effectType.name] += ungroupedActiveEffects[key]
     }
-    //HACK:
-    try {
-    commander.EQ[4][5].forEach(([id, effectarray]) =>
-        id == 21 ? activeEffects.additionalWaves += effectarray[0] : void 0)
-    }
-    catch {}
 
     return activeEffects
 }
