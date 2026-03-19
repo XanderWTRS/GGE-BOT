@@ -50,7 +50,7 @@ function getCommanderStats(commander, AI) {
             if (effect == undefined)
                 return
             
-            if(effect.areaTypeID && !effect.areaTypeID.split(',').map(Number).includes(aci.gaa.AI[0]))
+            if(effect.areaTypeID)
                 return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID).maxTotalBonus ?? Infinity)
@@ -70,7 +70,7 @@ function getCommanderStats(commander, AI) {
             if (effect == undefined)
                 return
 
-            if(effect.areaTypeID && !effect.areaTypeID.split(',').map(Number).includes(aci.gaa.AI[0]))
+            if(effect.areaTypeID)
                 return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID).maxTotalBonus ?? Infinity)
