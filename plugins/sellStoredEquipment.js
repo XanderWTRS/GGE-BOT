@@ -4,7 +4,7 @@ if (require('node:worker_threads').isMainThread)
     return module.exports = {}
 
 const gems = require("../items/gems.json")
-xtHandler.on("ggm", e => {
+const sellGems = e => {
     let gemsSold = 0
     Array.from(e.GEM).map(([id, ammount]) => ({id, ammount})).forEach(({id, ammount}) => {
         const gem = gems.find(e => e.gemID == id)
@@ -18,7 +18,7 @@ xtHandler.on("ggm", e => {
     })
 
     console.log(gemsSold, 'gemsSold')
-})
+}
 const equipmentType = {
     unique : 0,
     common : 1,
@@ -49,7 +49,7 @@ class Equipment {
     }
 }
 
-xtHandler.on("gei", e => {
+const sellEquipment = e => {
     let equipmentSold = 0
     Array.from(e.I).map(e => new Equipment(e)).forEach(equipment => {
         if([equipmentType.relic, equipmentType.heroRelic, equipmentType.unique, equipmentType.heroUnique]
@@ -62,13 +62,18 @@ xtHandler.on("gei", e => {
         equipmentSold++
     })
     console.log("equipmentSold", equipmentSold)
-})
+}
 
 events.on("load", () => {
     sendXT("ggm", JSON.stringify({}))
+    xtHandler.once("ggm", sellGems)
     sendXT("gei", JSON.stringify({}))
+    xtHandler.once("gei", sellEquipment)
+    
     setInterval(() => {
         sendXT("ggm", JSON.stringify({}))
+        xtHandler.once("ggm", sellGems)
         sendXT("gei", JSON.stringify({}))
+        xtHandler.once("gei", sellEquipment)
     }, 1000 * 10 * 30)
 })
