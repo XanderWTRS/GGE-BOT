@@ -32,7 +32,7 @@ if exist "website\needsRebuild" goto rebuild
 
 :start
 
-if exist "node_modules\" goto update
+@REM if exist "node_modules\" goto update
 if exist "update" goto update
 
 start http://127.0.0.1:3001
@@ -50,5 +50,5 @@ goto start
 :update
 echo. 2> "update"
 call npm install
-if exist "update" del /f /q "update"
+del /f /q "update"
 goto start
