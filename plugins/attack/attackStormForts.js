@@ -193,8 +193,8 @@ events.once("load", async () => {
     //Gotta detect cooling down towers
     const sendHit = async () => {
         let comList = undefined
-        if (![, 0, ""].includes(options.commanderWhiteList)) {
-            comList = options.commanderWhiteList.split(",").map(e => {
+        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
+            comList = pluginOptions.commanderWhiteList.split(",").map(e => {
                 const [start, end] = e.split("-").map(Number)
                 if (end == undefined)
                     end = start
