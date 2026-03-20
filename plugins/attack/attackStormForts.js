@@ -199,7 +199,7 @@ events.once("load", async () => {
                 if (end == undefined)
                     end = start
 
-                return end == Array.from({ length: end - start + 1 }, (_, i) => start + i)
+                return Array.from({ length: end - start + 1 }, (_, i) => start + i)
             }).flat()
         }
 
