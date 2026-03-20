@@ -68,7 +68,7 @@ getUser().forEach(user => {
         if (user2.id != user.id)
             return
 
-        if (!user2.plugins[pluginPath].state)
+        if (!user2.plugins?.[pluginPath].state)
             return
 
         const startTime = user2.plugins[pluginPath].startTimer
