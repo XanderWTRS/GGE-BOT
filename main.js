@@ -656,6 +656,9 @@ async function start() {
     botMap.delete(id)
     worker.terminate()
   }
+  //Judge me
+  events.on("createBot", createBot)
+  events.on("removeBot", removeBot)
 
   const users = getUser()
   for (let i = 0; i < users.length; i++) {
