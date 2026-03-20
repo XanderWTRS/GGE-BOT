@@ -194,12 +194,14 @@ events.on("eventStart", async eventInfo => {
 
     while (!quit) {
         let comList = undefined
-        if (![, "", 0].includes(pluginOptions.commanderWhiteList)) {
-            const [start, end] = pluginOptions.commanderWhiteList.split("-").map(Number).map(a => a - 1)
-            if (end == undefined) {
-                end = start = parseInt(pluginOptions.commanderWhiteList)
-            }
-            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+        if (![, 0, ""].includes(options.commanderWhiteList)) {
+            comList = options.commanderWhiteList.split(",").map(e => {
+                const [start, end] = e.split("-").map(Number)
+                if (end == undefined)
+                    end = start
+
+                return end == Array.from({ length: end - start + 1 }, (_, i) => start + i)
+            }).flat()
         }
 
         const commander = await waitForCommanderAvailable(comList)

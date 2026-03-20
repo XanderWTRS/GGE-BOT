@@ -111,8 +111,13 @@ async function barronHit(type, kingdomID, options) {
     const sendHit = async () => {
         let comList = undefined
         if (![, 0, ""].includes(options.commanderWhiteList)) {
-            const [start, end] = options.commanderWhiteList.split("-").map(Number).map(a => a - 1)
-            comList = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+            comList = options.commanderWhiteList.split(",").map(e => {
+                const [start, end] = e.split("-").map(Number)
+                if (end == undefined)
+                    end = start
+
+                return end == Array.from({ length: end - start + 1 }, (_, i) => start + i)
+            }).flat()
         }
 
         const commander = await waitForCommanderAvailable(comList)
