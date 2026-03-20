@@ -3,6 +3,7 @@ const { changeUser, getUser, events } = require("../main.js")
 const dayjs = require("dayjs")
 
 if (isMainThread) {
+    return module.exports { hidden : true }
     module.exports = {
         pluginOptions: [
             {
@@ -22,60 +23,65 @@ if (isMainThread) {
     function getTimeFromNow(hours, minutes) {
         const now = new Date()
         const target = new Date()
-            .setHours(hours, minutes, 0, 0)
+        
+        target.setHours(hours, minutes, 0, 0)
 
         if (now > target)
             target.setDate(target.getDate() + 1)
 
-        const millisecondsRemaining = target - now
-        console.log(millisecondsRemaining)
+        return target - now
     }
-    getUser().forEach(({id, plugins}) => {
-        const pluginPath = require('path').basename(__filename).slice(0, -3)
-        const pluginOptions = plugins[pluginPath] ?? {}
-        
-        if(!pluginOptions.state)
-            return
-
-        const startTimeInfo = dayjs(pluginOptions.startTimer)
-        const endTimeInfo = dayjs(pluginOptions.endTimer)
+    function startBot(user) {
+        user.state = 1
+        changeUser(user.uuid, user)
+    }
+    function stopBot(user) {
+        user.state = 0
+        changeUser(user.uuid, user)
+    }
+    function scheduleBot(user, startTimer, endTimer) {
+        const startTimeInfo = dayjs(startTimer)
+        const endTimeInfo = dayjs(endTimer)
         const startTime = getTimeFromNow(startTimeInfo.hour(), startTimeInfo.minute())
         const endTime = getTimeFromNow(endTimeInfo.hour(), endTimeInfo.minute())
 
-        function startBot(user) {
-            user.state = true
-            changeUser(user.uuid, user)
-        }
-        function stopBot(user) {
-            user.state = false
-            changeUser(user.uuid, user)
-        }
+        return [setTimeout(() =>
+            startBot(user), startTime),
+        setTimeout(() =>
+            stopBot(user), endTime)]
+    }
+    getUser().forEach(user => {
+        const pluginPath = require('path').basename(__filename).slice(0, -3)
+        const pluginOptions = user.plugins[pluginPath] ?? {}
+        let startTimer
+        let endTimer 
 
-        let startTimer = setInterval(() => startBot(user.uuid, user), startTime)
-        let endTimer = setInterval(() => stopBot(user.uuid, user), endTime)
+        if (pluginOptions.state) {
+            [startTimer, endTimer] = scheduleBot(user, pluginOptions.startTimer, pluginOptions.endTimer)
+        }
         
-        events.on("userChange", user => {
-            if(user.id != id)
+        events.on("userChange", user2 => {
+            if(user2.id != user.id)
                 return
 
-            if (user.plugins[pluginPath].startTimer == pluginOptions.startTimer &&
-                user.plugins[pluginPath].stopTimer == pluginOptions.stopTimer)
+            if (!user2.plugins[pluginPath].state)
                 return
 
-            const startTimeInfo = dayjs(user.plugins[pluginPath].startTimer)
-            const endTimeInfo = dayjs(user.plugins[pluginPath].endTimer)
-            const startTime = getTimeFromNow(startTimeInfo.hour(), startTimeInfo.minute())
-            const endTime = getTimeFromNow(endTimeInfo.hour(), endTimeInfo.minute())
+            const startTime = user2.plugins[pluginPath].startTimer
+            const endTime = user2.plugins[pluginPath].endTimer
+
+            if(pluginOptions.startTimer == startTime &&
+                pluginOptions.endTimer == endTime)
+                return
 
             clearInterval(startTimer)
             clearInterval(endTimer)
             
-            let startTimer = setInterval(() => startBot(user.uuid, user), startTime)
-            let endTimer = setInterval(() => stopBot(user.uuid, user), endTime)
+            [startTimer, endTimer] = scheduleBot(user, startTime, endTime)
         })
 
-        events.once("userDelete", user => {
-            if(user.id != id)
+        events.once("userDelete", user2 => {
+            if(user2.id != user.id)
                 return
 
             clearInterval(startTimer)
