@@ -1,6 +1,6 @@
 @echo off
 @REM Prevent run as admin issues
-cd /D "%~dp0"
+cd /D %~dp0
 
 if not exist ".git"\ (
   git init -b main >NUL 2>&1
