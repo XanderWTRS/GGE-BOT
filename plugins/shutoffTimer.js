@@ -7,9 +7,10 @@ if (isMainThread) {
                 type: "Text",
                 key: "hours",
                 default: "2"
-            },
+            }
         ]
-    };
+    }
+    
     return
 }
 

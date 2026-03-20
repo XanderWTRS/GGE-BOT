@@ -1,2 +1,2 @@
 #!/bin/sh
-npm update
+ncu -u

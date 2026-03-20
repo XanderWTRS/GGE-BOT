@@ -14,8 +14,11 @@ const { Worker } = require('node:worker_threads')
 const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
 const ErrorType = require('./errors.json')
 const ActionType = require('./actions.json')
-
 const { I18n } = require('i18n')
+const { EventEmitter } = require('node:stream')
+
+const events = new EventEmitter()
+
 
 const i18n = new I18n({
   locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs'],
@@ -109,6 +112,7 @@ const getSpecificUser = (uuid, user) => {
   return new User(row)
 }
 const changeUser = (uuid, user) => {
+  events.emit("userChange", user)
   if (user.pass == undefined || user.pass === '' || user.pass == "null") {
     userDatabase.prepare('UPDATE SubUsers SET name=?, state=?, plugins=?, externalEvent =?, server=? WHERE uuid=? AND id=?')
       .run(user.name, user.state, JSON.stringify(user.plugins), Number(user.externalEvent), user.server, uuid, user.id)
@@ -131,6 +135,7 @@ const changeUser = (uuid, user) => {
 
 }
 const removeUser = (uuid, user) => {
+  events.emit("userRemoved", user)
   if (uuid === undefined || user.id === undefined)
     return
 
@@ -868,5 +873,6 @@ module.exports = {
   userDatabase,
   changeUser,
   getUser,
-  removeUser
+  removeUser,
+  events
 }

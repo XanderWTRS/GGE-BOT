@@ -56,7 +56,7 @@ const AreaType = Object.freeze({
     beriCastle : 15,
     stormTower : 25,
     khanCamp : 35
-});
+})
 const HighscoreType = Object.freeze({
     honour: 5
 });
@@ -95,7 +95,8 @@ xtHandler.on("sce", (obj) => {
 })
 
 const map = {}
-
+const tillMapObjectExpires = 1000 * 60
+const mapTimer = new Map()
 /**
  * @param {GAAAreaInfo} AI 
  * @param {Number} kingdomID 
@@ -110,6 +111,13 @@ const MapObject = (AI, kingdomID) => {
 
     Object.assign(obj, AI)
 
+    const timer = mapTimer.get(obj)
+
+    if(!timer)
+        mapTimer.set(setTimeout(() => obj, tillMapObjectExpires))
+    else
+        timer.refresh()
+
     if(JSON.stringify(obj.extraData) == JSON.stringify(AI.extraData))
         return obj
 
@@ -117,10 +125,31 @@ const MapObject = (AI, kingdomID) => {
     console.debug("original: ", obj)
     console.debug("changed: ", AI)
 
-    events.emit(obj, obj)
+    events.emit(`area_${obj.type}_${kingdomID}`, obj)
 
     return obj
 }
+
+const GetMapObjects = (type, kingdomID, fromX, fromY, toX, toY) =>
+    Object.entries(map).map(([key, _value]) => {
+        if (!key.match(new RegExp(`${kingdomID}_\d+_\d+`)))
+            return
+        const value = _value.deref()
+
+        if (!value || value.type != type)
+            return
+
+        let startX = fromX < toX ? fromX : toX
+        let startY = fromY < toY ? fromY : toY
+        let endX = fromX >= toX ? fromX : toX
+        let endY = fromY >= toY ? fromY : toY
+
+        if (x < startX || x > endX ||
+            y < startY || y > endY)
+            return
+
+        return value
+    }).filter(e => e !== undefined)
 
 new PerformanceObserver(_ => {
     console.debug("GC Triggered")
