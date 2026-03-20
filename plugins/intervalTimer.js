@@ -3,7 +3,7 @@ const { changeUser, getUser, events } = require("../main.js")
 const dayjs = require("dayjs")
 
 if (isMainThread) {
-    return module.exports { hidden : true }
+    return module.exports = { hidden : true }
     module.exports = {
         pluginOptions: [
             {
