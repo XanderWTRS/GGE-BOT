@@ -93,7 +93,7 @@ async function fortressHit(kingdomID, level, options) {
         let comList = undefined
         if (![, 0, ""].includes(options.commanderWhiteList)) {
             comList = options.commanderWhiteList.split(",").map(e => {
-                const [start, end] = e.split("-").map(Number)
+                const [start, end] = e.split("-").map(parseInt)
                 if (end == undefined)
                     end = start
 
