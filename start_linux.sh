@@ -21,7 +21,12 @@ cd website
 git config --local core.hooksPath .githooks/
 cd ..
 
-git pull --recurse-submodules
+git pull origin main --no-recurse-submodules
+git submodule update -f website
+
+if gh auth status >/dev/null 2>&1; then
+  git submodule update --init -f plugins-extra
+fi
 echo "Last commit message:"
 git show --format=%s -s
 
