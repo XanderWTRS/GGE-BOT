@@ -202,10 +202,10 @@ events.on("eventStart", async eventInfo => {
 
                 await skipTarget(AI)
 
-                const campInfo = classic ? samuraiCampsClassic.find(obj => AI.extraData[1] == obj.id) :
+                const campInfo = classic ? samuraiCampsClassic.find(obj => (AI.extraData[1] + 1) == Number(obj.countVictory)) :
                     eventAutoScalingCamps.find(obj => AI.extraData[5] == obj.eventAutoScalingCampID)
 
-                const level = Number(classic ? (80 + campInfo.countVictory) : campInfo.camplevel)
+                const level = Number(classic ? (80 + Number(campInfo.countVictory)) : campInfo.camplevel)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
