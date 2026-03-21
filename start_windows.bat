@@ -24,7 +24,7 @@ git config --local core.hooksPath .githooks/
 cd ..
 
 git pull origin main --no-recurse-submodules
-git submodule update -f website
+git submodule update --init -f website
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   git submodule update --init -f plugins-extra
