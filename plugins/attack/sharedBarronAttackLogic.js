@@ -18,7 +18,7 @@ const minTroopCount = 100
 
 const troopBlackList = [277]//, 34, 35]
 
-async function barronHit(type, kingdomID, options) {
+async function barronHit(type, kingdomID, options, maxLevel) {
     function getLevel(victorys, kid) {
         function getKingdomOffset(e) {
             let t = 0
@@ -133,7 +133,8 @@ async function barronHit(type, kingdomID, options) {
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const areaInfo = sortedAreaInfo[i]
-                    if (!options.useTimeSkips) {
+                    const shouldUpgradeTower = options.upgradeTowers && getLevel(areaInfo.extraData[1], kingdomID) != maxLevel
+                    if (!options.useTimeSkips && !shouldUpgradeTower) {
                         if (movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
                             continue
 
