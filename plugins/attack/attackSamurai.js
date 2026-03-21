@@ -63,6 +63,7 @@ const pluginOptions = Object.assign(structuredClone(
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
     botConfig.plugins["attack"] ?? {})
 const err = require('../../err.json')
+const ggeConfig = require("../../ggeConfig.json")
 
 const kingdomID = 0
 const type = AreaType.samCamp
@@ -137,7 +138,7 @@ events.on("eventStart", async eventInfo => {
     if(eventInfo.EID != eventID)
         return
 
-    if (eventInfo.EDID == -1) {
+    if (eventInfo.EDID == -1 && !(ggeConfig.classicBug && pluginOptions.eventDifficulty == 0)) {
         const eventDifficultyID = 
             Number(eventsDifficulties.find(e => 
                 ((pluginOptions.eventDifficulty)) == e.difficultyTypeID && 
@@ -149,7 +150,7 @@ events.on("eventStart", async eventInfo => {
         eventInfo.EDID = eventDifficultyID
     }
     let classic = false
-    if(eventInfo.EDID == 0)
+    if([0,-1].includes(eventInfo.EDID))
         classic = true
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
