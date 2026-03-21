@@ -5,6 +5,7 @@ if (require('node:worker_threads').isMainThread)
                 type: "Select",
                 key: "eventDifficulty",
                 selection: [
+                    "Classic",
                     "Easy",
                     "Easy+",
                     "Intermediate",
@@ -139,7 +140,7 @@ events.on("eventStart", async eventInfo => {
     if (eventInfo.EDID == -1) {
         const eventDifficultyID = 
             Number(eventsDifficulties.find(e => 
-                ((pluginOptions.eventDifficulty) + 1) == e.difficultyTypeID && 
+                ((pluginOptions.eventDifficulty)) == e.difficultyTypeID && 
                 e.eventID == eventID)
                 .difficultyID)
                 
