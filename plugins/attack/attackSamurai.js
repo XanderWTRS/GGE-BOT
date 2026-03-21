@@ -66,7 +66,7 @@ const err = require('../../err.json')
 
 const kingdomID = 0
 const type = AreaType.samCamp
-
+const samuraiCampsClassic = require("../../items/samuraiCamps.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -146,7 +146,11 @@ events.on("eventStart", async eventInfo => {
                 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
         await waitForResult("sede", 1000 * 10)
+        eventInfo.EDID = eventDifficultyID
     }
+    let classic = false
+    if(eventInfo.EDID == 0)
+        classic = true
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => AreaType.mainCastle == e.type);
@@ -198,10 +202,11 @@ events.on("eventStart", async eventInfo => {
 
                 await skipTarget(AI)
 
-                const level = 
-                    Number(eventAutoScalingCamps.find(obj => 
-                        AI.extraData[5] == obj.eventAutoScalingCampID).camplevel)
-                
+                const campInfo = classic ? samuraiCampsClassic.find(obj => AI.extraData[1] == obj.id) :
+                    eventAutoScalingCamps.find(obj => AI.extraData[5] == obj.eventAutoScalingCampID)
+
+                const level = Number(classic ? (80 + campInfo.countVictory) : campInfo.camplevel)
+
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
                 const attackerSamuraiTools = []

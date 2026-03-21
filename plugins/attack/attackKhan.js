@@ -188,7 +188,11 @@ events.on("eventStart", async eventInfo => {
 
         sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
         await waitForResult("sede", 1000 * 10)
+        eventInfo.EDID = eventDifficultyID
     }
+    let classic = false
+    if(eventInfo.EDID == 0)
+        classic = true
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kid)
         .areaInfo.find(e => AreaType.mainCastle == e.type)
 
