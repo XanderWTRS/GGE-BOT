@@ -47,6 +47,7 @@ const AreaType = Object.freeze({
     mainCastle: 1,
     bloodcrowCastle: 34,
     nomadCamp: 27,
+    daimyoCastle: 37,
     stormIsland: 24,
     samCamp: 29,
     beriCamp: 30,
