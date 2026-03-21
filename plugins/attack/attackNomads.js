@@ -18,7 +18,7 @@ if (require('node:worker_threads').isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default: "3"
+                default: "4"
             },
             {
                 type: "Checkbox",

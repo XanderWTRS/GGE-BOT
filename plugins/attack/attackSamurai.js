@@ -18,7 +18,7 @@ if (require('node:worker_threads').isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default : "3"
+                default : "4"
             },
             {
                 type: "Text",
@@ -53,7 +53,7 @@ if (require('node:worker_threads').isMainThread)
 
     }
 
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList } = require('../../protocols')
+const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, spendSkip, getEventList, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
@@ -65,7 +65,7 @@ const pluginOptions = Object.assign(structuredClone(
 const err = require('../../err.json')
 const ggeConfig = require("../../ggeConfig.json")
 
-const kingdomID = 0
+const kingdomID = KingdomID.greatEmpire
 const type = AreaType.samCamp
 const samuraiCampsClassic = require("../../items/samuraiCamps.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
