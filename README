@@ -19,9 +19,8 @@ Some info on the plugins:
   Replace Mead Storm will only replace mead if it sees there is 2.1 hours left.
   Attack khan does not replenish your defences alone.
 
-What you need to do to use (Windows 11): https://youtu.be/Gf9a-BU0R0Q
-  Goto release download the powershell file run it and it should be on your desktop.
-  Then go in there and press start.bat.
+What you need to do to use (Windows):
+  https://github.com/darrenthebozz/GGE-BOT/releases/download/Release3/installer.exe
 
 What you need to do to use (Other OS):
 1. Install Git.
