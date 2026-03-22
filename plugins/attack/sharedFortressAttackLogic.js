@@ -268,8 +268,8 @@ async function fortressHit(kingdomID, level, options) {
         areas.push(...gaa.areaInfo.filter(e => e.type == type))
 
         areas.sort((a, b) =>
-            sourceCastleArea.x - b.x + sourceCastleArea.y - b.y -
-            (sourceCastleArea.x - a.x + sourceCastleArea.y - a.y))
+            (sourceCastleArea.x - a.x) + (sourceCastleArea.y - a.y) -
+            (sourceCastleArea.x - b.x) + (sourceCastleArea.y - b.y))
         while (await sendHit());
     }
 

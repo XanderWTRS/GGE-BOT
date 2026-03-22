@@ -361,8 +361,8 @@ async function barronHit(type, kingdomID, options, maxLevel) {
     } while (error);
 
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
-            sourceCastleArea.x - b.x + sourceCastleArea.y - b.y -
-            (sourceCastleArea.x - a.x + sourceCastleArea.y - a.y))
+            (sourceCastleArea.x - a.x) + (sourceCastleArea.y - a.y) -
+            (sourceCastleArea.x - b.x) + (sourceCastleArea.y - b.y))
 
     sortedAreaInfo.push(...areaInfo)
 
