@@ -60,7 +60,7 @@ const AreaType = Object.freeze({
 })
 const HighscoreType = Object.freeze({
     honour: 5
-});
+})
 const MinuteSkipType = Object.freeze({
     MS1: 1,
     MS2: 5,
@@ -69,7 +69,7 @@ const MinuteSkipType = Object.freeze({
     MS5: 60,
     MS6: 60 * 5,
     MS7: 60 * 24,
-});
+})
 
 const skips = {
     MS1: 0,
@@ -160,30 +160,17 @@ new PerformanceObserver(_ => {
     }
 }).observe({ entryTypes: ['gc'] })
 
-const spendSkip = time => {
-    time = (Math.max(time, 60 * 60)) / 60
-    let skip = Object.entries(skips)
+function spendSkip(time) {
+    time = Math.ceil(time / 60)
+    const skip = Object.entries(skips)
         .filter(e => e[1] > 0)
         .filter(e => MinuteSkipType[e[0]] <= time * 2)
-        .sort((a, b) => MinuteSkipType[b[0]] - MinuteSkipType[a[0]])
-        .sort((a, b) => {
-            if (a[1] >= 999 && b[1] >= 999)
-                return 0
-            if (MinuteSkipType[a[0]] > time || MinuteSkipType[b[0]] > time)
-                return 0
+        .sort((a,b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
+        .sort((a,b) => Math.max(b[1], 950) - Math.max(a[1], 950))
 
-            if (a[1] >= 999)
-                return -1
-            if (b[1] >= 999)
-                return 1
-        })
-
-    if (skip[0] == undefined) {
-        console.warn("noMoreSkips")
-        console.warn(JSON.stringify(skips))
-        return undefined
-    }
-
+    if (skip[0] == undefined)
+        return console.warn("noMoreSkips")
+    
     console.debug("usingSkip", skip[0][0])
 
     return skip[0][0]

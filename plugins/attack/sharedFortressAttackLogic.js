@@ -90,18 +90,7 @@ async function fortressHit(kingdomID, level, options) {
         .areaInfo.find(e => AreaType.externalKingdom == e.type);
 
     const sendHit = async () => {
-        let comList = undefined
-        if (![, 0, ""].includes(options.commanderWhiteList)) {
-            comList = options.commanderWhiteList.split(",").map(e => {
-                let [start, end] = e.split("-").map(Number)
-                if (end == undefined)
-                    end = start
-
-                return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-            }).flat()
-        }
-        
-        const commander = await waitForCommanderAvailable(comList,
+        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList,
             undefined,
             (a, b) => getCommanderStats(b).speedBonus - getCommanderStats(a).speedBonus)
 

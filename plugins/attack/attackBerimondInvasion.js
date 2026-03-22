@@ -127,28 +127,14 @@ events.on("eventStart", async eventInfo => {
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
 
     while (!quit) {
-        let comList = undefined
-        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
-            comList = pluginOptions.commanderWhiteList.split(",").map(e => {
-                let [start, end] = e.split("-").map(Number)
-                if (end == undefined)
-                    end = start
-
-                return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-            }).flat()
-        }
-
-        const commander = await waitForCommanderAvailable(comList)
+        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList)
         try {
             const attackInfo = await waitToAttack(async () => {
                 const AI = areaInfo.shift()
 
                 areaInfo.push(AI)
 
-                // await ClientCommands.preSpyInfo(AI.x, AI.y, kingdomID)()
-                
                 await skipTarget(AI)
-
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
                     .castles.find(a => a.kingdomID == kingdomID)

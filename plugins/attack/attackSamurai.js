@@ -177,18 +177,7 @@ events.on("eventStart", async eventInfo => {
     quit = false
 
     while (!quit) {
-        let comList = undefined
-        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
-            comList = pluginOptions.commanderWhiteList.split(",").map(e => {
-                let [start, end] = e.split("-").map(Number)
-                if (end == undefined)
-                    end = start
-
-                return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-            }).flat()
-        }
-
-        const commander = await waitForCommanderAvailable(comList)
+        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList)
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())

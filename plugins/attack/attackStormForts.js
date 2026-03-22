@@ -192,18 +192,7 @@ events.once("load", async () => {
     })
     //Gotta detect cooling down towers
     const sendHit = async () => {
-        let comList = undefined
-        if (![, 0, ""].includes(pluginOptions.commanderWhiteList)) {
-            comList = pluginOptions.commanderWhiteList.split(",").map(e => {
-                let [start, end] = e.split("-").map(Number)
-                if (end == undefined)
-                    end = start
-
-                return Array.from({ length: end - start + 1 }, (_, i) => start + i)
-            }).flat()
-        }
-
-        const commander = await waitForCommanderAvailable(comList, undefined, 
+        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
             (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
 
         try {

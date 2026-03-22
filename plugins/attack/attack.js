@@ -88,11 +88,12 @@ const getMaxUnitsInReinforcementWave = (playerLevel, targetLevel, additionalUnit
 
 function getMaxWaveCount(e) {
     const waveUnlockLevelList = [0, 13, 26, 51]
-    for (var n = 1, i = waveUnlockLevelList.length - 1; i >= 0; i--)
-        if (e >= waveUnlockLevelList[i]) {
-            n = i + 1
-            break
-        }
+    let n = 1
+    for (let i = waveUnlockLevelList.length - 1; i >= 0; i--) {
+        if (e < waveUnlockLevelList[i])
+            continue
+        n = i + 1
+    }
     return n
 }
 
@@ -222,7 +223,6 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
 
         unlockedHorses?.forEach(e => {
             let horse = stables.find(a => e == a.wodID)
-            // Check for Gold Cost (>0) and Ruby Cost (==0)
             if (horse && Number(horse.costFactorC1) > 0 && Number(horse.costFactorC2) == 0) {
                  if (Number(horse.unitBoost) < minSpeed) {
                     minSpeed = Number(horse.unitBoost)
@@ -253,19 +253,18 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
     return attackTarget
 }
 
-// Box-Muller transform for Gaussian distribution (Human-like randomness)
 function boxMullerRandom(min, max, skew) {
-    let u = 0, v = 0;
-    while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-    while(v === 0) v = Math.random();
-    let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+    let u = 0, v = 0
+    while(u === 0) u = Math.random()
+    while(v === 0) v = Math.random()
+    let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v )
 
-    num = num / 10.0 + 0.5; // Translate to 0 -> 1
-    if (num > 1 || num < 0) num = boxMullerRandom(min, max, skew); // resample between 0 and 1 if out of range
-    num = Math.pow(num, skew); // Skew
-    num *= max - min; // Stretch to fill range
-    num += min; // offset to min
-    return num;
+    num = num / 10.0 + 0.5
+    if (num > 1 || num < 0) num = boxMullerRandom(min, max, skew)
+    num = Math.pow(num, skew)
+    num *= max - min
+    num += min
+    return num
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
@@ -316,12 +315,8 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
         setImmediate(async () => {
             do {
                 try {
-                    // Human-like delay logic using Gaussian distribution
-                    // Base delay from config + random gaussian variance
                     const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
                     const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
-
-                    // Generate a natural random delay. Skew 1 means normal distribution.
                     const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
                     console.debug("attackDelayAttack", naturalDelay)
@@ -353,7 +348,6 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
 
                     await sleep(naturalDelay)
                 } catch (innerError) {
-                    // Catch errors specific to the task but keep the loop running
                     if (innerError !== "NO_MORE_TROOPS") {
                         console.warn("failedToHandleAttack", innerError)
                         console.error(innerError)

@@ -24,12 +24,23 @@ function useCommander(LID) {
     return LID
 }
 
-const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
+const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sortCallback) => {
+    if (![, 0, ""].includes(commanderWhitelist) &&
+        !Array.isArray(commanderWhitelist)) {
+        commanderWhitelist = commanderWhitelist.split(",").map(e => {
+            let [start, end] = e.split("-").map(Number)
+            if (end == undefined)
+                end = start
+
+            return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+        }).flat()
+    }
+
     if (commanders.length == 0) {
         commanders = (await waitForResult("gli", 1000 * 10))[0].C
     }
     let usableCommanders = commanders.map(e => new Types.Lord(e))
-        .filter(e => ((!arr || arr.includes(e.lordPosition)) &&
+        .filter(e => ((!commanderWhitelist || commanderWhitelist.includes(e.lordPosition)) &&
             !usedCommanders.includes(e.lordID)))
 
     if (sortCallback)
@@ -42,12 +53,12 @@ const waitForCommanderAvailable = async (arr, filterCallback, sortCallback) => {
     LID ??= await new Promise(resolve => {
         const checkForCommander = currentEvent => {
             const com = commanders.find(e => e.ID == currentEvent.detail)
-            if (!arr) {
+            if (!commanderWhitelist) {
                 event.removeEventListener("freedCommander", checkForCommander)
                 currentEvent.stopImmediatePropagation()
                 return resolve(currentEvent.detail)
             }
-            if(!arr.includes(com.VIS))
+            if(!commanderWhitelist.includes(com.VIS))
                 return
             if(!(!filterCallback || filterCallback(new Types.Lord(com))))
                 return
