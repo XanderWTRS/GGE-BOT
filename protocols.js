@@ -97,7 +97,7 @@ xtHandler.on("sce", (obj) => {
 
 const map = {}
 const tillMapObjectExpires = 1000 * 60
-const mapTimer = new Map()
+const mapTimer = new WeakMap()
 /**
  * @param {GAAAreaInfo} AI 
  * @param {Number} kingdomID 
@@ -115,7 +115,7 @@ const MapObject = (AI, kingdomID) => {
     const timer = mapTimer.get(obj)
 
     if(!timer)
-        mapTimer.set(setTimeout(() => obj, tillMapObjectExpires))
+        mapTimer.set(obj, setTimeout(() => obj, tillMapObjectExpires))
     else
         timer.refresh()
 
