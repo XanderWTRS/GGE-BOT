@@ -22,6 +22,16 @@ if (require('node:worker_threads').isMainThread)
                 key: "upgradeTowers",
                 default: false
             },
+            {
+                type: "Checkbox",
+                key: "useWallTools",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "useShields",
+                default: false
+            },
             { type: "Label", key: "attackSettings" },
             {
                 type: "Checkbox",

@@ -215,10 +215,11 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         doCourtyard = hasShieldMadiens ? false : true
                 }
                 const desiredToolCount = 10
+                maxToolsFlank = options.useShields ? maxToolsFlank : 10
                 attackInfo.A.forEach((wave, index) => {
                     let maxTroops = maxTroopFlank
 
-                    if(index == 0) {
+                    if(index == 0 && options.useWallTools) {
                         let maxTools = maxToolsFlank
                         if (doLeft) {
                             wave.L.T.forEach((unitSlot, i) =>

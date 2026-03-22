@@ -90,7 +90,7 @@ async function fortressHit(kingdomID, level, options) {
         .areaInfo.find(e => AreaType.externalKingdom == e.type);
 
     const sendHit = async () => {
-        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList,
+        const commander = await waitForCommanderAvailable(options.commanderWhiteList,
             undefined,
             (a, b) => getCommanderStats(b).speedBonus - getCommanderStats(a).speedBonus)
 
