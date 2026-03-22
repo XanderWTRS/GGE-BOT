@@ -132,7 +132,7 @@ events.once("load", async () => {
         
         if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <= 
             Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-            for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+            for (let i = 0; i < Math.floor(castleProd.aqua / 75000); i++) {
                 castleProd.aqua -= 75000
                 sendXT("sbp", JSON.stringify({
                     PID: 2798, BT: 3, TID: -1, AMT: 1,
@@ -143,7 +143,7 @@ events.once("load", async () => {
         }
         if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <=
             Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-            for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+            for (let i = 0; i < Math.floor(castleProd.aqua / 100000); i++) {
                 castleProd.aqua -= 100000
                 sendXT("sbp", JSON.stringify({
                     PID: 3117, BT: 3, TID: -1, AMT: 1,
