@@ -207,7 +207,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
-                const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
+                let maxToolsFlank = getTotalAmountToolsFlank(level, 0)
 
                 if (!(doLeft || doRight || doMiddle)) {
                     doLeft = true
