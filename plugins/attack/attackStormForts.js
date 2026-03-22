@@ -123,15 +123,15 @@ events.once("load", async () => {
     if (allowedLevels.length === 0) allowedLevels = [7, 8, 9, 13, 14]
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom);
+        .areaInfo.find(e => e.type == AreaType.externalKingdom)
         
     xtHandler.on("dcl", obj => {
         const castleProd = Types.DetailedCastleList(obj)
             .castles.find(a => a.kingdomID == kingdomID)
             .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-        castleProd.getProductionData.maxAmmountAqua
-        if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua < 
-            castleProd.aqua + 100000) {
+        
+        if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <= 
+            Math.max(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 75000
                 sendXT("sbp", JSON.stringify({
@@ -141,8 +141,8 @@ events.once("load", async () => {
                 console.info("broughtCoins")
             }
         }
-        if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <
-            castleProd.aqua + 100000) {
+        if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <=
+            Math.max(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 100000
                 sendXT("sbp", JSON.stringify({
@@ -152,8 +152,8 @@ events.once("load", async () => {
                 console.info("broughtDeco")
             }
         }
-        if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <
-            castleProd.aqua + 100000) {
+        if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <=
+            Math.max(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 10000
                 sendXT("sbp", JSON.stringify({ PID: 3114, BT: 3, TID: -1, AMT: 1, 
