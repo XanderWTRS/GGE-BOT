@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, spiralCoordinates } = require("../../protocols")
+const { ClientCommands: { preSpyInfo }, spiralCoordinates, ClientCommands, getResourceCastleList, AreaType } = require("../../protocols")
 const getAreaCached = require('../../getMap.js')
 const { client } = require("./discord.js")
 
@@ -21,52 +21,55 @@ events.once("load", async () => {
     /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
     const areas = []
 
+
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
-        const getFirstFortress = async () => {
-            while (true) {
-                try {
-                    return (await getAreaCached(kingdomID,
-                        (1300 / 2) - 50, (1300 / 2) - 50,
-                        (1300 / 2) + 50, (1300 / 2) + 50))
-                        .areaInfo.filter(e => e.type == type).sort((a, b) =>
-                            (Math.pow((1300 / 2) - a.x, 2) + Math.pow((1300 / 2) - a.y, 2)) -
-                            (Math.pow((1300 / 2) - b.x, 2) + Math.pow((1300 / 2) - b.y, 2))
-                        )[0]
-                } catch (e) {
-                    console.warn(e)
+        const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
+            .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
+        done:
+        for (let i = 0, j = 0; i < 13 * 13; i++) {
+            let rX, rY
+            let rect
+            do {
+                ({ x: rX, y: rY } = spiralCoordinates(j++))
+                rX *= 100
+                rY *= 100
+
+                rect = {
+                    x: sourceCastleArea.x + rX - 50,
+                    y: sourceCastleArea.y + rY - 50,
+                    w: sourceCastleArea.x + rX + 50,
+                    h: sourceCastleArea.y + rY + 50
                 }
-            }
-        }
-
-        areas.push(await getFirstFortress())
-        
-        fortressLoop:
-        for (let j = 1; ; j++) {
-            const { x: rX, y: rY } = spiralCoordinates(j)
-
-            while(true) {
+                if (j > Math.pow(13 * 13, 2))
+                    break done
+            } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+            rect.x = rect.x < 0 ? 0 : rect.x
+            rect.y = rect.y < 0 ? 0 : rect.y
+            rect.w = rect.w < 0 ? 0 : rect.w
+            rect.h = rect.h < 0 ? 0 : rect.h
+            rect.x = rect.x > 1286 ? 1286 : rect.x
+            rect.y = rect.y > 1286 ? 1286 : rect.y
+            rect.w = rect.w > 1286 ? 1286 : rect.w
+            rect.h = rect.h > 1286 ? 1286 : rect.h
+            let gaa
+            let attemptsLeft = 5
+            do {
                 try {
-                    let { areaInfo, result } = await preSpyInfo(
-                        areas[0].x + rX * 39, 
-                        areas[0].y + rY * 39, 
-                        kingdomID)()
-
-                    if (result != 0)
-                        break fortressLoop
-
-                    areas.push(areaInfo)
-                    break
-                } catch (e) {
-                    console.warn(e)
+                    gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
                 }
-            }
+                catch { attemptsLeft-- }
+                if (attemptsLeft <= 0)
+                    continue done
+            } while (!gaa)
+
+            areas.push(...gaa.areaInfo.filter(e => e.type == type))
         }
     }
 
     const sortData = () => {
         const KIDPOW = [, 1, 0, 3]
 
-        areas.sort((a, b) => KIDPOW[a.extraData[4]] - KIDPOW[b.extraData[4]]).sort((a, b) => 
+        areas.sort((a, b) => KIDPOW[a.extraData[4]] - KIDPOW[b.extraData[4]]).sort((a, b) =>
             a.extraData[2] - b.extraData[2])
     }
 
@@ -93,7 +96,7 @@ events.once("load", async () => {
             if (deltaTime <= 0)
                 preSpyInfo(area.x, area.y, kingdomID)().then(({ areaInfo: area }) =>
                     area.extraData[2] > 0 && sortData())
-            
+
             msg += `${KIDNames[kingdomID]} ${area.x}\:${area.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
 
             if (msg.length > 2000 - 3)
@@ -112,7 +115,7 @@ events.once("load", async () => {
 
         if (message.content == msg)
             return
-        
+
         message.edit(msg)
     }, 6 * 1000).unref()
 })

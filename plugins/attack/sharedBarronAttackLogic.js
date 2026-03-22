@@ -198,30 +198,25 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 attackerShieldTools.sort((a, b) =>
                     Number(a[0].defRangeBonus) - Number(b[0].defRangeBonus))
 
-                let doLeft = !!(options.attackLeft)
-                let doRight = !!(options.attackRight)
-                let doMiddle = !!(options.attackMiddle)
-                let doCourtyard = !!(options.attackCourtyard)
+                if (!(options.attackLeft || options.attackRight || options.attackMiddle)) {
+                    options.attackLeft = true
+                    if (!options.attackCourtyard)
+                        options.attackCourtyard = hasShieldMadiens ? false : true
+                }
 
                 const commanderStats = getCommanderStats(commander)
                 const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
-                let maxToolsFlank = getTotalAmountToolsFlank(level, 0)
+                const maxToolsFlank = options.useShields ? getTotalAmountToolsFlank(level, 0) : 10
 
-                if (!(doLeft || doRight || doMiddle)) {
-                    doLeft = true
-                    if (!doCourtyard)
-                        doCourtyard = hasShieldMadiens ? false : true
-                }
-                const desiredToolCount = 10
-                maxToolsFlank = options.useShields ? maxToolsFlank : 10
                 attackInfo.A.forEach((wave, index) => {
                     let maxTroops = maxTroopFlank
 
                     if(index == 0 && options.useWallTools) {
+                        const desiredToolCount = 10
                         let maxTools = maxToolsFlank
-                        if (doLeft) {
+                        if (options.attackLeft) {
                             wave.L.T.forEach((unitSlot, i) =>
                                 maxTools -= assignUnit(unitSlot, i == 0 ?
                                     attackerWallTools : attackerShieldTools, Math.min(maxTools, desiredToolCount)))
@@ -231,7 +226,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                                     attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         }
                         maxTools = maxToolsFlank
-                        if (doRight) {
+                        if (options.attackRight) {
                             wave.R.T.forEach((unitSlot, i) =>
                                 maxTools -= assignUnit(unitSlot, i == 0 ?
                                     attackerWallTools : attackerShieldTools, Math.min(maxTools, desiredToolCount)))
@@ -242,7 +237,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                                     attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         }
                         maxTools = maxToolsFlank
-                        if (doMiddle) {
+                        if (options.attackMiddle) {
                             wave.M.T.forEach((unitSlot, i) =>
                                 maxTools -= assignUnit(unitSlot, i == 0 ?
                                     attackerWallTools : attackerShieldTools, Math.min(maxTools, desiredToolCount)))
@@ -254,21 +249,20 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         }
                         return
                     }
-
-                    if (doLeft) {
+                    if (options.attackLeft) {
                         wave.L.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     }
 
-                    if (doRight) {
+                    if (options.attackRight) {
                         maxTroops = maxTroopFlank
                         wave.R.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     }
 
-                    if (doMiddle) {
+                    if (options.attackMiddle) {
                         maxTroops = maxTroopFront
                         wave.M.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
@@ -276,7 +270,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     }
                 })
 
-                if (doCourtyard) {
+                if (options.attackCourtyard) {
                     let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                     attackInfo.RW.forEach((unitSlot, i) => {
                         let attacker = i & 1 ?
@@ -298,15 +292,11 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         return false
                     return true
                 })
-                if (result == 0) {
-                    if (!options.useTimeSkips)
-                        movements.push(AI)
-                }
 
-                const executionDuration = ((Date.now() - executionStartTime) / 1000).toFixed(2);
-                obj.executionDuration = executionDuration; // Pass it out
+                if (result == 0 && !options.useTimeSkips)
+                    movements.push(AI)
 
-                return { ...obj, attackInfo, result, executionDuration }
+                return { ...obj, result }
             })
 
             if (!attackInfo) {
@@ -371,8 +361,8 @@ async function barronHit(type, kingdomID, options, maxLevel) {
     } while (error);
 
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
-            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+            sourceCastleArea.x - a.x + sourceCastleArea.y - a.y -
+            (sourceCastleArea.x - b.x + sourceCastleArea.y - b.y))
 
     sortedAreaInfo.push(...areaInfo)
 

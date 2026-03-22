@@ -170,8 +170,8 @@ events.on("eventStart", async eventInfo => {
     } while (error);
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
         .sort((a, b) => 
-            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+            sourceCastleArea.x - a.x + sourceCastleArea.y - a.y -
+            (sourceCastleArea.x - b.x + sourceCastleArea.y - b.y))
         .sort((a, b) => a.extraData[6] - b.extraData[6])
 
     quit = false

@@ -87,7 +87,7 @@ async function fortressHit(kingdomID, level, options) {
         movements.splice(index, 1)
     })
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => AreaType.externalKingdom == e.type);
+        .areaInfo.find(e => AreaType.externalKingdom == e.type)
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList,
@@ -227,55 +227,6 @@ async function fortressHit(kingdomID, level, options) {
         }
     }
 
-    // const getFirstFortress = async () => {
-    //     let error = false
-    //     let gaa
-    //     do {
-    //         try {
-    //             gaa = await getAreaCached(kingdomID,
-    //                 (1300 / 2) - 50, (1300 / 2) - 50,
-    //                 (1300 / 2) + 50, (1300 / 2) + 50)
-    //             error = false
-    //         } catch (e) {
-    //             console.warn(e)
-    //             error = true
-    //         }
-    //     } while (error);
-
-    //     return gaa.areaInfo.filter(e => e.type == type).sort((a, b) => 
-    //         (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-    //         (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))[0]
-    // }
-    // const firstFortress = await getFirstFortress()
-    // areas.push(firstFortress)
-
-    // const startingX = firstFortress.x
-    // const startingY = firstFortress.y
-
-    // for (let j = 1;; j++) {
-    //     let { x: rX, y: rY } = spiralCoordinates(j)
-    //     let x = startingX + rX * 39
-    //     let y = startingY + rY * 39        
-
-    //     let error = false
-    //     do {
-    //         try {
-    //             var {areaInfo: nextFortress, result} = await ClientCommands.preSpyInfo(x, y, kingdomID)()
-    //             error = false
-    //         } catch (e) {
-    //             console.warn(e)
-    //             error = true
-    //         }
-    //     } while (error);
-
-    //     if(result != 0)
-    //         break
-
-    //     areas.push(nextFortress)
-
-    //     while (await sendHit());
-    // }
-
     done:
     for (let i = 0, j = 0; i < 13 * 13; i++) {
         let rX, rY
@@ -317,11 +268,10 @@ async function fortressHit(kingdomID, level, options) {
         areas.push(...gaa.areaInfo.filter(e => e.type == type))
 
         areas.sort((a, b) =>
-            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+            sourceCastleArea.x - a.x + sourceCastleArea.y - a.y -
+            (sourceCastleArea.x - b.x + sourceCastleArea.y - b.y))
         while (await sendHit());
     }
-
 
     while (true) {
         let minimumTimeTillHit = Infinity

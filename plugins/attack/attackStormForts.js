@@ -91,15 +91,14 @@ function spiralCoordinates(n) {
     return { x, y }
 }
 
-const pluginOptions = 
+const pluginOptions =
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
-if(pluginOptions.upgradeStormForts)
-{
+if (pluginOptions.upgradeStormForts) {
     try {
         require("../../plugins-extra/upgradeStormCargo.js")
     }
-    catch(e) {
+    catch (e) {
         console.warn(e)
     }
 }
@@ -107,66 +106,63 @@ if(pluginOptions.upgradeStormForts)
 const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
+xtHandler.on("dcl", obj => {
+    const castleProd = Types.DetailedCastleList(obj)
+        .castles.find(a => a.kingdomID == kingdomID)
+        .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+
+    if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <=
+        Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
+        for (let i = 0; i < Math.floor(castleProd.aqua / 75000); i++) {
+            castleProd.aqua -= 75000
+            sendXT("sbp", JSON.stringify({
+                PID: 2798, BT: 3, TID: -1, AMT: 1,
+                KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+            }))
+            console.info("broughtCoins")
+        }
+    }
+    if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <=
+        Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
+        for (let i = 0; i < Math.floor(castleProd.aqua / 100000); i++) {
+            castleProd.aqua -= 100000
+            sendXT("sbp", JSON.stringify({
+                PID: 3117, BT: 3, TID: -1, AMT: 1,
+                KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+            }))
+            console.info("broughtDeco")
+        }
+    }
+    if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <=
+        Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
+        for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+            castleProd.aqua -= 10000
+            sendXT("sbp", JSON.stringify({
+                PID: 3114, BT: 3, TID: -1, AMT: 1,
+                KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+            }))
+            console.info("broughtXP")
+        }
+    }
+})
+
 events.once("load", async () => {
     let allowedLevels = []
     
-    if (pluginOptions["allowLvl40Hard"]) allowedLevels.push(10)
-    if (pluginOptions["allowLvl50Hard"]) allowedLevels.push(11)
-    if (pluginOptions["allowLvl60Hard"]) allowedLevels.push(12)
-    if (pluginOptions["allowLvl70Hard"]) allowedLevels.push(13)
-    if (pluginOptions["allowLvl80Hard"]) allowedLevels.push(14)
+    pluginOptions["allowLvl40Hard"] ?? allowedLevels.push(10)
+    pluginOptions["allowLvl50Hard"] ?? allowedLevels.push(11)
+    pluginOptions["allowLvl60Hard"] ?? allowedLevels.push(12)
+    pluginOptions["allowLvl70Hard"] ?? allowedLevels.push(13)
+    pluginOptions["allowLvl80Hard"] ?? allowedLevels.push(14)
+    pluginOptions["allowLvl60Easy"] ?? allowedLevels.push(7)
+    pluginOptions["allowLvl70Easy"] ?? allowedLevels.push(8)
+    pluginOptions["allowLvl80Easy"] ?? allowedLevels.push(9)
 
-    if (pluginOptions["allowLvl60Easy"]) allowedLevels.push(7)
-    if (pluginOptions["allowLvl70Easy"]) allowedLevels.push(8)
-    if (pluginOptions["allowLvl80Easy"]) allowedLevels.push(9)
-
-    if (allowedLevels.length === 0) allowedLevels = [7, 8, 9, 13, 14]
+    if (allowedLevels.length === 0)
+        allowedLevels.push(7, 8, 9, 13, 14)
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => e.type == AreaType.externalKingdom)
-        
-    xtHandler.on("dcl", obj => {
-        const castleProd = Types.DetailedCastleList(obj)
-            .castles.find(a => a.kingdomID == kingdomID)
-            .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-        
-        if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <= 
-            Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-            for (let i = 0; i < Math.floor(castleProd.aqua / 75000); i++) {
-                castleProd.aqua -= 75000
-                sendXT("sbp", JSON.stringify({
-                    PID: 2798, BT: 3, TID: -1, AMT: 1,
-                    KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
-                }))
-                console.info("broughtCoins")
-            }
-        }
-        if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <=
-            Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-            for (let i = 0; i < Math.floor(castleProd.aqua / 100000); i++) {
-                castleProd.aqua -= 100000
-                sendXT("sbp", JSON.stringify({
-                    PID: 3117, BT: 3, TID: -1, AMT: 1,
-                    KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
-                }))
-                console.info("broughtDeco")
-            }
-        }
-        if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <=
-            Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-            for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
-                castleProd.aqua -= 10000
-                sendXT("sbp", JSON.stringify({ PID: 3114, BT: 3, TID: -1, AMT: 1, 
-                    KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1 }))
-                console.info("broughtXP")
-            }
-        }
-    })
-    if (pluginOptions["easyfortsonly"])
-        allowedLevels = [9, 8, 7]
-
-    if (pluginOptions["addworserforts"])
-        allowedLevels.push(11, 10)
     
     let sortedAreaInfo = []
     const movements = []
@@ -239,7 +235,7 @@ events.once("load", async () => {
 
                 let AI = sortedAreaInfo[index]
 
-                let toLevel = {
+                const level = {
                     7: 60,
                     8: 70,
                     9: 80,
@@ -248,10 +244,11 @@ events.once("load", async () => {
                     12: 60,
                     13: 70,
                     14: 80,
-                }
-                const level = toLevel[AI.extraData[2]]
+                }[AI.extraData[2]]
+
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
+                const attackerWallTools = []
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
                     const unit = sourceCastle.unitInventory[i]
@@ -259,7 +256,17 @@ events.once("load", async () => {
                     if (unitInfo == undefined)
                         continue
 
-                    if (unitInfo.fightType == 0) {
+                    if (
+                        unitInfo.toolCategory &&
+                        unitInfo.usageEventID == undefined &&
+                        unitInfo.allowedToAttack == undefined &&
+                        unitInfo.typ == 'Attack' &&
+                        unitInfo.amountPerWave == undefined
+                    ) {
+                        if (unitInfo.wallBonus)
+                            attackerWallTools.push([unitInfo, unit.ammount])
+                    }
+                    else if (unitInfo.fightType == 0) {
                         if (unitInfo.role == "melee")
                             attackerMeleeTroops.push([unitInfo, unit.ammount])
                         else if (unitInfo.role == "ranged")
@@ -276,12 +283,20 @@ events.once("load", async () => {
                     throw "NO_MORE_TROOPS"
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, 4, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, 3, pluginOptions, commanderStats.additionalWaves)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
+                const maxToolsFlank = 10
 
                 attackInfo.LP = 3
-                attackInfo.A.forEach((wave, i) => {
+                attackInfo.A.forEach((wave, index) => {
                     let maxTroops = maxTroopFlank
+                    let maxTools = maxToolsFlank
+                    if (index == 0) {
+                        wave.L.T.forEach((unitSlot, i) =>
+                            maxTools -= assignUnit(unitSlot, i == 0 ?
+                                attackerWallTools : attackerShieldTools, Math.min(maxTools, desiredToolCount)))
+
+                    }
 
                     wave.L.U.forEach((unitSlot, i) =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
@@ -381,8 +396,8 @@ events.once("load", async () => {
         } while (!gaa)
         
         let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
-            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+            sourceCastleArea.x - a.x + sourceCastleArea.y - a.y -
+            (sourceCastleArea.x - b.x + sourceCastleArea.y - b.y))
 
         sortedAreaInfo.push(...areaInfo)
 
