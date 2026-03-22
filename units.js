@@ -8,11 +8,11 @@ let getAsset = (key, hardFail) => new Promise(async (resolve, reject) => {
         return resolve(await getAsset(`Unknown_Unit_Soldiers`, true))
 
     try {
-        let data = fs.createReadStream(`./assets/${asset[key]}.png`)
+        let data = fs.createReadStream(`./assets/${assets[key]}.png`)
         data.on("error", async function (err) {
             console.error(err)
             try {
-                let imageFile = await fetch(`https://empire-html5.goodgamestudios.com/default/assets/${asset[key]}.webp`)
+                let imageFile = await fetch(`https://empire-html5.goodgamestudios.com/default/assets/${assets[key]}.webp`)
                 if (imageFile.status != 200) {
                     if (hardFail) {
                         throw "Could not get soldier"
@@ -39,8 +39,8 @@ let getAsset = (key, hardFail) => new Promise(async (resolve, reject) => {
 
                 let data = Readable.from(convertedImageBuffer)
 
-                fs.mkdirSync(`./assets/${asset[key].replace(/\/[^\/]+\/?$/, '')}`, { recursive: true })
-                await convertedImage.toFile(`./assets/${asset[key]}.png`)
+                fs.mkdirSync(`./assets/${assets[key].replace(/\/[^\/]+\/?$/, '')}`, { recursive: true })
+                await convertedImage.toFile(`./assets/${assets[key]}.png`)
                 resolve(data)
             }
             catch (e) {
