@@ -108,7 +108,7 @@ const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 events.once("load", async () => {
-    let allowedLevels = [];
+    let allowedLevels = []
     
     if (pluginOptions["allowLvl40Hard"]) allowedLevels.push(10)
     if (pluginOptions["allowLvl50Hard"]) allowedLevels.push(11)
@@ -129,25 +129,35 @@ events.once("load", async () => {
         const castleProd = Types.DetailedCastleList(obj)
             .castles.find(a => a.kingdomID == kingdomID)
             .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-        
-        if (pluginOptions["buyCoins"]) {
-            if (castleProd.aqua > 500000) {
-                castleProd.aqua -= 500000
-                sendXT("sbp", JSON.stringify({ "PID": 2798, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+        castleProd.getProductionData.maxAmmountAqua
+        if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua < 
+            castleProd.aqua + 100000) {
+            for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+                castleProd.aqua -= 75000
+                sendXT("sbp", JSON.stringify({
+                    PID: 2798, BT: 3, TID: -1, AMT: 1,
+                    KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+                }))
                 console.info("broughtCoins")
             }
         }
-        if (pluginOptions["buyDecoration"]) {
-            if (castleProd.aqua > 500000) {
-                castleProd.aqua -= 500000
-                sendXT("sbp", JSON.stringify({ "PID": 3117, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+        if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <
+            castleProd.aqua + 100000) {
+            for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+                castleProd.aqua -= 100000
+                sendXT("sbp", JSON.stringify({
+                    PID: 3117, BT: 3, TID: -1, AMT: 1,
+                    KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+                }))
                 console.info("broughtDeco")
             }
         }
-        if (pluginOptions["buyXP"]) {
+        if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <
+            castleProd.aqua + 100000) {
             for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
                 castleProd.aqua -= 10000
-                sendXT("sbp", JSON.stringify({ "PID": 3114, "BT": 3, "TID": -1, "AMT": 1, "KID": 4, "AID": -1, "PC2": -1, "BA": 0, "PWR": 0, "_PO": -1 }))
+                sendXT("sbp", JSON.stringify({ PID: 3114, BT: 3, TID: -1, AMT: 1, 
+                    KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1 }))
                 console.info("broughtXP")
             }
         }
@@ -190,7 +200,7 @@ events.once("load", async () => {
             return
         movements.splice(index, 1)
     })
-    //Gotta detect cooling down towers
+    
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
             (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
