@@ -296,8 +296,8 @@ events.once("load", async () => {
                     let maxTools = maxToolsFlank
                     if (index == 0) {
                         wave.L.T.forEach((unitSlot, i) =>
-                            maxTools -= assignUnit(unitSlot, i == 0 ?
-                                attackerWallTools : attackerShieldTools, maxTools))
+                            maxTools -= assignUnit(unitSlot,
+                                attackerWallTools, maxTools))
 
                     }
 
