@@ -106,7 +106,10 @@ if (pluginOptions.upgradeStormForts) {
 const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
-xtHandler.on("dcl", obj => {
+xtHandler.on("dcl", async obj => {
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
+        .areaInfo.find(e => e.type == AreaType.externalKingdom)
+    
     const castleProd = Types.DetailedCastleList(obj)
         .castles.find(a => a.kingdomID == kingdomID)
         .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
@@ -161,9 +164,6 @@ events.once("load", async () => {
     if (allowedLevels.length === 0)
         allowedLevels.push(7, 8, 9, 13, 14)
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom)
-    
     let sortedAreaInfo = []
     const movements = []
 
@@ -196,7 +196,14 @@ events.once("load", async () => {
             return
         movements.splice(index, 1)
     })
-    
+
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
+        .areaInfo.find(e => e.type == AreaType.externalKingdom)
+
+    const sourceCastle = (await ClientCommands.getDetailedCastleList())
+        .castles.find(a => a.kingdomID == kingdomID)
+        .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
             (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
@@ -228,10 +235,6 @@ events.once("load", async () => {
                 }
                 if (index == -1)
                     return
-
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 let AI = sortedAreaInfo[index]
 
