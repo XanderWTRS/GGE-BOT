@@ -200,10 +200,6 @@ events.once("load", async () => {
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => e.type == AreaType.externalKingdom)
 
-    const sourceCastle = (await ClientCommands.getDetailedCastleList())
-        .castles.find(a => a.kingdomID == kingdomID)
-        .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
             (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
@@ -252,6 +248,10 @@ events.once("load", async () => {
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
                 const attackerWallTools = []
+                
+                const sourceCastle = (await ClientCommands.getDetailedCastleList())
+                    .castles.find(a => a.kingdomID == kingdomID)
+                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
                     const unit = sourceCastle.unitInventory[i]
@@ -295,10 +295,9 @@ events.once("load", async () => {
                     let maxTroops = maxTroopFlank
                     let maxTools = maxToolsFlank
                     if (index == 0) {
-                        wave.L.T.forEach((unitSlot, i) =>
+                        wave.L.T.forEach(unitSlot =>
                             maxTools -= assignUnit(unitSlot,
                                 attackerWallTools, maxTools))
-
                     }
 
                     wave.L.U.forEach((unitSlot, i) =>
