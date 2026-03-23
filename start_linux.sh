@@ -30,7 +30,7 @@ fi
 echo "Last commit message:"
 git show --format=%s -s
 
-if test -f website/build/index.html || test -f website/.needsRebuild; then
+if [ ! -f website/build/index.html ] || [ -f website/.needsRebuild ]; then
   cd website
   npm install
   npm run build
