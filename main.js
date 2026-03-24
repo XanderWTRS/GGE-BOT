@@ -589,7 +589,7 @@ async function start() {
              } else {
                  console.debug(`[${user.name}] ${i18n.__("restartCanceledReasonBotStoppedByUser")}`)
              }
-          }, 1000 * ggeConfig.secondsTillRestartBot ?? 10)
+          }, 1000 * (ggeConfig.secondsTillRestartBot ?? 10))
         }
       }
     }
