@@ -467,12 +467,17 @@ xtHandler.on("qli", obj => obj.QL.forEach(quest => {
 
 xtHandler.on("gcu", obj => {
     Object.assign(status, {
-        coin: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
-        rubies: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
+        Coin: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
+        Rubies: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
     })
     parentPort.postMessage([ActionType.StatusUser, status])
 })
-
+xtHandler.on("gai", obj => {
+    Object.assign(status, {
+        attackDailyCount: obj.AC != 0 ? Math.floor(playerInfo.attackDailyCount = obj.AC) : undefined,
+    })
+    parentPort.postMessage([ActionType.StatusUser, status])
+})
 events.on("eventStart", async eventInfo => {
     if (eventInfo.EID != 117)
         return
