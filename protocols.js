@@ -97,8 +97,8 @@ xtHandler.on("sce", (obj) => {
 })
 
 const map = {}
-const tillMapObjectExpires = 1000 * 60
-const mapTimer = new WeakMap()
+// const tillMapObjectExpires = 1000 * 60
+// const mapTimer = new WeakMap()
 /**
  * @param {GAAAreaInfo} AI 
  * @param {Number} kingdomID 
@@ -113,12 +113,12 @@ const MapObject = (AI, kingdomID) => {
 
     Object.assign(obj, AI)
 
-    const timer = mapTimer.get(obj)
+    // const timer = mapTimer.get(obj)
 
-    if(!timer)
-        mapTimer.set(obj, setTimeout(() => obj, tillMapObjectExpires))
-    else
-        timer.refresh()
+    // if(!timer)
+    //     mapTimer.set(obj, setTimeout(() => obj, tillMapObjectExpires))
+    // else
+    //     timer.refresh()
 
     if(JSON.stringify(obj.extraData) == JSON.stringify(AI.extraData))
         return obj
@@ -127,7 +127,7 @@ const MapObject = (AI, kingdomID) => {
     console.debug("original: ", obj)
     console.debug("changed: ", AI)
 
-    events.emit(`area_${obj.type}_${kingdomID}`, obj)
+    // events.emit(`area_${obj.type}_${kingdomID}`, obj)
 
     return obj
 }
