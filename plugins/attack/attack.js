@@ -93,6 +93,7 @@ function getMaxWaveCount(e) {
         if (e < waveUnlockLevelList[i])
             continue
         n = i + 1
+        break
     }
     return n
 }
