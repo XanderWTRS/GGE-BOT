@@ -431,7 +431,7 @@ xtHandler.on("lli", async (obj, r) => {
         xtHandler.once("sei", () => {
             parentPort.postMessage([ActionType.Started])
             console.log("loggedIn")
-            events.emit("load")
+            setTimeout(() => events.emit("load"), 4500) //prevent ban
             clearTimeout(timer)
         })
         events.emit("earlyLoad")
