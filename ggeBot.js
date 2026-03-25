@@ -98,21 +98,25 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             tooManyUnits++
         if (lordErrors == 5) {
             console.error("closedReason", "LORD_IS_USED")
+            return webSocket.pause()
             parentPort.postMessage([ActionType.KillBot])
             return
         }
         if (tooManyUnits == 12) {
             console.error("closedReason", "ATTACK_TOO_MANY_UNITS")
+            return webSocket.pause()
             parentPort.postMessage([ActionType.KillBot])
             return
         }
         if (err[result] == "MOVEMENT_HAS_NO_UNITS") {
             console.error("closedReason", "MOVEMENT_HAS_NO_UNITS")
+            return webSocket.pause()
             parentPort.postMessage([ActionType.KillBot])
             return
         }
         if (err[result] == "CANT_START_NEW_ARMIES") {
             console.error("closedReason", "CANT_START_NEW_ARMIES")
+            return webSocket.pause()
             parentPort.postMessage([ActionType.KillBot])
             return
         }
