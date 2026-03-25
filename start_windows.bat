@@ -11,10 +11,10 @@ if not exist ".git"\ (
   git clean -f -d >NUL 2>&1
   git pull origin main >NUL 2>&1
   
-  git submodule deinit -f website >NUL 2 >&1
-  git submodule init website >NUL 2 >&1
-  git submodule deinit -f plugins-extra >NUL 2 >&1
-  git submodule init plugins-extra >NUL 2 >&1
+  git submodule deinit -f website >NUL 2>&1
+  git submodule init website >NUL 2>&1
+  git submodule deinit -f plugins-extra >NUL 2>&1
+  git submodule init plugins-extra >NUL 2>&1
 
 )
 
@@ -24,7 +24,7 @@ git config --local core.hooksPath .githooks/
 cd ..
 
 git pull origin main --no-recurse-submodules
-git submodule update --init -f website
+git submodule update -f website
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   git submodule update --init -f plugins-extra
