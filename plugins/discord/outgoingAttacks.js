@@ -16,7 +16,7 @@ const pluginOptions = botConfig.plugins[path.basename(__filename).slice(0, -3)] 
 const { I18n, __ } = require('i18n')
 
 const i18n = new I18n({
-    locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr'],
+    locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'nl', 'fr'],
     directory: path.join(__dirname, "..", "..", 'website', 'public', 'locales'),
     updateFiles: false,
 })
