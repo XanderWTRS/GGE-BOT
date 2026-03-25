@@ -21,7 +21,7 @@ const events = new EventEmitter()
 
 
 const i18n = new I18n({
-  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs'],
+  locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs', 'nl', 'fr'],
   directory: path.join(__dirname, 'website', 'public', 'locales'),
   updateFiles: false,
 })
