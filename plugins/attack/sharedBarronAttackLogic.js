@@ -25,7 +25,7 @@ const troopBlackList = [277]
 
 async function barronHit(type, kingdomID, options, maxLevel) {
     const getLevel = victorys => 
-        Math.floor(1.9 * Math.pow(victorys, .555)) + ([1,20,35,45][kingdomID] ?? 0)
+        Math.floor(1.9 * Math.pow(victorys, .555)) + ([1,35,20,45][kingdomID] ?? 0)
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
