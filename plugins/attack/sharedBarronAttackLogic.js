@@ -288,7 +288,6 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     }))
                     return true
                 case "LORD_IS_USED":
-                    console.debug(`using lord broken: ${movement.lord.lordID}`)
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
