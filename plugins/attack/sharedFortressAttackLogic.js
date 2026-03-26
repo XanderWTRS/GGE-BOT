@@ -3,10 +3,10 @@ if (require('node:worker_threads').isMainThread)
         hidden: true
     }
 
-const { Types, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
+const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
-const { sendXT, waitForResult, xtHandler, botConfig, playerInfo } = require("../../ggeBot.js")
+const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
+const { sendXT, waitForResult, playerInfo } = require("../../ggeBot.js")
 const err = require('../../err.json')
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -56,36 +56,7 @@ async function fortressHit(kingdomID, level, options) {
     options.useFeather = true
 
     const areas = []
-    const movements = []
-
-    xtHandler.on("gam", obj => {
-        const movementsGAA = Types.GetAllMovements(obj)
-        movementsGAA?.movements.forEach(movement => {
-            if (kingdomID != movement.movementData.kingdomID)
-                return
-
-            const targetAttack = movement.movementData.targetAttack
-
-            if (type != targetAttack.type)
-                return
-
-            if (movements.find(e => e.x == targetAttack.x && e.y == targetAttack.y))
-                return
-
-            movements.push(targetAttack)
-        })
-    })
-    movementEvents.on("return", movementInfo => {
-        const sourceAttack = movementInfo.movement.movementData.sourceAttack
-        if (kingdomID != movementInfo.movement.movementData.kingdomID ||
-            type != sourceAttack.type)
-            return
-
-        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack.y)
-        if (index == -1)
-            return
-        movements.splice(index, 1)
-    })
+    
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => AreaType.externalKingdom == e.type)
 
@@ -102,7 +73,9 @@ async function fortressHit(kingdomID, level, options) {
                 for (let i = 0; i < areas.length; i++) {
                     const areaInfo = areas[i]
 
-                    if (movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
+                    if (movements.find(movement =>
+                    movement.kingdomID == kingdomID &&
+                    movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
                     let time = (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch
@@ -187,9 +160,6 @@ async function fortressHit(kingdomID, level, options) {
                     return true
                 })
 
-                if (r == 0) {
-                    movements.push(AI)
-                }
                 return { ...obj, result: r }
             })
             if (!attackInfo) {
@@ -205,10 +175,8 @@ async function fortressHit(kingdomID, level, options) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movementData.kingdomID != kingdomID)
-                            return
-                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)
@@ -276,10 +244,13 @@ async function fortressHit(kingdomID, level, options) {
     while (true) {
         let minimumTimeTillHit = Infinity
         areas.forEach(areaInfo => {
-            if (!movements.find(a => a.x == areaInfo.x && a.y == areaInfo.y))
-                minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
+            if (movements.find(movement =>
+                    movement.kingdomID == kingdomID &&
+                    movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
+                return
+            minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
         })
-        let time = (Math.max(0, minimumTimeTillHit - Date.now()))
+        const time = (Math.max(0, minimumTimeTillHit - Date.now()))
         console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
 

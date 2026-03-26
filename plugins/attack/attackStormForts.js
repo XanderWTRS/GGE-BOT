@@ -46,9 +46,9 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { Types, getResourceCastleList, ClientCommands, areaInfoLock, AreaType, KingdomID } = require('../../protocols.js')
+const { movementEvents, Types, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
-const { movementEvents, waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
+const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
 const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
@@ -165,37 +165,6 @@ events.once("load", async () => {
         allowedLevels.push(7, 8, 9, 13, 14)
 
     let sortedAreaInfo = []
-    const movements = []
-
-    xtHandler.on("gam", obj => {
-        const movementsGAA = Types.GetAllMovements(obj)
-        movementsGAA?.movements.forEach(movement => {
-            if(kingdomID != movement.movementData.kingdomID)
-                return
-            
-            const targetAttack = movement.movementData.targetAttack
-
-            if(type != targetAttack.type)
-                return
-
-            if(movements.find(e => e.x == targetAttack.x && e.y == targetAttack.y))
-                return
-
-            movements.push(targetAttack)
-        })
-    })
-    xtHandler.on("cat", obj => {
-        const movementInfo = Types.ReturningAttack(obj)
-        const sourceAttack = movementInfo.movement.movementData.sourceAttack
-        if(kingdomID != movementInfo.movement.movementData.kingdomID ||
-           type != sourceAttack.type)
-           return
-
-        let index = movements.findIndex(e => e.x == sourceAttack.x && e.y == sourceAttack.y)
-        if(index == -1)
-            return
-        movements.splice(index, 1)
-    })
 
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => e.type == AreaType.externalKingdom)
@@ -211,7 +180,9 @@ events.once("load", async () => {
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const areaInfo = sortedAreaInfo[i]
                     
-                    if(movements.find(e => e.x == areaInfo.x && e.y == areaInfo.y))
+                    if(movements.find(movement =>
+                                        movement.kingdomID == kingdomID &&
+                                        movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
                     let time = (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch
@@ -319,8 +290,6 @@ events.once("load", async () => {
                         return false
                     return true
                 })
-                if(r == 0)
-                    movements.push(AI)
                 
                 return {...obj, result: r}
             })
@@ -338,10 +307,8 @@ events.once("load", async () => {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                    await new Promise(resolve => movementEvents.on("return", function self(movementInfo) {
-                        if (movementInfo.movement.movementData.kingdomID != kingdomID)
-                            return
-                        if (movementInfo.movement.movementData.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
                         movementEvents.off("return", self)
@@ -432,8 +399,12 @@ events.once("load", async () => {
                 if(((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now()) <= 0)
                     continue
             
-            if (!movements.find(movement => movement.x == areaInfo.x && movement.y == areaInfo.y))
-                minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000))
+            if (movements.find(movement =>
+                    movement.kingdomID == kingdomID &&
+                    movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
+                continue
+            
+            minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000))
         }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))

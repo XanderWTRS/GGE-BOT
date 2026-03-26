@@ -1,8 +1,7 @@
-const { events, xtHandler, sendXT } = require('../ggeBot')
-
 if (require('node:worker_threads').isMainThread)
     return module.exports = {}
 
+const { events, xtHandler, sendXT } = require('../ggeBot')
 const gems = require("../items/gems.json")
 const sellGems = e => {
     let gemsSold = 0

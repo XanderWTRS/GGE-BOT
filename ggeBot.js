@@ -1,37 +1,32 @@
-const { isMainThread, workerData, parentPort } = require('node:worker_threads')
+const { isMainThread, workerData : botConfig, parentPort } = require('node:worker_threads')
 if (isMainThread)
-    return
+    throw new Error("Run as worker")
 
 process.on('uncaughtException', console.error) //Wanna cry? Remove this.
 
-const EventEmitter = require('node:events')
-const WebSocket = require('ws')
-const { DatabaseSync } = require('node:sqlite')
 const { getCallSites } = require('node:util')
-const { I18n } = require('i18n')
+const EventEmitter = require('node:events')
 const path = require('node:path')
+const WebSocket = require('ws')
+const { I18n } = require('i18n')
 const ggeConfig = require("./ggeConfig.json")
 const ActionType = require('./actions.json')
 const err = require('./err.json')
-const events = new EventEmitter()
 
+const events = new EventEmitter()
+const xtHandler = new EventEmitter()
 const i18n = new I18n({
     locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs', 'nl', 'fr'],
-  directory: path.join(__dirname, 'website', 'public', 'locales'),
-  updateFiles: false,
+    directory: path.join(__dirname, 'website', 'public', 'locales'),
+    updateFiles: false
 })
-
-const botConfig = workerData
-
 const _console = console
 
 function mngLog(logLevel, msg) {
     let callSites = getCallSites(6)
     let scriptName = path.basename(callSites[2]?.scriptName).slice(0, -3)
-    // let plugin = botConfig.plugins[scriptName]
-    // let name = plugin?.name ?? scriptName
-
-    const now = new Date()
+    
+    let now = new Date()
     let hours = now.getHours()
     let minutes = now.getMinutes()
 
@@ -52,6 +47,7 @@ function mngLog(logLevel, msg) {
     _console.log(`[${botConfig.name}] ${message.map(i18n.__).join('')}`)
     parentPort.postMessage([ActionType.GetLogs, logLevel, message])
 }
+
 if (!botConfig.internalWorker) {
     console = {}
     console.log = (...msg) => mngLog(0, msg)
@@ -61,8 +57,6 @@ if (!botConfig.internalWorker) {
     console.debug = ggeConfig.debug ? _console.debug : _ => { }
     console.trace = _console.trace
 }
-
-const xtHandler = new EventEmitter()
 
 const rawProtocolSeparator = "%"
 function sendXT(cmdName, paramObj) {
@@ -127,8 +121,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             xtHandler.removeListener(key, helperFunction)
             const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
             result = -1
-            // console.debug(key, "timedOut")
-
+            
             console.warn(key, msg)
 
             reject(msg)
@@ -155,27 +148,26 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     xtHandler.addListener(key, helperFunction)
 })
 
-const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`);
+const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`)
 
+const status = {}
 const playerInfo = {
     level: NaN,
-    userID: NaN,
-    playerID: NaN,
+    userID: String(),
+    playerID: String(),
     email: String(),
     acceptedTOS: Boolean(),
     verifiedEmail: Boolean(),
     isCheater: Boolean(),
     name: String(),
     alliance: {
-        id: Number(),
+        id: String(),
         rank: Number(),
         name: String(),
         fame: Number(),
         searchingForPlayers: Boolean()
     }
 }
-
-let status = {}
 
 module.exports = {
     sendXT,
@@ -185,75 +177,13 @@ module.exports = {
     events,
     botConfig,
     playerInfo,
-    status
+    status,
+    i18n
 }
 
-events.once("load", async (_, r) => {
-    const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
-
-    sendXT("dcl", JSON.stringify({ CD: 1 }))
-    setInterval(() =>
-        sendXT("dcl", JSON.stringify({ CD: 1 })),
-        1000 * 60 * 5)
-    if (sourceCastleArea) {
-        xtHandler.on("dcl", obj => {
-            const castleProd = Types.DetailedCastleList(obj)
-                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
-
-            if (!castleProd)
-                return
-
-            Object.assign(status, {
-                aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
-                food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
-                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
-            })
-            parentPort.postMessage([ActionType.StatusUser, status])
-        })
-    }
-})
-
-events.on("configModified", () => {
-    console.log("botConfigReloaded")
-})
-
-webSocket.onopen = _ => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
-
-xtHandler.on("gal", obj => {
-    playerInfo.alliance.id = Number(obj.AID)
-    playerInfo.alliance.rank = Number(obj.R)
-    playerInfo.alliance.name = String(obj.N)
-    playerInfo.alliance.fame = Number(obj.ACF)
-    playerInfo.alliance.searchingForPlayers = Boolean(obj.SA)
-})
-
-xtHandler.on("gxp", obj => {
-    playerInfo.level = obj.LVL + obj.LL
-
-    if (!botConfig.externalEvent)
-        return
-
-    Object.assign(status, {
-        level: playerInfo.level
-    })
-    parentPort.postMessage([ActionType.StatusUser, status])
-
-})
-xtHandler.on("gpi", obj => {
-    playerInfo.userID = Number(obj.UID)
-    playerInfo.playerID = Number(obj.PID)
-    playerInfo.name = String(obj.PN)
-    playerInfo.email = String(obj.E)
-    playerInfo.verifiedEmail = Boolean(obj.V)
-    playerInfo.acceptedTOS = Boolean(obj.CTAC)
-    playerInfo.isCheater = Boolean(obj.CL)
-})
+webSocket.onopen = () => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
 
 let errorCount = 0
-let sentHits = 0
-
-xtHandler.on("cra", (obj, r) => r == 0 ? sentHits++ : void 0)
 
 webSocket.onmessage = e => {
     let message = e.data.toString()
@@ -304,17 +234,115 @@ webSocket.onmessage = e => {
     }
 }
 webSocket.onerror = () => {
-    events.emit("unload");
-    process.exit(0) }
+    events.emit("unload")
+    process.exit(0)
+}
 webSocket.onclose = () => {
-    events.emit("unload");
+    events.emit("unload")
     process.exit(0)
 }
 
-events.on("unload", () => {
-    console.debug("errorCount", errorCount)
-    console.debug("hitCount", sentHits)
+events.on("configModified", () => console.log("botConfigReloaded"))
+events.on("unload", () => console.debug("errorCount", errorCount))
+events.on("eventStart", eventInfo => {
+    if (eventInfo.EID != 117)
+        return
+    if (eventInfo.FTDC != 1)
+        return
+    if (playerInfo.rubies < 100)
+        return
+
+    console.log("grabbedFortuneTellerFortune")
+    sendXT("ftl", JSON.stringify({}))
 })
+events.once("load", async () => {
+    const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
+    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
+
+    sendXT("dcl", JSON.stringify({ CD: 1 }))
+    setInterval(() =>
+        sendXT("dcl", JSON.stringify({ CD: 1 })),
+        1000 * 60 * 5)
+    if (sourceCastleArea) {
+        xtHandler.on("dcl", obj => {
+            const castleProd = Types.DetailedCastleList(obj)
+                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
+
+            if (!castleProd)
+                return
+
+            Object.assign(status, {
+                aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
+                food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
+                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
+            })
+            parentPort.postMessage([ActionType.StatusUser, status])
+        })
+    }
+})
+
+xtHandler.on("rlu", () => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
+xtHandler.on("sne", obj => obj.MSG.forEach(message =>
+        message[1] == 67 ? sendXT("dms", JSON.stringify({ MID: message[0] })) : undefined))
+xtHandler.on("qli", obj => obj.QL.forEach(quest =>
+    [3000, 3002, 3019, 3490, 84].includes(quest.QID) ? 
+        sendXT("qsc", JSON.stringify({ QID: quest.QID })) : undefined))
+xtHandler.on("gal", obj => {
+    playerInfo.alliance.id = String(obj.AID)
+    playerInfo.alliance.rank = Number(obj.R)
+    playerInfo.alliance.name = String(obj.N)
+    playerInfo.alliance.fame = Number(obj.ACF)
+    playerInfo.alliance.searchingForPlayers = Boolean(obj.SA)
+})
+xtHandler.on("gxp", obj => {
+    playerInfo.level = obj.LVL + obj.LL
+
+    if (!botConfig.externalEvent)
+        return
+
+    Object.assign(status, { level: playerInfo.level })
+    parentPort.postMessage([ActionType.StatusUser, status])
+})
+xtHandler.on("gpi", obj => {
+    playerInfo.userID = String(obj.UID)
+    playerInfo.playerID = String(obj.PID)
+    playerInfo.name = String(obj.PN)
+    playerInfo.email = String(obj.E)
+    playerInfo.verifiedEmail = Boolean(obj.V)
+    playerInfo.acceptedTOS = Boolean(obj.CTAC)
+    playerInfo.isCheater = Boolean(obj.CL)
+})
+xtHandler.on("gcu", obj => {
+    Object.assign(status, {
+        Coin: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
+        Rubies: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
+    })
+    parentPort.postMessage([ActionType.StatusUser, status])
+})
+xtHandler.on("gai", obj => {
+    Object.assign(status, {
+        attackDailyCount: obj.AC != 0 ? Math.floor(playerInfo.attackDailyCount = obj.AC) : undefined,
+    })
+    parentPort.postMessage([ActionType.StatusUser, status])
+})
+// xtHandler.on("gcs", obj => {
+//     obj.CHR.forEach(offering => {
+//         for (let i = 0; i < offering.FOA; i++) {
+//             if (offering.CID == 1) {
+//                 console.log("GrabbedOffering", "grabbedLudwig")
+//                 sendXT("sct", JSON.stringify({ CID: 1, OID: 6001, IF: 1, AMT: 1 }))
+//             }
+//             if (offering.CID == 2) {
+//                 console.log("GrabbedOffering", "grabbedKnight")
+//                 sendXT("sct", JSON.stringify({ CID: 2, OID: 6002, IF: 1, AMT: 1 }))
+//             }
+//             if (offering.CID == 3) {
+//                 console.log("GrabbedOffering", "grabbedBeatrice")
+//                 sendXT("sct", JSON.stringify({ CID: 3, OID: 6003, IF: 1, AMT: 1 }))
+//             }
+//         }
+//     })
+// })
 
 parentPort.on("message", async obj => {
     switch (obj[0]) {
@@ -348,7 +376,7 @@ parentPort.on("message", async obj => {
     }
 })
 
-let retry = async () => {
+async function retry() {
     if (botConfig.externalEvent) {
         sendXT("tlep", JSON.stringify({ TLT: botConfig.tempServerData.glt.TLT }))
         let [obj, result] = await waitForResult("tlep", 1000 * 10)
@@ -406,9 +434,8 @@ let retry = async () => {
     }
     events.emit("sentLLI")
 }
-xtHandler.on("vck", _ => retry())
+xtHandler.on("vck", retry)
 
-xtHandler.on("rlu", _ => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
 let loginAttempts = 0
 xtHandler.on("lli", async (obj, r) => {
     if (r == 453) {
@@ -435,7 +462,7 @@ xtHandler.on("lli", async (obj, r) => {
         xtHandler.once("sei", () => {
             parentPort.postMessage([ActionType.Started])
             console.log("loggedIn")
-            setTimeout(() => events.emit("load"), 4500) //prevent ban
+            setTimeout(() => events.emit("load"), 4500)
             clearTimeout(timer)
         })
         events.emit("earlyLoad")
@@ -456,67 +483,6 @@ xtHandler.on("lli", async (obj, r) => {
     parentPort.postMessage([ActionType.KillBot])
 })
 
-xtHandler.on("sne", obj => {
-    obj.MSG.forEach(message => {
-        if (message[1] != 67)
-            return
-        sendXT("dms", JSON.stringify({ MID: message[0] }))
-    });
-})
-
-xtHandler.on("qli", obj => obj.QL.forEach(quest => {
-    if ([3000, 3002, 3019, 3490, 84].includes(quest.QID))
-        sendXT("qsc", JSON.stringify({ QID: quest.QID }))
-}))
-
-xtHandler.on("gcu", obj => {
-    Object.assign(status, {
-        Coin: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
-        Rubies: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
-    })
-    parentPort.postMessage([ActionType.StatusUser, status])
-})
-xtHandler.on("gai", obj => {
-    Object.assign(status, {
-        attackDailyCount: obj.AC != 0 ? Math.floor(playerInfo.attackDailyCount = obj.AC) : undefined,
-    })
-    parentPort.postMessage([ActionType.StatusUser, status])
-})
-events.on("eventStart", async eventInfo => {
-    if (eventInfo.EID != 117)
-        return
-    if (eventInfo.FTDC != 1)
-        return
-    if (playerInfo.rubies == undefined)
-        debugger
-
-    if (playerInfo.rubies < 100)
-        return
-
-    console.log("grabbedFortuneTellerFortune")
-    sendXT("ftl", JSON.stringify({}))
-})
-
-xtHandler.on("gcs", obj => {
-    obj.CHR.forEach(offering => {
-        for (let i = 0; i < offering.FOA; i++) {
-            if (offering.CID == 1) {
-                console.log("GrabbedOffering", "grabbedLudwig")
-                sendXT("sct", JSON.stringify({ CID: 1, OID: 6001, IF: 1, AMT: 1 }))
-            }
-            if (offering.CID == 2) {
-                console.log("GrabbedOffering", "grabbedKnight")
-                sendXT("sct", JSON.stringify({ CID: 2, OID: 6002, IF: 1, AMT: 1 }))
-            }
-            if (offering.CID == 3) {
-                console.log("GrabbedOffering", "grabbedBeatrice")
-                sendXT("sct", JSON.stringify({ CID: 3, OID: 6003, IF: 1, AMT: 1 }))
-            }
-        }
-    })
-})
-
-require("./protocols.js")
 try {
     if (botConfig.externalEvent)
         require("./plugins-extra/externalEventHelper.js")

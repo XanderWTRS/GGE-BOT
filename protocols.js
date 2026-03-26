@@ -1,11 +1,12 @@
 const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
-const { waitForResult, sendXT, xtHandler, events, status } = require("./ggeBot.js")
+const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require("./ggeBot.js")
 const buildings = require("./items/buildings.json")
 const currencies = require("./items/currencies.json")
 const { parentPort } = require("node:worker_threads")
 const ActionType = require("./actions.json")
+const EventEmitter = require("node:events")
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -243,45 +244,46 @@ const ServerUserAttackProtection = o => ({
     factionProtectionEndTime: Number(o?.PMT)
 })
 
-const OwnerInfo = o => ({
-    ownerID: Number(o.OID),
-    isDummy: Boolean(o.DUM),
-    name: String(o.N),
-    crest: o.E ? Crest(o.E) : void 0,
-    level: Number(o.L),
-    legendaryLevel: Number(o.LL),
-    honour: Number(o.H),
-    achievementPoints: Number(o.AVP),
-    gloryPoints: Number(o.CF),
-    highestGloryPoints: Number(o.HF),
-    titlePrefix: Number(o.PRE), //grab items/CastleTitleData.json
-    titleSuffix: Number(o.SUF),
-    TOPX: Number(o.TOPX), //Unknown property
-    mightPoints: Number(o.MP),
-    isRuin: Boolean(o.R),
-    allianceID: Number(o.AID),
-    allianceRank: async () => {
-        const allianceRankInfo = JSON.parse(await fs.readFile("./items/allianceranks.json", { encoding: 'utf8' })).find(e => e.rankID == o.AR)
-        return String(allianceRankInfo.rankRightName ? allianceRankInfo.rankRightName.replace("RANK_", "") : "UNRANKED")
-    },
-    allianceName: String(o.AN),
-    allianceEmblem: AllianceCrest(o.aee),
-    remainingPeaceTime: Number(o.RPT),
-    castlePositionList: o.AP ? Array.from(o.AP).map(OwnedCastlePositionList) : undefined,
-    villagePositionList: o.VP ? Array.from(o.VP).map(OwnedCastlePositionList) : undefined,
-    isSearchingForAlliance: Boolean(o.SA),
-    hasPremiumFlag: Boolean(o.PF),
-    remainingRelocationTime: Number(o.RRD),
-    islandTitleID: Number(o.TI),//grab items/CastleTitleData.json?
-    remainingNoobTime: Number(o.RNP),
-    factionID: FactionData(o.FN),
-})
+class OwnerInfo {
+    constructor(o) {
+        this.ownerID = String(o.OID)
+        this.isDummy = Boolean(o.DUM)
+        this.name = String(o.N)
+        this.crest = o.E ? Crest(o.E) : void 0
+        this.level = Number(o.L + o.LL)
+        this.honour = Number(o.H)
+        this.achievementPoints = Number(o.AVP)
+        this.gloryPoints = Number(o.CF)
+        this.highestGloryPoints = Number(o.HF)
+        this.titlePrefix = Number(o.PRE)
+        this.titleSuffix = Number(o.SUF)
+        this.TOPX = Number(o.TOPX)
+        this.mightPoints = Number(o.MP)
+        this.isRuin = Boolean(o.R)
+        this.allianceID = Number(o.AID)
+        this.allianceRank = async () => {
+            const allianceRankInfo = JSON.parse(await fs.readFile("./items/allianceranks.json", { encoding: 'utf8' })).find(e => e.rankID == o.AR)
+            return String(allianceRankInfo.rankRightName ? allianceRankInfo.rankRightName.replace("RANK_", "") : "UNRANKED")
+        }
+        this.allianceName = String(o.AN)
+        this.allianceEmblem = AllianceCrest(o.aee)
+        this.remainingPeaceTime = Number(o.RPT)
+        this.castlePositionList = o.AP ? Array.from(o.AP).map(OwnedCastlePositionList) : undefined
+        this.villagePositionList = o.VP ? Array.from(o.VP).map(OwnedCastlePositionList) : undefined
+        this.isSearchingForAlliance = Boolean(o.SA)
+        this.hasPremiumFlag = Boolean(o.PF)
+        this.remainingRelocationTime = Number(o.RRD)
+        this.islandTitleID = Number(o.TI)
+        this.remainingNoobTime = Number(o.RNP)
+        this.factionID = FactionData(o.FN)
+    }
+}
 
 class ServerGetAreaInfo {
     constructor(o) {
         this.kingdomID = Number(o?.KID)
         this.userAttackProtection = ServerUserAttackProtection(o?.uap)
-        this.ownerInfo = o?.OI ? Array.from(o.OI).map(OwnerInfo) : undefined
+        this.ownerInfo = o?.OI ? Array.from(o.OI).map(o => new OwnerInfo(o)) : undefined
         this.areaInfo = o?.AI ? Array.from(o?.AI).map(o => MapObject(new GAAAreaInfo(o), this.kingdomID)) : undefined
         this.result = Number(o.result)
     }
@@ -750,7 +752,7 @@ function setEvent(obj, result) {
         if (_activeEventList.E?.find(a => a.EID == e.EID))
             return
 
-        // console.debug(`Event ${e.EID} has started`)
+        console.debug(`Event ${e.EID} has started`)
         events.emit("eventStart", e)
     })
     
@@ -758,7 +760,7 @@ function setEvent(obj, result) {
         if (obj.E.find(a => a.EID == e.EID))
             return
         
-        // console.debug(`Event ${e.EID} has stopped`)
+        console.debug(`Event ${e.EID} has stopped`)
         events.emit("eventStop", e)
     })
     
@@ -981,7 +983,7 @@ const clientStartFeast = (type, areaID, kingdomID) => {
 const HighscoreList = e => ({
     score: Number(e[0]),
     ammount: Number(e[1]),
-    playerData: OwnerInfo(e[2])
+    playerData: new OwnerInfo(e[2])
 })
 const Highscore = e => ({
     eventType: Number(e.LT),
@@ -1022,7 +1024,7 @@ const PlayerAlliance = e => ({
     //??? : Number(e.SA)
 })
 const Alliance = e => ({
-    members: Array.from(e.M).map(OwnerInfo),
+    members: Array.from(e.M).map(o => new OwnerInfo(o)),
     allianceID: Number(e.AID),
     //??? : e.CF,
     mightPoints: Number(e.MP),
@@ -1096,7 +1098,7 @@ const BuildingInfo = o => ({
     extraData : Array.from(o).toSpliced(0, 11)
 })
 const CastleArea = (o, KID) => ({
-    ownerInfo: OwnerInfo(o.O),
+    ownerInfo: new OwnerInfo(o.O),
     //??? : Number(e.RAF),
     //??? : Number(e.RAW),
     //??? : Number(e.RAS),
@@ -1206,13 +1208,6 @@ const clientAllianceQuestPointCount = () => {
         return AllianceQuestPointCount({ ...obj, result: result })
     }
 }
-//loop:
-//Process all GAA requests
-//Check for castle requests
-//if !castleRequests.length exit
-//Process Castle requests
-//Check for GAA requests
-//if !gaa.length exit
 
 let areaInfoCallbacks = []
 let kingdomLockCallbacks = []
@@ -1240,11 +1235,7 @@ let areaInfoLock = callback => new Promise(async (resolve, reject) => {
         return
 
     kingdomLockInUse = true
-    //Fuck you darren
-    // for (let i = areaInfoCallbacks.length - 1; i > 0; i--) {
-    //     const j = Math.floor(Math.random() * (i + 1));
-    //     [areaInfoCallbacks[i], areaInfoCallbacks[j]] = [areaInfoCallbacks[j], areaInfoCallbacks[i]];
-    // }
+    
     do {
         await areaInfoCallbacks.shift()()
     }
@@ -1290,47 +1281,10 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
 
     areaInfoLock()
 })
-//Some calls that are dependant on
 
-const ActualMovement = o => ({
-    movementId: Number(o.MID),
-    deltaTime: Number(o.PT * 1000 + Date.now()),
-    totalTime: Number(o.TT * 1000),
-    //??? : Number(e.D),
-    targetID: Number(o.TID),
-    type: Number(o.T),
-    horseType : Number(o.HBW),
-    kingdomID: Number(o.KID),
-    targetAttack: MapObject(new GAAAreaInfo(o.TA), o.KID),
-    sourceID: Number(o.SID),
-    ownerID : Number(o.OID),
-    sourceAttack: MapObject(new GAAAreaInfo(o.SA), o.KID),
-})
-//TODO: Name
-// const L = e=> ({
-//     //??? : Number(e.DLID),
-//     //??? : Number(e.GID),
-//     //??? : Array.from(e.GEM),
-//     //??? : Array.from(e.GASAIDS),
-//     //??? : Array.from(e.SIDS),
-//     //??? : Array.from(e.AE),
-
-// })
-// const UM = e => ({
-//     //??? : Number(e.PWD),
-//     //??? : Number(e.TWD),
-//     //??? : L(e.L),
-// })
-const ArmyUnitInfo = e => ({ type: Number(e[0]), ammount: Number(e[1]) })
-const Army = e => ({
-    left: Array.from(e.L).map(ArmyUnitInfo),
-    middle: Array.from(e.M).map(ArmyUnitInfo),
-    right: Array.from(e.R).map(ArmyUnitInfo),
-    courtyard: Array.from(e.RW).map(ArmyUnitInfo),
-})
 class Lord {
     constructor(e) {
-        this.lordID = Number(e.ID)
+        this.lordID = String(e.ID)
         // this.??? = Number(e.WID)
         this.lordPosition = Number(e.VIS)
         this.name = String(e.N)
@@ -1346,43 +1300,75 @@ class Lord {
         // this.??? = Array.from(e.AE)
     }
 }
+/** @type {Array<Movement>} */
+const movements = []
+const movementEvents = new EventEmitter()
+/** @param {Movement} movement */
+function newMovement(movement) {
+    const e = movements.find(e => e.id == movement.id)
+    if(e)
+        return Object.assign(e, movement)
 
-const LordMovement = e => ({
-    // e.PWD
-    // e.TWD
-    lord: new Lord(e.L)
-})
-const Movement = e => e == undefined ? undefined : ({
-    movementData: ActualMovement(e.M),
-    lordMovement: e.UM ? LordMovement(e.UM) : undefined,
-    getArmy: e.GA ? Army(e.GA) : undefined,
-    getStation: e.A ? Array.from(e.A).map(Unit) : undefined,
-    //??? : Array.from(e.AST),
-    //??? : Number(e.ATT),
-    //resources : e.G ? Array.from(e.G).map(Resource) : undefined
-    //??? : Number(e.S),
-})
-const GetAllMovements = e => ({
-    movements: e.M ? Array.from(e.M).map(Movement) : undefined,
-    ownerInfo: e.O ? Array.from(e.O).map(OwnerInfo) : undefined
-})
-const CRAMovement = e => ({
-    movement: Movement(e.AAM),
-    ownerInfo: e.O ? Array.from(e.O).map(OwnerInfo) : undefined
-})
-const ReturningAttack = e => ({
-    movement: Movement(e.A),
-    ownerInfo: e.O? OwnerInfo(e.O) : undefined
-})
+    movements.push(movement)
+
+    movementEvents.emit("outgoing", movement)
+
+    setTimeout(() => {
+        const movementIndex = movements.findIndex(e => e.id == movement.id)
+        if(movementIndex == -1) {
+            debugger
+            return
+        }
+
+        movements.splice(movementIndex, 1)
+
+        if (movement.targetOwner?.ownerID == movement.owner?.ownerID)
+            movementEvents.emit("return", movement)
+
+    },  movement.totalTime - (movement.deltaTime - Date.now() - 1000))
+}
+
+class Movement {
+    /** @param {Array<OwnerInfo>} ownerInfo */
+    constructor(movement, ownerInfo) {
+        this.id = String(movement.M.MID)
+        this.type = Number(movement.M.T)
+        this.kingdomID = Number(movement.M.KID)
+        this.totalTime = Number(movement.M.TT) * 1000
+        this.deltaTime = Number(movement.M.PT) * 1000 + Date.now()
+
+        this.lord = new Lord(movement.UM.L)
+        this.owner = ownerInfo.find(o => o.ownerID == String(movement.M.OID)) ?? {}
+        this.targetOwner = ownerInfo.find(o => o.ownerID == String(movement.M.TID)) ?? {}
+        this.sourceOwner = ownerInfo.find(o => o.ownerID == String(movement.M.SID)) ?? {}
+        this.targetAttack = MapObject(new GAAAreaInfo(movement.M.TA), movement.M.KID)
+        this.sourceAttack = MapObject(new GAAAreaInfo(movement.M.SA), movement.M.KID)
+
+        this.horseType = Number(movement.M.HBW)
+
+        this.left = Array.from(movement.GA?.L ?? []).map(Unit)
+        this.middle = Array.from(movement.GA?.M ?? []).map(Unit)
+        this.right = Array.from(movement.GA?.R ?? []).map(Unit)
+        this.courtyard = Array.from(movement.GA?.RW ?? []).map(Unit)
+        this.station = Array.from(movement.A ?? []).map(Unit)
+
+        newMovement(this)
+    }
+}
+
+xtHandler.on("cra", (o, r) => r == 0 ? 
+    new Movement(o.AAM, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
+xtHandler.on("cat", (o, r) => r == 0 ? 
+    new Movement(o.A, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
+xtHandler.on("gam", (o, r) => r == 0 ? 
+    Array.from(o.M ?? []).map(e => new Movement(e, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))) : undefined)
 
 const clientGetAllianceByID = AID => {
     sendXT("ain", JSON.stringify({ AID }))
 
-    const waitObject = waitForResult("ain", 1000 * 10, obj =>
-            obj?.A.AID == AID)
-
     return async () => {
-        let [obj, result] = await waitObject
+        let [obj, result] = await waitForResult("ain", 1000 * 10, obj =>
+            obj?.A.AID == AID)
 
         return Alliance({ ...obj.A, result: result })
     }
@@ -1390,7 +1376,9 @@ const clientGetAllianceByID = AID => {
 
 const clientGetAllianceByName = name => {
     sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
-    const waitObject = waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
+
+    return async () => {
+        let [obj] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
             if (result != 0)
                 return false
 
@@ -1398,13 +1386,11 @@ const clientGetAllianceByName = name => {
                 return false
             return true
         })
-    return async () => {
-        let [obj, _2] = await waitObject
 
-        let item = obj.L?.find(e => e[2][1].toLowerCase() == name.toLowerCase())
-        if (item == undefined) {
+        let item = obj?.L?.find(e => e[2][1].toLowerCase() == name.toLowerCase())
+        if (item == undefined)
             throw Error("ALLIANCE_NOT_FOUND")
-        }
+
         return clientGetAllianceByID(item[2][0])()
     }
 }
@@ -1417,8 +1403,6 @@ const getKingdomID = areaInfo => {
     return undefined
 }
 
-xtHandler.on("cra", (obj, r) => r == 0 ? CRAMovement(obj) : undefined)
-xtHandler.on("cat", (obj, r) => r == 0 ? ReturningAttack(obj) : undefined)
 xtHandler.on("gaa", (obj, result) => {
     if(result != 0)
         return
@@ -1430,7 +1414,6 @@ xtHandler.on("gaa", (obj, result) => {
     return new ServerGetAreaInfo(obj)
 })
 xtHandler.on("ssi", (obj, r) => r == 0 ? new ServerGetAreaInfo(obj.gaa) : undefined)
-xtHandler.on("gam", (obj, r) => r == 0 ? GetAllMovements(obj) : undefined)
 xtHandler.on("msd", (obj, r) => {
     if(r != 0)
         return
@@ -1485,6 +1468,8 @@ xtHandler.on("sce", updateStatus)
 
 module.exports = {
     spiralCoordinates,
+    movementEvents,
+    movements,
     ClientCommands: {
         deconstructBuilding,
         preSpyInfo : clientPreSpyInfo,
@@ -1526,10 +1511,7 @@ module.exports = {
     Types: {
         UnitInventory,
         OwnerInfo,
-        GetAllMovements,
-        CRAMovement,
         ServerGetAreaInfo,
-        ReturningAttack,
         Lord,
         GAAAreaInfo,
         Movement,
