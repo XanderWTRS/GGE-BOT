@@ -19,11 +19,13 @@ if not exist ".git"\ (
 )
 
 git config --local core.hooksPath .githooks/
+
+git pull origin main --no-recurse-submodules
+
+git submodule init website
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
-
-git pull origin main --no-recurse-submodules
 git submodule update -f website
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
