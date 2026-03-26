@@ -185,7 +185,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
     if (isNaN(waves) || waves <= 0)
         waves = Infinity
 
-    waves = Math.min(1, waves, getMaxWaveCount(playerInfo.level) + (0 | additionalWaves))
+    waves = Math.max(Math.min(waves, getMaxWaveCount(playerInfo.level) + (0 | additionalWaves)), 1)
 
     for (let i = 0; i < waves; i++) {
         const wave = {
