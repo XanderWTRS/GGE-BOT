@@ -32,7 +32,7 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
             if (end == undefined)
                 end = start
 
-            return Array.from({ length: end - start + 1 }, (_, i) => start + i)
+            return Array.from({ length: end - start + 1 }, (_, i) => start + i - 1)
         }).flat()
     }
 
