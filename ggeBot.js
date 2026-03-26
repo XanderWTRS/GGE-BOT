@@ -379,19 +379,19 @@ parentPort.on("message", async obj => {
 async function retry() {
     if (botConfig.externalEvent) {
         sendXT("tlep", JSON.stringify({ TLT: botConfig.tempServerData.glt.TLT }))
-        let [obj, result] = await waitForResult("tlep", 1000 * 10)
+        // let [obj, result] = await waitForResult("tlep", 1000 * 10)
 
-        if (result == 453) {
-            console.log("retryLogin", obj.CD, "retryLoginSeconds")
-            setTimeout(retry, obj.CD * 1000)
-            return
-        }
+        // if (result == 453) {
+        //     console.log("retryLogin", obj.CD, "retryLoginSeconds")
+        //     setTimeout(retry, obj.CD * 1000)
+        //     return
+        // }
 
-        if (err[result] == "IS_BANNED") {
-            console.log("retryLogin", (obj.RS / 60 / 60).toFixed(2), "retryLoginHours")
-            setTimeout(retry, obj.RS * 1000)
-            return
-        }
+        // if (err[result] == "IS_BANNED") {
+        //     console.log("retryLogin", (obj.RS / 60 / 60).toFixed(2), "retryLoginHours")
+        //     setTimeout(retry, obj.RS * 1000)
+        //     return
+        // }
 
         return
     }
