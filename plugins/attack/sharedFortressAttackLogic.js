@@ -3,7 +3,7 @@ if (require('node:worker_threads').isMainThread)
         hidden: true
     }
 
-const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
+const { movements, movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, playerInfo } = require("../../ggeBot.js")
