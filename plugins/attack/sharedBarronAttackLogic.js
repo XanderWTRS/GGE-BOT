@@ -209,7 +209,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         return
                     }
 
-                    if (options.attackLeft) {
+                    if (autoConfigure ? true : options.attackLeft) {
                         wave.L.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                                 attackerRangeTroops : attackerMeleeTroops, maxTroops))
