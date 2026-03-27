@@ -1,4 +1,4 @@
 #!/bin/sh
-touch .update
+touch update
 npm i
-rm -f .update
+rm -f update
