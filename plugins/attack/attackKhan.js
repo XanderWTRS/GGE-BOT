@@ -77,10 +77,8 @@ const { waitForCommanderAvailable, freeCommander, useCommander } = require("../c
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
 const { getCommanderStats } = require("../../getEquipment.js")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
-const pluginOptions = Object.assign(structuredClone(
-    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
-    botConfig.plugins["attack"] ?? {})
 
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')

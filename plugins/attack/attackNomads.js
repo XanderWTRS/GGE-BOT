@@ -74,10 +74,7 @@ const nomadCampsClassic = require("../../items/nomadCamps.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 const getAreaCached = require('../../getMap')
-
-const pluginOptions = Object.assign(structuredClone(
-    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
-    botConfig.plugins["attack"] ?? {})
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 const kingdomID = KingdomID.greatEmpire
 const type = AreaType.nomadCamp

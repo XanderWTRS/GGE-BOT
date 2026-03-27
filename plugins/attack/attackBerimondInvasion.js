@@ -50,9 +50,7 @@ const pretty = require('pretty-time')
 const getAreaCached = require('../../getMap.js')
 const err = require('../../err.json')
 
-const pluginOptions = Object.assign(structuredClone(
-    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}),
-    botConfig.plugins["attack"] ?? {})
+const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 const kingdomID = KingdomID.greatEmpire
 const type = AreaType.beriCamp
