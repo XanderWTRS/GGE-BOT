@@ -1321,8 +1321,6 @@ function newMovement(movement) {
         }
 
         movements.splice(movementIndex, 1)
-        if (movement.targetOwner?.ownerID == movement.owner?.ownerID) 
-            return
 
         if (movement.targetOwner?.ownerID == movement.owner?.ownerID)
             movementEvents.emit("return", movement)
