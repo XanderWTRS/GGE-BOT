@@ -1337,7 +1337,7 @@ class Movement {
         this.totalTime = Number(movement.M.TT) * 1000
         this.deltaTime = Number(movement.M.PT) * 1000 + Date.now()
 
-        this.lord = new Lord(movement.UM.L)
+        this.lord = new Lord(movement.UM?.L ?? {})
         this.owner = ownerInfo.find(o => o.ownerID == String(movement.M.OID)) ?? {}
         this.targetOwner = ownerInfo.find(o => o.ownerID == String(movement.M.TID)) ?? {}
         this.sourceOwner = ownerInfo.find(o => o.ownerID == String(movement.M.SID)) ?? {}
