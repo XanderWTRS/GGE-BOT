@@ -92,7 +92,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     const coinSkips = botConfig.externalEvent ? resources.coins / (1000 / (20 * 5)) : 0
                     const enoughSkips = haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) => 
                             (movement.targetAttack.type == type ? count++ : count, count), 0) - coinSkips) || (botConfig.externalEvent && resources.coins > 25000)
-                    resources.coins / 10
+                    
                     if (enoughSkips && (options.useTimeSkips || shouldUpgradeTower)) {
                         try {
                             await skipTarget(areaInfo)
