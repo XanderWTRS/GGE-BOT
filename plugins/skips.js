@@ -46,8 +46,8 @@ function haveEnoughSkips(time) {
 
         if (skip[0] == undefined)
             return false
-        
-        skip[0][1]--
+
+        skips[skip[0][0]]--
         time -= MinuteSkipType[skip[0][0]]
     }
     return true 
