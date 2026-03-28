@@ -55,7 +55,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
             if (skip == undefined)
                 throw new Error("couldntFindSkip")
 
-            sendXT("msd", JSON.stringify({ 
+            await sendXT("msd", JSON.stringify({ 
                 X: areaInfo.x, Y: areaInfo.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
             let result = (await waitForResult("msd", 7000, (obj, result) => {
                 if (result != 0)
@@ -239,7 +239,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     })
                 }
 
-                sendXT("cra", JSON.stringify(attackInfo))
+                await sendXT("cra", JSON.stringify(attackInfo))
 
                 let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)

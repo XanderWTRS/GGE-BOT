@@ -7,12 +7,14 @@ process.on('uncaughtException', console.error) //Wanna cry? Remove this.
 const { getCallSites } = require('node:util')
 const EventEmitter = require('node:events')
 const path = require('node:path')
+const { RateLimiter } = require("limiter")
 const WebSocket = require('ws')
 const { I18n } = require('i18n')
 const ggeConfig = require("./ggeConfig.json")
 const ActionType = require('./actions.json')
 const err = require('./err.json')
 
+const limiter = new RateLimiter({ tokensPerInterval: 15, interval: "sec" });
 const events = new EventEmitter()
 const xtHandler = new EventEmitter()
 const i18n = new I18n({
@@ -59,10 +61,11 @@ if (!botConfig.internalWorker) {
 }
 
 const rawProtocolSeparator = "%"
-function sendXT(cmdName, paramObj) {
+async function sendXT(cmdName, paramObj) {
     try {
     console.debug(cmdName, JSON.parse(paramObj))
     } catch {}
+    await limiter.removeTokens(1)
     webSocket.send(rawProtocolSeparator + ["xt", botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
 }
 
@@ -358,12 +361,12 @@ parentPort.on("message", async obj => {
             parentPort.postMessage([ActionType.StatusUser, status])
             break
         case ActionType.GetExternalEvent:
-            sendXT("sei", JSON.stringify({}))
+            await sendXT("sei", JSON.stringify({}))
             let [sei, _] = await waitForResult("sei", 1000 * 10)
             if (sei.E.find(e => e.EID == 113))
-                sendXT("glt", JSON.stringify({ GST: 3 }))
+                await sendXT("glt", JSON.stringify({ GST: 3 }))
             else
-                sendXT("glt", JSON.stringify({ GST: 2 }))
+                await sendXT("glt", JSON.stringify({ GST: 2 }))
             let [glt, _2] = await waitForResult("glt", 1000 * 10)
             parentPort.postMessage([ActionType.GetExternalEvent, { sei: sei, glt: glt }])
             break

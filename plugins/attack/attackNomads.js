@@ -150,7 +150,7 @@ events.on("eventStart", async eventInfo => {
                 e.eventID == eventID)
                 .difficultyID)
 
-        sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
+        await sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
         await waitForResult("sede", 1000 * 10)
         eventInfo.EDID = eventDifficultyID
     }
@@ -388,7 +388,7 @@ events.on("eventStart", async eventInfo => {
                         Math.floor(maxTroops / 2) - 1)
                 })
 
-                sendXT("cra", JSON.stringify(attackInfo))
+                await sendXT("cra", JSON.stringify(attackInfo))
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)

@@ -1,8 +1,8 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = {}
 
-const { Events, SlashCommandBuilder, Interaction } = require('discord.js')
-const { client, clientReady, commands } = require('./discord.js')
+const { SlashCommandBuilder, Interaction } = require('discord.js')
+const { commands } = require('./discord.js')
 const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggeBot.js")
 const { ClientCommands, HighscoreType, AreaType } = require('../../protocols.js')
 const ggeConfig = require("../../ggeConfig.json")
@@ -12,7 +12,7 @@ async function getStormRanks(i) {
     await i.deferReply()
     if (playerids.length == 0) {
         try {
-            sendXT("hgh", JSON.stringify({ LT: 2, SV: `` }))
+            await sendXT("hgh", JSON.stringify({ LT: 2, SV: `` }))
             let [obj2, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -25,7 +25,7 @@ async function getStormRanks(i) {
             for (let j = 1; j + 1 <= 3000; j += 8) {
                 promises.push((async () => {
                     try {
-                    sendXT("hgh", JSON.stringify({ LT: 2, SV: `${j}` }))
+                    await sendXT("hgh", JSON.stringify({ LT: 2, SV: `${j}` }))
                     let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                         if (result != 0)
                             return false
@@ -59,7 +59,7 @@ async function getStormRanks(i) {
     let lootTable = []
     await Promise.all(playerids.map(async (pid) => {
         try {
-        sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }))
+        await sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }))
         let [obj, _2] = await waitForResult("gpe", 1000 * 60, (obj, result) => {
             if (result != 0)
                 return false
@@ -93,7 +93,7 @@ async function getStormRanks(i) {
 async function getAllianceEventRank(interaction, LT) {
     let getAllianceByName = (name) => new Promise(async (resolve, reject) => {
         try {
-            sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
+            await sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
             let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -169,7 +169,7 @@ async function getAllianceEventRank(interaction, LT) {
 
     let commonGetFunc = async (j) => {
         for (let i = 1; i <= j; i++) {
-            sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: LT == 30 ? `1` : `` }))
+            await sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: LT == 30 ? `1` : `` }))
             let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -182,7 +182,7 @@ async function getAllianceEventRank(interaction, LT) {
             for (let j = 1; j + 1 <= obj.LR; j += 8) {
                 promises.push((async () => {
                     try {
-                        sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `${j}` }))
+                        await sendXT("hgh", JSON.stringify({ LT: LT, LID: i, SV: `${j}` }))
                         let [obj, _2] = await waitForResult("hgh", 1000 * 10, (obj, result) => {
                             if (result != 0)
                                 return false
@@ -225,7 +225,7 @@ async function getAllianceEventRank(interaction, LT) {
                 lootTable.push([member.N, -1])
                 return
             }
-            sendXT("hgh", JSON.stringify({ LT: LT, SV: `${member.N}` }))
+            await sendXT("hgh", JSON.stringify({ LT: LT, SV: `${member.N}` }))
             let [obj, ret] = await waitForResult("hgh", 1000 * 30, (obj, result) => { //TODO: LOCK
                 if (result != 0)
                     return true
@@ -258,7 +258,7 @@ async function getAllianceEventRank(interaction, LT) {
                 lootTable.push([e.N, -1])
                 return
             }
-            sendXT("hgh", JSON.stringify({ LT: LT, SV: `${e.N}` }))
+            await sendXT("hgh", JSON.stringify({ LT: LT, SV: `${e.N}` }))
             try {
                 let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
                     if (result != 0)
@@ -288,7 +288,7 @@ async function getAllianceEventRank(interaction, LT) {
     else if (LT == "Storm") {
         let playerids = await getAlliancePlayerID(AID)
         await Promise.all(playerids.map(async pid => {
-            sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }))
+            await sendXT("gpe", JSON.stringify({ PID: pid, EID: 102 }))
             let [obj, _2] = await waitForResult("gpe", 1000 * 60 * 5, (obj, result) => {
                 if (result != 0)
                     return false
@@ -309,7 +309,7 @@ async function getAllianceEventRank(interaction, LT) {
                 return
             }
             LT = 54
-            sendXT("hgh", JSON.stringify({ LT: LT, LID : 1, SV: `${e.N}` }))
+            await sendXT("hgh", JSON.stringify({ LT: LT, LID : 1, SV: `${e.N}` }))
             try {
                 let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
                     if (result != 0)
@@ -327,7 +327,7 @@ async function getAllianceEventRank(interaction, LT) {
                 lootTable.push([e.N, -1])
             }
             LT == 55
-            sendXT("hgh", JSON.stringify({ LT: LT, LID : 2, SV: `${e.N}` }))
+            await sendXT("hgh", JSON.stringify({ LT: LT, LID : 2, SV: `${e.N}` }))
             try {
                 let [obj, _2] = await waitForResult("hgh", 1000 * 30, (obj, result) => {
                     if (result != 0)
@@ -379,7 +379,7 @@ events.once("load", async () => {
     let canFuckingWork = false
     while (!canFuckingWork) {
         try {
-            sendXT("hgh", JSON.stringify({ LT: 11, LID: 6, SV: `${1}` }))
+            await sendXT("hgh", JSON.stringify({ LT: 11, LID: 6, SV: `${1}` }))
             await waitForResult("hgh", 1000 * 5)
             canFuckingWork = true
         }
@@ -390,7 +390,7 @@ events.once("load", async () => {
     if (alliances.length == 0) {
         for (let j = 1; j < 32000; j += 8) {
             try {
-                sendXT("hgh", JSON.stringify({ LT: 11, LID:6, SV: `${j}` }))
+                await sendXT("hgh", JSON.stringify({ LT: 11, LID:6, SV: `${j}` }))
                 let [obj, _2] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
                     if (result != 0)
                         return false

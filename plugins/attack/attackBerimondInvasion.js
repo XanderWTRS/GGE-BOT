@@ -64,7 +64,7 @@ const skipTarget = async AI => {
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
+        await sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
             new ClassTypes.GAAAreaInfo(obj.AI).type == type)
 
@@ -331,7 +331,7 @@ events.on("eventStart", async eventInfo => {
                         Math.floor(maxTroops / 2) - 1)
                     })
 
-                    sendXT("cra", JSON.stringify(attackInfo))
+                    await sendXT("cra", JSON.stringify(attackInfo))
 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)

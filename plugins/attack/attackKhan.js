@@ -98,7 +98,7 @@ const skipTarget = async AI => {
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        sendXT("msd", JSON.stringify({ X: AI[1], Y: AI[2], MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
+        await sendXT("msd", JSON.stringify({ X: AI[1], Y: AI[2], MID: -1, NID: -1, MST: skip, KID: `${kid}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || obj.AI[0] == type)
 
         if (Number(result) != 0)
@@ -185,7 +185,7 @@ events.on("eventStart", async eventInfo => {
                 e.eventID == eventID)
                 .difficultyID)
 
-        sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
+        await sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
         await waitForResult("sede", 1000 * 10)
         eventInfo.EDID = eventDifficultyID
     }
@@ -205,7 +205,7 @@ events.on("eventStart", async eventInfo => {
                     .castles.find(a => a.kingdomID == kid)
                     .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 
-                sendXT("fnm", JSON.stringify({ T: type, KID: kid, LMIN: -1, LMAX: -1, NID: -801 }))
+                await sendXT("fnm", JSON.stringify({ T: type, KID: kid, LMIN: -1, LMAX: -1, NID: -801 }))
 
                 const AI = (await waitForResult("fnm", 8500, (obj, result) => {
                     if (result != 0)
@@ -418,7 +418,7 @@ events.on("eventStart", async eventInfo => {
                         Math.floor(maxTroops / 2) - 1)
                     })
 
-                sendXT("cra", JSON.stringify(attackInfo))
+                await sendXT("cra", JSON.stringify(attackInfo))
                 
                 let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)

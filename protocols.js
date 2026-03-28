@@ -1,8 +1,7 @@
 const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
-const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require("./ggeBot.js")
-const buildings = require("./items/buildings.json")
+const { waitForResult, sendXT, xtHandler, events, status } = require("./ggeBot.js")
 const currencies = require("./items/currencies.json")
 const { parentPort } = require("node:worker_threads")
 const ActionType = require("./actions.json")
@@ -255,9 +254,10 @@ const clientPreSpyInfo = (x, y, kingdomID) => {
         console.debug("Using cached results")
         return async () => ({areaInfo: cachedMapData, result: 0})
     }
-    sendXT("ssi", JSON.stringify({ TX: x, TY: y, KID: kingdomID }))
+    const limiter = sendXT("ssi", JSON.stringify({ TX: x, TY: y, KID: kingdomID }))
     
     return async () => {
+        await limiter
         const [obj, result] = await waitForResult("ssi", 1000 * 10, (obj, result) => 
             result != 0 || 
             obj?.gaa?.KID == kingdomID && 
@@ -287,8 +287,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             AY1: Number(fromY),
             AX2: Number(toX),
             AY2: Number(toY)
-        })))).then(() => {
-        return waitForResult("gaa", 1000 * 10, (obj, result) => {
+        })))).then(() => waitForResult("gaa", 1000 * 10, (obj, result) => {
             if (Number(result) != 0)
                 return true
 
@@ -312,8 +311,7 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
                 return false
             
             return true
-        })
-    })
+        }))
     return async () => {
         const [gaa, result] = await waitObject
         
@@ -322,58 +320,6 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
     }
 }
 
-const clientGetAllianceInfluence = (allianceID) => {
-    sendXT("gabgap", JSON.stringify({ AID: allianceID }))
-    const waitObject = waitForResult("gabgap", 1000 * 10, (obj, result) => {
-            if (result != 0)
-                return false
-            if (obj.AID != allianceID)
-                false
-            return true
-        })
-    return async () => {
-        const [obj, result] = await waitObject
-
-        return { ammount: Number(obj.AMT), result: result }
-    }
-}
-const clientGetPlayerInfluence = (playerID, influence) => {
-    let command = "gabgpp"
-    if (influence)
-        command = "tpc"
-    sendXT(command, JSON.stringify({ PID: playerID }))
-    const waitObject = waitForResult(command, 1000 * 10, (obj, result) => {
-            if (result != 0)
-                return false
-            if (obj.PID != playerID)
-                false
-            return true
-        })
-    return async () => {
-        const [obj, result] = await waitObject
-
-        return { ammount: influence ? Number(obj.CCA) : Number(obj.AMT), result: result }
-    }
-}
-
-const clientGetPlayerEventPoints = (playerID) => {
-    sendXT("pcc", JSON.stringify({ PID: playerID }))
-    
-    const waitObject = waitForResult("pcc", 1000 * 10, (obj, result) => {
-            if (result != 0)
-                return false
-            if (obj.PID != playerID)
-                false
-
-            return true
-        })
-
-    return async () => {
-        const [obj, result] = await waitObject
-
-        return { ammount: Number(obj.CCA), result: result }
-    }
-}
 const StormInfo = e => ({
     currentAllianceStormRank: Number(e.AR),
     isStormKing: Boolean(e.KA),
@@ -383,10 +329,11 @@ const StormInfo = e => ({
     result: Number(e.result)
 })
 const clientGetStormIslandInfo = () => {
-    sendXT("ssi", JSON.stringify({}))
-    const waitObject = waitForResult("ssi", 1000 * 10)
+    const limiter = sendXT("ssi", JSON.stringify({}))
+    
     return async () => {
-        const [obj, result] = await waitObject
+        await limiter
+        const [obj, result] = await waitForResult("ssi", 1000 * 10)
 
         return StormInfo({ ...obj, result: result })
     }
@@ -405,16 +352,6 @@ const AlliancePointsList = e => ({
     alliancePlayerScores: Array.from(APH).map(AquaPlayerScores),
     result: Number(e.result)
 })
-//TODO: Probs best to add a lock or check if one of the users is within the alliance designated
-const clientGetAllianceMemberAquaPoints = AID => {
-    sendXT("ama", { AID })
-    const waitObject = waitForResult("ama", 1000 * 10)
-    return async () => {
-        const [obj, result] = await waitObject
-
-        return AlliancePointsList({ ...obj, result: result })
-    }
-}
 
 const GetProductionData = e => ({
     FoodConsumptionRate: Number(e.DFC) / 10,
@@ -553,7 +490,7 @@ const clientGetDetailedCastleList = async () => {
     let waitObject
     let attemptsLeft = 5
     do {
-        sendXT("dcl", JSON.stringify({ CD: 1 }))
+        await sendXT("dcl", JSON.stringify({ CD: 1 }))
         try {
             waitObject = waitForResult("dcl", 1000 * 60)
         }
@@ -570,10 +507,11 @@ const clientGetDetailedCastleList = async () => {
 }
 
 const clientGetUnitInventory = () => {
-    sendXT("gui", JSON.stringify({}))
-    const waitObject = waitForResult("gui", 1000 * 10)
+    const limiter = sendXT("gui", JSON.stringify({}))
+    
     return async () => {
-        let [obj, result] = await waitObject
+        await limiter
+        let [obj, result] = await waitForResult("gui", 1000 * 10)
 
         return UnitInventory({ ...obj, result: result })
     }
@@ -608,12 +546,11 @@ const KingdomInfo = e => ({ //KPI
 })
 //TODO: May Conflict with other clientGetKingdomInfo
 const clientGetKingdomInfo = (sourceAreaID, sourceKingdomID, targetKingdomID, resources) => {
-    sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
-
-    const waitObject = waitForResult("kgt", 1000 * 10)
+    const limiter = sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
 
     return async () => {
-        const [obj, result] = await waitObject
+        await limiter
+        const [obj, result] = await waitForResult("kgt", 1000 * 10)
 
         return KingdomInfo({ ...obj.kpi, result: result })
     }
@@ -633,12 +570,11 @@ const ActiveQuests = e => ({
 })
 
 const clientActiveQuestList = () => {
-    sendXT("aqs", JSON.stringify({}))
-
-    const waitObject = waitForResult("aqs", 1000 * 10)
+    const limiter = sendXT("aqs", JSON.stringify({}))
 
     return async () => {
-        const [obj, result] = await waitObject
+        await limiter
+        const [obj, result] = await waitForResult("aqs", 1000 * 10)
 
         return ActiveQuests({ ...obj, result: result })
     }
@@ -646,12 +582,11 @@ const clientActiveQuestList = () => {
 
 //TODO: May conflict with other clientGetMinuteSkipKingdom
 const clientGetMinuteSkipKingdom = (skipType, kingdomID, kingdomSkipType) => {
-    sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
-
-    const waitObject = waitForResult("msk", 1000 * 10)
+    const limiter = sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
     
     return async () => {
-        const [obj, result] = await waitObject
+        await limiter
+        const [obj, result] = await waitForResult("msk", 1000 * 10)
 
         return KingdomInfo({ ...obj.kpi, result: result })
     }
@@ -924,12 +859,11 @@ const Feast = e => ({
     result: Number(e.result)
 })
 const clientStartFeast = (type, areaID, kingdomID) => {
-    sendXT("bfs", JSON.stringify({ T: type, CID: areaID, KID: kingdomID, PO: -1, PWR: 0 }))
-
-    const waitObject = waitForResult("bfs", 1000 * 10)
+    const limiter = sendXT("bfs", JSON.stringify({ T: type, CID: areaID, KID: kingdomID, PO: -1, PWR: 0 }))
 
     return async () => {
-        const [obj, result] = await waitObject
+        await limiter
+        const [obj, result] = await waitForResult("bfs", 1000 * 10)
 
         return Feast({ ...obj, result: result })
     }
@@ -952,9 +886,11 @@ const Highscore = e => ({
 
 
 const clientGetHighscore = (LT, LID, SV) => {
-    sendXT("hgh", JSON.stringify({ LT, LID, SV: `${SV}` }))
+    const limiter = sendXT("hgh", JSON.stringify({ LT, LID, SV: `${SV}` }))
 
-    const waitObject = waitForResult("hgh", 1000 * 10, (obj, result) => {
+    return async () => {
+        await limiter
+        const [obj, result] = await waitForResult("hgh", 1000 * 10, (obj, result) => {
             if (obj.LT != LT)
                 return false
             if (obj.SV != SV)
@@ -963,9 +899,6 @@ const clientGetHighscore = (LT, LID, SV) => {
                 return false
             return true
         })
-
-    return async () => {
-        const [obj, result] = await waitObject
 
         return Highscore({ ...obj, result: result })
     }
@@ -1015,27 +948,6 @@ const Alliance = e => ({
     //??? : Number(e.HRFU),
 
 })
-const JoinOpenAlliance = e => ({
-    alliance: Alliance(e.A),
-    playerAlliance: PlayerAlliance(e.gal)
-})
-
-const clientJoinOpenAlliance = AID => {
-    sendXT("joa", JSON.stringify({ AID }))
-
-    const waitObject = waitForResult("joa", 1000 * 10, obj => {
-            if (obj.gal.AID != AID)
-                return false
-
-            return true
-        })
-
-    return async () => {
-        const [obj, result] = await waitObject
-
-        return JoinOpenAlliance({ ...obj, result: result })
-    }
-}
 
 const BuildingInfo = o => ({
     wodID: Number(o[0]),
@@ -1079,9 +991,11 @@ class JoinArea {
 }
 
 const clientJoinArea = (x, y, kingdomID) => {
-    sendXT("joa", JSON.stringify({ PX: x, PY: y, KID: kingdomID }))
+    const limiter = sendXT("joa", JSON.stringify({ PX: x, PY: y, KID: kingdomID }))
 
-    const waitObject = waitForResult("jaa", 1000 * 10, obj => {
+    return async () => {
+        await limiter
+        const [obj, result] = await waitForResult("jaa", 1000 * 10, obj => {
             if (obj.KID != kingdomID)
                 return false
             if (obj.gca.A[1] != x)
@@ -1092,21 +1006,19 @@ const clientJoinArea = (x, y, kingdomID) => {
             return true
         })
 
-    return async () => {
-        let [obj, result] = await waitObject
 
         return new JoinArea({ ...obj, result: result })
     }
 }
 
 const clientJoinCastle = (areaID, kingdomID) => {
-    sendXT("jca", JSON.stringify({"CID":areaID,"KID":kingdomID}))
-
-    const waitObject = waitForResult("jaa", 1000 * 10, o => 
+    const limiter = sendXT("jca", JSON.stringify({CID:areaID,KID:kingdomID}))
+ 
+    return async () => {
+        await limiter
+        const [obj, result] = await waitForResult("jaa", 1000 * 10, o => 
         o.grc.KID == kingdomID && o.grc.AID == areaID)
 
-    return async () => {
-        let [obj, result] = await waitObject
 
         return new JoinArea({ ...obj, result: result })
     }
@@ -1119,18 +1031,17 @@ const SearchPlayerName = e => ({
     result: Number(e.result)
 })
 const clientSearchPlayerName = (playerName) => {
-    sendXT("wsp", JSON.stringify({ PN: playerName }))
+    const limiter = sendXT("wsp", JSON.stringify({ PN: playerName }))
 
-    const waitObject = waitForResult("wsp", 1000 * 10, obj => {
+    return async () => {
+        await limiter
+        try {
+            const [obj, result] = await waitForResult("wsp", 1000 * 10, obj => {
                 if (obj.gaa?.OI.find(e => e.N == playerName))
                     return true
 
                 return false
             })
-
-    return async () => {
-        try {
-            let [obj, result] = await waitObject
 
             return SearchPlayerName({ ...obj, result: result })
         }
@@ -1152,12 +1063,11 @@ const AllianceQuestPointCount = e => ({
     result: Number(e.result)
 })
 const clientAllianceQuestPointCount = () => {
-    sendXT("aqpc", JSON.stringify({}))
-
-    const waitObject = waitForResult("aqpc", 1000 * 10)
+    const limiter = sendXT("aqpc", JSON.stringify({}))
 
     return async () => {
-        const [obj, result] = await waitObject
+        await limiter
+        const [obj, result] = await waitForResult("aqpc", 1000 * 10)
 
         return AllianceQuestPointCount({ ...obj, result: result })
     }
@@ -1318,10 +1228,11 @@ xtHandler.on("gam", (o, r) => r == 0 ?
     Array.from(o.M ?? []).map(e => new Movement(e, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))) : undefined)
 
 const clientGetAllianceByID = AID => {
-    sendXT("ain", JSON.stringify({ AID }))
+    const limiter = sendXT("ain", JSON.stringify({ AID }))
 
     return async () => {
-        let [obj, result] = await waitForResult("ain", 1000 * 10, obj =>
+        await limiter
+        const [obj, result] = await waitForResult("ain", 1000 * 10, obj =>
             obj?.A.AID == AID)
 
         return Alliance({ ...obj.A, result: result })
@@ -1329,10 +1240,11 @@ const clientGetAllianceByID = AID => {
 }
 
 const clientGetAllianceByName = name => {
-    sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
+    const limiter = sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
 
     return async () => {
-        let [obj] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
+        await limiter
+        const [obj] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
             if (result != 0)
                 return false
 
@@ -1394,16 +1306,12 @@ module.exports = {
         getHighScore: clientGetHighscore,
         getAreaInfo: clientGetAreaInfo,
         startFeast: clientStartFeast,
-        getAllianceInfluence: clientGetAllianceInfluence,
-        getPlayerInfluence: clientGetPlayerInfluence,
         getStormIslandInfo: clientGetStormIslandInfo,
-        getAllianceMemberAquaPoints: clientGetAllianceMemberAquaPoints,
         getDetailedCastleList: clientGetDetailedCastleList,
         getUnitInventory: clientGetUnitInventory,
         getKingdomInfo: clientGetKingdomInfo,
         getMinuteSkipKingdom: clientGetMinuteSkipKingdom,
         activeQuestList: clientActiveQuestList,
-        getPlayerEventPoints: clientGetPlayerEventPoints,
         joinArea: clientJoinArea,
         searchPlayerName: clientSearchPlayerName,
         allianceQuestPointCount: clientAllianceQuestPointCount,
