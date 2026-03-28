@@ -6,7 +6,7 @@ if (require('node:worker_threads').isMainThread)
 const pretty = require('pretty-time')
 const { getCommanderStats } = require("../../getEquipment")
 const { spendSkip, haveEnoughSkips } = require("../skips.js")
-const { getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, movementEvents } = require('../../protocols')
+const { getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, movementEvents, resources } = require('../../protocols')
 const { 
     waitToAttack, 
     getAttackInfo, 
@@ -89,9 +89,10 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     const areaInfo = areas[i]
                     const shouldUpgradeTower = options.upgradeTowers && getLevel(areaInfo.extraData[1], kingdomID) != maxLevel
                     const skipsPerTower = 7200
+                    const coinSkips = botConfig.externalEvent ? resources.coins / (1000 / (20 * 5)) : 0
                     const enoughSkips = haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) => 
-                            (movement.targetAttack.type == type ? count++ : count, count), 0))
-
+                            (movement.targetAttack.type == type ? count++ : count, count), 0) - coinSkips) || (botConfig.externalEvent && resources.coins > 25000)
+                    resources.coins / 10
                     if (enoughSkips && (options.useTimeSkips || shouldUpgradeTower)) {
                         try {
                             await skipTarget(areaInfo)
