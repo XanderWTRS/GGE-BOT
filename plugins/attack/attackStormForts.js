@@ -46,7 +46,7 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, Types, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements } = require('../../protocols.js')
+const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
@@ -110,7 +110,7 @@ xtHandler.on("dcl", async obj => {
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => e.type == AreaType.externalKingdom)
     
-    const castleProd = Types.DetailedCastleList(obj)
+    const castleProd = ClassTypes.DetailedCastleList(obj)
         .castles.find(a => a.kingdomID == kingdomID)
         .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
 

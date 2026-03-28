@@ -4,7 +4,6 @@ if (require('node:worker_threads').isMainThread)
 const {
     ClientCommands,
     KingdomSkipType,
-    MinuteSkipType,
     KingdomID,
     AreaType,
     getResourceCastleList,

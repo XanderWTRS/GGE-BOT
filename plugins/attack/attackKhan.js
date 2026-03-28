@@ -71,7 +71,8 @@ if (require('node:worker_threads').isMainThread)
 
 const troopBlackList = [277, 34, 35]
 const err = require("../../err.json")
-const { movementEvents, Types, getResourceCastleList, ClientCommands, AreaType, spendSkip, KingdomID } = require('../../protocols.js')
+const { spendSkip } = require("../skips.js")
+const { movementEvents, ClassTypes, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
@@ -315,7 +316,7 @@ events.on("eventStart", async eventInfo => {
                 attackerShieldNomadTools.push(...attackerShieldTools)
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kid, sourceCastleArea, new Types.GAAAreaInfo(AI), commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kid, sourceCastleArea, new ClassTypes.GAAAreaInfo(AI), commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
@@ -442,7 +443,7 @@ events.on("eventStart", async eventInfo => {
             console.warn(e)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
+                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
                         if(movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
                         

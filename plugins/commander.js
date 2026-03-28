@@ -2,7 +2,7 @@ if (require('node:worker_threads').isMainThread)
     return module.exports = { hidden: true }
 
 const { xtHandler, playerInfo } = require('../ggeBot.js')
-const { Types, movementEvents } = require('../protocols.js')
+const { ClassTypes, movementEvents } = require('../protocols.js')
 
 const event = new EventTarget()
 let usedCommanders = []
@@ -26,7 +26,7 @@ function useCommander(lordID) {
     return lordID
 }
 
-movementEvents.on("outgoing", async (/** @type {import("../protocols.js").Types.Movement} */ movement) => {
+movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if (playerInfo.playerID == '') 
         playerInfo.playerID = await new Promise(resolve => 
             xtHandler.once("gpi", obj => resolve(String(obj.PID))))
@@ -37,7 +37,7 @@ movementEvents.on("outgoing", async (/** @type {import("../protocols.js").Types.
     }
 })
 
-movementEvents.on("return", async (/** @type {import("../protocols.js").Types.Movement} */ movement) => {
+movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if (playerInfo.playerID == '') 
         playerInfo.playerID = await new Promise(resolve => 
             xtHandler.once("gpi", obj => resolve(String(obj.PID))))
@@ -61,7 +61,7 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
     if (commanders.length == 0)
         commanders = (await waitForResult("gli", 1000 * 10))[0].C
 
-    let usableCommanders = commanders.map(e => new Types.Lord(e))
+    let usableCommanders = commanders.map(e => new ClassTypes.Lord(e))
         .filter(e => ((!commanderWhitelist || commanderWhitelist.includes(e.lordPosition)) &&
             !usedCommanders.includes(e.lordID)))
 
@@ -82,7 +82,7 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
             }
             if(!commanderWhitelist.includes(com.VIS))
                 return
-            if(!(!filterCallback || filterCallback(new Types.Lord(com))))
+            if(!(!filterCallback || filterCallback(new ClassTypes.Lord(com))))
                 return
 
             event.removeEventListener("freedCommander", checkForCommander)
@@ -93,7 +93,7 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
     })
 
     useCommander(lordID)
-    return new Types.Lord(commanders.find(e => e.ID == lordID))
+    return new ClassTypes.Lord(commanders.find(e => e.ID == lordID))
 }
 
 module.exports = {

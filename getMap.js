@@ -9,7 +9,7 @@ const {ClientCommands} = require("./protocols.js");
  * @param {Number} fromY 
  * @param {Number} toX 
  * @param {Number} toY 
- * @returns {Promise<import("./protocols.js").Types.ServerGetAreaInfo>}
+ * @returns {Promise<import("./protocols.js").ClassTypes.ServerGetAreaInfo>}
  */
 async function getAreaCached(kid, fromX, fromY, toX, toY) {
     const key = `${kid}_${fromX}_${fromY}_${fromX}_${fromY}`

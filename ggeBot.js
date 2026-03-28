@@ -256,7 +256,7 @@ events.on("eventStart", eventInfo => {
     sendXT("ftl", JSON.stringify({}))
 })
 events.once("load", async () => {
-    const { getResourceCastleList, AreaType, KingdomID, Types } = require('./protocols.js')
+    const { getResourceCastleList, AreaType, KingdomID, ClassTypes } = require('./protocols.js')
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
 
     sendXT("dcl", JSON.stringify({ CD: 1 }))
@@ -265,7 +265,7 @@ events.once("load", async () => {
         1000 * 60 * 5)
     if (sourceCastleArea) {
         xtHandler.on("dcl", obj => {
-            const castleProd = Types.DetailedCastleList(obj)
+            const castleProd = ClassTypes.DetailedCastleList(obj)
                 .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
 
             if (!castleProd)
@@ -282,11 +282,6 @@ events.once("load", async () => {
 })
 
 xtHandler.on("rlu", () => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
-xtHandler.on("sne", obj => obj.MSG.forEach(message =>
-        message[1] == 67 ? sendXT("dms", JSON.stringify({ MID: message[0] })) : undefined))
-xtHandler.on("qli", obj => obj.QL.forEach(quest =>
-    [3000, 3002, 3019, 3490, 84].includes(quest.QID) ? 
-        sendXT("qsc", JSON.stringify({ QID: quest.QID })) : undefined))
 xtHandler.on("gal", obj => {
     playerInfo.alliance.id = String(obj.AID)
     playerInfo.alliance.rank = Number(obj.R)

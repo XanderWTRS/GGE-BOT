@@ -63,39 +63,9 @@ const AreaType = Object.freeze({
 const HighscoreType = Object.freeze({
     honour: 5
 })
-const MinuteSkipType = Object.freeze({
-    MS1: 1,
-    MS2: 5,
-    MS3: 10,
-    MS4: 30,
-    MS5: 60,
-    MS6: 60 * 5,
-    MS7: 60 * 24,
-})
-
-const skips = {
-    MS1: 0,
-    MS2: 0,
-    MS3: 0,
-    MS4: 0,
-    MS5: 0,
-    MS6: 0,
-    MS7: 0
-}
 
 xtHandler.on("earlyLoad", () =>
     sendXT("sce", "{}"))
-
-xtHandler.on("sce", (obj) => {
-    obj.forEach(e => {
-        let type = e[0]
-        let ammount = e[1]
-        if (skips[type] == undefined)
-            return
-
-        skips[type] = ammount
-    })
-})
 
 const map = {}
 // const tillMapObjectExpires = 1000 * 60
@@ -161,22 +131,6 @@ new PerformanceObserver(_ => {
             delete map[key]
     }
 }).observe({ entryTypes: ['gc'] })
-
-function spendSkip(time) {
-    time = Math.ceil(time / 60)
-    const skip = Object.entries(skips)
-        .filter(e => e[1] > 0)
-        .filter(e => MinuteSkipType[e[0]] <= time * 2)
-        .sort((a,b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
-        .sort((a,b) => Math.max(b[1], 950) - Math.max(a[1], 950))
-
-    if (skip[0] == undefined)
-        return console.warn("noMoreSkips")
-    
-    console.debug("usingSkip", skip[0][0])
-
-    return skip[0][0]
-}
 
 const KingdomSkipType = Object.freeze({
     sendResource: 2,
@@ -1422,41 +1376,6 @@ xtHandler.on("msd", (obj, r) => {
 
     MapObject(areaInfo, getKingdomID(areaInfo))
 })
-async function deconstructBuilding(castle, ownerID) {
-    if (castle.getCastleArea.buildingSlots.find(e => e == -1) == undefined)
-        throw new Error("NO_FREE_BUILDING_SLOTS")
-
-    let currentBuilding = castle.getCastleArea.buildings?.find(e => 
-            e.ownerID == ownerID)
-    if (currentBuilding == undefined)
-        throw new Error("BUILDING_NOT_FOUND")
-
-    let buildingInfo = buildings.find(e => e?.wodID == currentBuilding.wodID)
-    if (buildingInfo == undefined)
-        throw new Error("BUILDING_INFO_NOT_FOUND")
-    
-    sendXT("edo", JSON.stringify({ OID: ownerID }))
-    let [obj] = await waitForResult("edo", 1000 * 2, obj => obj?.O[1] == ownerID)
-
-    let timeToSkip = Number(buildingInfo.buildDuration) / 2 / castle.areaInfo.getProductionData.buildSpeedBoost - obj.O[5]
-
-    do {
-        if (timeToSkip <= 4 * 60) {
-            sendXT("fco", JSON.stringify({ OID: ownerID, FS: 1 }))
-            await waitForResult("fco", 1000 * 10, obj => obj?.O.find(e => e[1] == ownerID))
-            break
-        }
-
-        const skip = spendSkip(timeToSkip - 4 * 60)
-        if (!skip)
-            throw new Error("FAILED_TO_SKIP")
-
-        sendXT("msb", JSON.stringify({ OID: ownerID, MST: skip }))
-        timeToSkip -= MinuteSkipType[skip] * 60
-    } while (timeToSkip > 0)
-    await new Promise(r => setTimeout(r, 1000)) //TODO: NOT THIS
-    // return waitForResult("ego", 1000 * 10, obj => obj?.O.find(e => e[1] == ownerID))
-}
 
 function updateStatus() {
     status.resources = resources
@@ -1471,7 +1390,6 @@ module.exports = {
     movementEvents,
     movements,
     ClientCommands: {
-        deconstructBuilding,
         preSpyInfo : clientPreSpyInfo,
         getHighScore: clientGetHighscore,
         getAreaInfo: clientGetAreaInfo,
@@ -1493,23 +1411,20 @@ module.exports = {
         getAllianceByName : clientGetAllianceByName,
         joinCastle: clientJoinCastle
     },
-    JoinArea,
     kingdomLock,
     areaInfoLock,
     KingdomID,
     AreaType,
-    MinuteSkipType,
     KingdomSkipType,
-    spendSkip,
     getResourceCastleList,
     getKingdomInfoList,
     getEventList,
     getPermanentCastle,
-    deconstructBuilding,
     resources,
     HighscoreType,
-    Types: {
+    ClassTypes: {
         UnitInventory,
+        JoinArea,
         OwnerInfo,
         ServerGetAreaInfo,
         Lord,

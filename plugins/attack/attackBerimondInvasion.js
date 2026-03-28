@@ -39,8 +39,8 @@ if (require('node:worker_threads').isMainThread)
         ]
 
     }
-
-const { movementEvents, Types, getResourceCastleList, ClientCommands, AreaType, spendSkip, KingdomID } = require('../../protocols.js')
+const { spendSkip } = require("../skips.js")
+const { movementEvents, ClassTypes, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require('../commander.js')
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require('../../ggeBot.js')
@@ -66,12 +66,12 @@ const skipTarget = async AI => {
 
         sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
-            new Types.GAAAreaInfo(obj.AI).type == type)
+            new ClassTypes.GAAAreaInfo(obj.AI).type == type)
 
         if (Number(result) != 0)
             break
 
-        Object.assign(AI, new Types.GAAAreaInfo(obj.AI))
+        Object.assign(AI, new ClassTypes.GAAAreaInfo(obj.AI))
     }
 }
 
@@ -84,7 +84,7 @@ xtHandler.on("cat", (obj, result) => {
     if (attackSource[0] != type)
         return
 
-    skipTarget(new Types.GAAAreaInfo(attackSource))
+    skipTarget(new ClassTypes.GAAAreaInfo(attackSource))
 })
 
 let quit = false
@@ -357,7 +357,7 @@ events.on("eventStart", async eventInfo => {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
-                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
+                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
                         if(movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
                         

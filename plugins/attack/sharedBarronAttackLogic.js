@@ -5,7 +5,8 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { getCommanderStats } = require("../../getEquipment")
-const { getResourceCastleList, ClientCommands, AreaType, spendSkip, KingdomID, movements, movementEvents } = require('../../protocols')
+const { spendSkip } = require("../skips.js")
+const { getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, movementEvents } = require('../../protocols')
 const { 
     waitToAttack, 
     getAttackInfo, 
@@ -30,9 +31,8 @@ async function barronHit(type, kingdomID, options, maxLevel) {
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
         .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
 
-    /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
+    /** @type {Array<import("../../protocols.js").ClassTypes.GAAAreaInfo>} */
     const areas = []
-    /** @type {import("../../protocols.js").Types.ServerGetAreaInfo} */
     do {
         try {
             areas.push(...((await getAreaCached(kingdomID,
@@ -89,7 +89,6 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     const areaInfo = areas[i]
                     const shouldUpgradeTower = options.upgradeTowers && getLevel(areaInfo.extraData[1], kingdomID) != maxLevel
                     if (options.useTimeSkips || shouldUpgradeTower) {
-                        
                         try {
                             await skipTarget(areaInfo)
                         }
@@ -279,7 +278,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         console.debug(e)
                     }
                     console.log(`[${KingdomID[kingdomID]}] Waiting for more troops`)
-                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
+                    await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
                         if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
                             return
 
@@ -301,7 +300,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
     }
 
     while (true) {
-        if (!options.useTimeSkips) {
+        if (!options.useTimeSkips && !options.upgradeTowers) {
             let minimumTimeTillHit = 5 * 1000 + Date.now()
 
             areas.forEach(areaInfo => {
@@ -312,6 +311,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
 
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
             })
+            
             const time = (Math.max(0, minimumTimeTillHit - Date.now()))
             if (time > 0)
                 console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
