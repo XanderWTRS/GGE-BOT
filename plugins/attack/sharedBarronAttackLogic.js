@@ -101,12 +101,11 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                             continue
                         }
                     }
+                    else if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > 0)
+                        continue
                     else if (movements.find(movement =>
                         movement.kingdomID == kingdomID &&
                         movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
-                        continue
-
-                    else if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > 0)
                         continue
 
                     index = i
