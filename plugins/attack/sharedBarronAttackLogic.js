@@ -91,9 +91,13 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     const skipsPerTower = 7200
 
 
-                    if (haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) => 
-                            (movement.targetAttack.type == type ? count++ : count, count), 0)) 
-                        && (options.useTimeSkips || shouldUpgradeTower)) {
+                    if ((!movements.find(movement => 
+                            movement.kingdomID == kingdomID && 
+                            movement.targetAttack.x == areaInfo.x && 
+                            movement.targetAttack.y == areaInfo.y) ||
+                        haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) => 
+                            (movement.targetAttack.type == type ? count++ : count, count), 0))) && 
+                        (options.useTimeSkips || shouldUpgradeTower)) {
                         try {
                             await skipTarget(areaInfo)
                         }
