@@ -46,7 +46,7 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements } = require('../../protocols.js')
+const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
