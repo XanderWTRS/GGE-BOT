@@ -331,24 +331,26 @@ events.on("eventStart", async eventInfo => {
                     else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = pluginOptions.eventWallToolsFirst ? [] : attackerNomadTools
-                            if (tools.length == 0) {
+                            if (tools.length == 0 || !tools[0]?.[0]?.khanTabletBooster) {
                                 if (i == 0) {
                                     tools = attackerWallNomadTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.khanTabletBooster)
                                         tools = attackerShieldNomadTools
                                 }
                                 else if (i == 1) {
                                     tools = attackerShieldNomadTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.khanTabletBooster)
                                         tools = attackerWallNomadTools
                                 }
                                 if (i == 2) {
                                     tools = attackerGateNomadTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.khanTabletBooster)
                                         tools = attackerWallNomadTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.khanTabletBooster)
                                         tools = attackerShieldNomadTools
                                 }
+                                if(!tools[0]?.[0]?.khanTabletBooster)
+                                    tools = []
                             }
 
                             return tools

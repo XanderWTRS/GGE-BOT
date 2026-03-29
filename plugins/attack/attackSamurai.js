@@ -283,7 +283,7 @@ events.on("eventStart", async eventInfo => {
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
-                const desiredToolCount = attackerSamuraiTools.length == 0 ? 20 : 10
+                const desiredToolCount = attackerSamuraitools.length == 0 || !tools[0]?.[0]?.samuraiTokenBooster ? 20 : 10
 
                 attackInfo.A.forEach((wave, index) => {
                     let maxTools = maxToolsFlank
@@ -323,24 +323,26 @@ events.on("eventStart", async eventInfo => {
                     else if(!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerSamuraiTools
-                            if (tools.length == 0) {
+                            if (tools.length == 0 || !tools[0]?.[0]?.samuraiTokenBooster) {
                                 if (i == 0) {
                                     tools = attackerWallSamuraiTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.samuraiTokenBooster)
                                         tools = attackerShieldSamuraiTools
                                 }
                                 else if (i == 1) {
                                     tools = attackerShieldSamuraiTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.samuraiTokenBooster)
                                         tools = attackerWallSamuraiTools
                                 }
                                 if (i == 2) {
                                     tools = attackerGateSamuraiTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.samuraiTokenBooster)
                                         tools = attackerWallSamuraiTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || !tools[0]?.[0]?.samuraiTokenBooster)
                                         tools = attackerShieldSamuraiTools
                                 }
+                                if(!tools[0]?.[0]?.samuraiTokenBooster)
+                                    tools = []
                             }
 
                             return tools

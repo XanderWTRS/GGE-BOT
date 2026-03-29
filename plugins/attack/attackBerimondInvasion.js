@@ -274,24 +274,26 @@ events.on("eventStart", async eventInfo => {
                     else if(!pluginOptions.noeventTools) {
                         const selectTool = i => {
                             let tools = attackerBerimondTools
-                            if (tools.length == 0) {
+                            if (tools.length == 0 || ((!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))) {
                                 if (i == 0) {
                                     tools = attackerWallBerimondTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
                                         tools = attackerShieldBerimondTools
                                 }
                                 else if (i == 1) {
                                     tools = attackerShieldBerimondTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
                                         tools = attackerWallBerimondTools
                                 }
                                 if (i == 2) {
                                     tools = attackerGateBerimondTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
                                         tools = attackerWallBerimondTools
-                                    if (tools.length == 0)
+                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
                                         tools = attackerShieldBerimondTools
                                 }
+                                if ((!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
+                                    tools = []
                             }
 
                             return tools

@@ -321,7 +321,7 @@ events.on("eventStart", async eventInfo => {
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
-                const desiredToolCount = attackerNomadTools.length == 0 ? 20 : 10
+                const desiredToolCount = attackerNomadtools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus) ? 20 : 10
 
                 attackInfo.A.forEach((wave, index) => {
                     let maxTools = maxToolsFlank
@@ -362,24 +362,26 @@ events.on("eventStart", async eventInfo => {
                             let tools = pluginOptions.eventWallToolsFirst ? [] : attackerBannerKhanTools
                             if (pluginOptions.wavesTillChests <= index) {
                                 tools = attackerNomadTools
-                                if (tools.length == 0) {
+                                if (tools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus)) {
                                     if (i == 0) {
                                         tools = attackerWallNomadTools
-                                        if (tools.length == 0)
+                                        if (tools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus))
                                             tools = attackerShieldNomadTools
                                     }
                                     else if (i == 1) {
                                         tools = attackerShieldNomadTools
-                                        if (tools.length == 0)
+                                        if (tools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus))
                                             tools = attackerWallNomadTools
                                     }
                                     if (i == 2) {
                                         tools = attackerGateNomadTools
-                                        if (tools.length == 0)
+                                        if (tools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus))
                                             tools = attackerWallNomadTools
-                                        if (tools.length == 0)
+                                        if (tools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus))
                                             tools = attackerShieldNomadTools
                                     }
+                                    if(!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus)
+                                        tools = []
                                 }
                             }
                             return tools
