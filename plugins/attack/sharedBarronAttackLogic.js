@@ -21,7 +21,7 @@ const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
 const units = require("../../items/units.json")
 
-const minTroopCount = 100
+const minTroopCount = 32
 const troopBlackList = [277]
 
 async function barronHit(type, kingdomID, options, maxLevel) {

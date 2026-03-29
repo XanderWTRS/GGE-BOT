@@ -1217,8 +1217,10 @@ class Movement {
 
 xtHandler.on("cra", (o, r) => r == 0 ? 
     new Movement(o.AAM, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
-xtHandler.on("cat", (o, r) => r == 0 ? 
-    new Movement(o.A, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
+xtHandler.on("cat", (o, r) => {
+    if(r == 0) 
+        new Movement(o.A, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))
+})
 xtHandler.on("gam", (o, r) => r == 0 ? 
     Array.from(o.M ?? []).map(e => new Movement(e, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))) : undefined)
 
@@ -1229,8 +1231,7 @@ xtHandler.on("dms", ({MID}) => MID.forEach(movementID => () => {
     
     const movement = movements.splice(movementIndex, 1)
 
-    if (movement?.targetOwner?.ownerID == movement?.owner?.ownerID)
-        movementEvents.emit("return", movement)
+    movementEvents.emit("return", movement)
 }))
 
 const clientGetAllianceByID = AID => {
