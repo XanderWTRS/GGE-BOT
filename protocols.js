@@ -1169,8 +1169,8 @@ function newMovement(movement) {
 
     movements.push(movement)
 
-    if (movement.sourceAttack?.ownerID == movement.owner?.ownerID)
-        movementEvents.emit("outgoing", movement)
+    // if (movement.sourceAttack?.ownerID == movement.owner?.ownerID)
+    movementEvents.emit("outgoing", movement)
 
     setTimeout(() => {
         const movementIndex = movements.findIndex(e => e.id == movement.id)
