@@ -277,7 +277,7 @@ let attackCount = undefined
 let attackThreshold = undefined
 
 if([,""].includes(pluginOptions.attackLimit))
-    pluginOptions.attackLimit = undefined
+    pluginOptions.attackLimit = 3500
     
 xtHandler.on("gai", obj => {
     attackCount = obj.AC
