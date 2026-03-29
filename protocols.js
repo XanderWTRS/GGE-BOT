@@ -1222,6 +1222,17 @@ xtHandler.on("cat", (o, r) => r == 0 ?
 xtHandler.on("gam", (o, r) => r == 0 ? 
     Array.from(o.M ?? []).map(e => new Movement(e, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))) : undefined)
 
+xtHandler.on("dms", ({MID}) => MID.forEach(movementID => () => {
+    const movementIndex = movements.findIndex(e => e.id == Number(movementID))
+    if (movementIndex == -1)
+        return
+    
+    const movement = movements.splice(movementIndex, 1)
+
+    if (movement?.targetOwner?.ownerID == movement?.owner?.ownerID)
+        movementEvents.emit("return", movement)
+}))
+
 const clientGetAllianceByID = AID => {
     const limiter = sendXT("ain", JSON.stringify({ AID }))
 
