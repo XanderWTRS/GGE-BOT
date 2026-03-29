@@ -19,13 +19,11 @@ function freeCommander(lordID) {
 
     usedCommanders.splice(index, 1)
     event.dispatchEvent(new CustomEvent('freedCommander', { detail: lordID }))
-    console.log(`Debug: Freeing Lord:${lordID}`)
 }
 function useCommander(lordID) {
     if (!usedCommanders.includes(lordID))
         usedCommanders.push(lordID)
 
-    console.log(`Debug: Using Lord:${lordID}`)
     return lordID
 }
 
