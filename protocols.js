@@ -214,10 +214,7 @@ class OwnerInfo {
         this.mightPoints = Number(o.MP)
         this.isRuin = Boolean(o.R)
         this.allianceID = Number(o.AID)
-        this.allianceRank = async () => {
-            const allianceRankInfo = JSON.parse(await fs.readFile("./items/allianceranks.json", { encoding: 'utf8' })).find(e => e.rankID == o.AR)
-            return String(allianceRankInfo.rankRightName ? allianceRankInfo.rankRightName.replace("RANK_", "") : "UNRANKED")
-        }
+        this.allianceRank = Number(o.AR)
         this.allianceName = String(o.AN)
         this.allianceEmblem = AllianceCrest(o.aee)
         this.remainingPeaceTime = Number(o.RPT)
@@ -343,10 +340,7 @@ const AquaPlayerScores = e => ({
     playerName: String(e[1]),
     level: Number(e[2]),
     inStorm: Boolean(e[3]),
-    allianceRank: async () => {
-        const allianceRankInfo = JSON.parse(await fs.readFile("./items/allianceranks.json", { encoding: 'utf8' })).find(a => a.rankID == e[4])
-        return String(allianceRankInfo.rankRightName ? allianceRankInfo.rankRightName.replace("RANK_", "") : "UNRANKED")
-    }
+    allianceRank: Number(e[4])
 })
 const AlliancePointsList = e => ({
     alliancePlayerScores: Array.from(APH).map(AquaPlayerScores),
