@@ -25,9 +25,7 @@ const minTroopCount = 80
 const troopBlackList = [277]
 
 try {
-    var recruitTroops = botConfig.externalEvent ? require("../../plugins-extra/externalEventHelper.js").recruitTroops : () => {
-        throw new Error("couldntRecruitMoreTroops")
-    }
+    var { recruitTroops } = require("../../plugins-extra/externalEventHelper.js")
 }
 catch(e) {
     console.debug(e)
@@ -282,7 +280,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     try {
-                        if (botConfig.externalEvent && kingdomID == KingdomID.greatEmpire) {
+                        if (botConfig.externalEvent && kingdomID == KingdomID.greatEmpire && recruitTroops) {
                             await recruitTroops()
                             return true
                         }
