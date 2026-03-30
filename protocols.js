@@ -284,31 +284,35 @@ const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
             AY1: Number(fromY),
             AX2: Number(toX),
             AY2: Number(toY)
-        })))).then(() => waitForResult("gaa", 1000 * 10, (obj, result) => {
-            if (Number(result) != 0)
+        })))).then(async (limiter) => {
+            await limiter
+            return waitForResult("gaa", 1000 * 10, (obj, result) => {
+                if (Number(result) != 0)
+                    return true
+
+                if (obj.KID != kingdomID)
+                    return false
+
+                let ai = obj.AI[0]
+                if (ai == undefined)
+                    return false
+
+                let x = ai[1]
+                let y = ai[2]
+
+                let startX = fromX < toX ? fromX : toX
+                let startY = fromY < toY ? fromY : toY
+                let endX = fromX >= toX ? fromX : toX
+                let endY = fromY >= toY ? fromY : toY
+
+                if (x < startX || x > endX ||
+                    y < startY || y > endY)
+                    return false
+
                 return true
 
-            if (obj.KID != kingdomID)
-                return false
-
-            let ai = obj.AI[0]
-            if (ai == undefined)
-                return false
-
-            let x = ai[1]
-            let y = ai[2]
-
-            let startX = fromX < toX ? fromX : toX
-            let startY = fromY < toY ? fromY : toY
-            let endX = fromX >= toX ? fromX : toX
-            let endY = fromY >= toY ? fromY : toY
-
-            if (x < startX || x > endX ||
-                y < startY || y > endY)
-                return false
-            
-            return true
-        }))
+            })
+        })
     return async () => {
         const [gaa, result] = await waitObject
         
