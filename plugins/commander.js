@@ -28,25 +28,17 @@ function useCommander(lordID) {
 }
 
 movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
-    if (playerInfo.playerID == '') 
-        playerInfo.playerID = await new Promise(resolve => 
-            xtHandler.once("gpi", obj => resolve(String(obj.PID))))
+    if(movement.owner?.ownerID != playerInfo.playerID)
+        return
     
-    if(movement.owner?.ownerID == playerInfo.playerID) {
-        console.debug(`using lord ${movement.lord.lordID}`)
-        useCommander(movement.lord.lordID)
-    }
+    useCommander(movement.lord.lordID)
 })
 
 movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
-    if (playerInfo.playerID == '') 
-        playerInfo.playerID = await new Promise(resolve => 
-            xtHandler.once("gpi", obj => resolve(String(obj.PID))))
+    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+        return
 
-    if(movement.targetOwner?.ownerID == playerInfo.playerID) {
-        console.debug(`freeing lord ${movement.lord.lordID}`)
-        freeCommander(movement.lord.lordID)
-    }
+    freeCommander(movement.lord.lordID)
 })
 
 const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sortCallback) => {

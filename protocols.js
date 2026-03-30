@@ -1,7 +1,7 @@
 const fs = require("fs/promises")
 const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
-const { waitForResult, sendXT, xtHandler, events, status } = require("./ggeBot.js")
+const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require("./ggeBot.js")
 const currencies = require("./items/currencies.json")
 const { parentPort } = require("node:worker_threads")
 const ActionType = require("./actions.json")
@@ -1146,8 +1146,12 @@ class Lord {
 const movements = []
 const movementEvents = new EventEmitter()
 /** @param {Movement} movement */
-function newMovement(movement) {
+async function newMovement(movement) {
     const e = movements.find(e => e.id == movement.id)
+    if (playerInfo.playerID == '')
+        playerInfo.playerID = await new Promise(resolve =>
+            xtHandler.once("gpi", obj => resolve(String(obj.PID))))
+
     if(e) {
         Object.assign(e, movement)
         if(e.canSeeArmy != movement.canSeeArmy)
