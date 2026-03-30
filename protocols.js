@@ -1018,31 +1018,15 @@ const clientJoinCastle = (areaID, kingdomID) => {
     }
 }
 
-const SearchPlayerName = e => ({
-    x: Number(e.X),
-    y: Number(e.Y),
-    ...new ServerGetAreaInfo(e.gaa),
-    result: Number(e.result)
-})
 const clientSearchPlayerName = (playerName) => {
     const limiter = sendXT("wsp", JSON.stringify({ PN: playerName }))
 
     return async () => {
         await limiter
-        try {
-            const [obj, result] = await waitForResult("wsp", 1000 * 10, obj => {
-                if (obj.gaa?.OI.find(e => e.N == playerName))
-                    return true
+        const [obj, result] = await waitForResult("wsp", 1000 * 10, o =>
+            r != 0 || o.gaa?.OI.find(e => e.N == playerName))
 
-                return false
-            })
-
-            return SearchPlayerName({ ...obj, result: result })
-        }
-        catch (e) {
-            console.warn(e)
-            return { result: -1 }
-        }
+        return new ServerGetAreaInfo({ ...obj.gaa, result: result })
     }
 }
 const AllianceQuestPlayerScore = e => ({
@@ -1169,7 +1153,6 @@ function newMovement(movement) {
 
     movements.push(movement)
 
-    // if (movement.sourceAttack?.ownerID == movement.owner?.ownerID)
     movementEvents.emit("outgoing", movement)
 
     setTimeout(() => {
@@ -1197,13 +1180,15 @@ class Movement {
         this.deltaTime = Number(movement.M.PT) * 1000 + Date.now()
 
         this.lord = new Lord(movement.UM?.L ?? {})
-        this.owner = ownerInfo.find(o => o.ownerID == String(movement.M.OID)) ?? {}
-        this.targetOwner = ownerInfo.find(o => o.ownerID == String(movement.M.TID)) ?? {}
-        this.sourceOwner = ownerInfo.find(o => o.ownerID == String(movement.M.SID)) ?? {}
+        this.owner = ownerInfo.find(o => o.ownerID == String(movement.M.OID))
+        this.targetOwner = ownerInfo.find(o => o.ownerID == String(movement.M.TID))
+        this.sourceOwner = ownerInfo.find(o => o.ownerID == String(movement.M.SID))
         this.targetAttack = MapObject(new GAAAreaInfo(movement.M.TA), movement.M.KID)
         this.sourceAttack = MapObject(new GAAAreaInfo(movement.M.SA), movement.M.KID)
 
         this.horseType = Number(movement.M.HBW)
+
+        this.canSeeArmy = !!movement.GA
 
         this.left = Array.from(movement.GA?.L ?? []).map(Unit)
         this.middle = Array.from(movement.GA?.M ?? []).map(Unit)

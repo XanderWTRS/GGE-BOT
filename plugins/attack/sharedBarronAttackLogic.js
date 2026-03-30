@@ -21,8 +21,17 @@ const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
 const units = require("../../items/units.json")
 
-const minTroopCount = 32
+const minTroopCount = 80
 const troopBlackList = [277]
+
+try {
+    var recruitTroops = botConfig.externalEvent ? require("../../plugins-extra/externalEventHelper.js").recruitTroops : () => {
+        throw new Error("couldntRecruitMoreTroops")
+    }
+}
+catch(e) {
+    console.debug(e)
+}
 
 async function barronHit(type, kingdomID, options, maxLevel) {
     const getLevel = victorys => 
@@ -89,9 +98,10 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     const areaInfo = areas[i]
                     const shouldUpgradeTower = options.upgradeTowers && getLevel(areaInfo.extraData[1], kingdomID) != maxLevel
                     const skipsPerTower = 7200
-                    const coinSkips = botConfig.externalEvent ? resources.coins / (1000 / (20 * 5)) : 0
+                    
+                    const coinSkips = recruitTroops ? Math.floor(resources.coins / (1000 / (20 * 5))) : 0
                     const enoughSkips = haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) => 
-                            (movement.targetAttack.type == type ? count++ : count, count), 0) - coinSkips) || (botConfig.externalEvent && resources.coins > 25000)
+                            (movement.targetAttack.type == type ? count++ : count, count), 0) - coinSkips) || (recruitTroops && resources.coins > 25000)
                     
                     if (enoughSkips && (options.useTimeSkips || shouldUpgradeTower)) {
                         try {
@@ -273,8 +283,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 case "NO_MORE_TROOPS":
                     try {
                         if (botConfig.externalEvent && kingdomID == KingdomID.greatEmpire) {
-                            await (require("../../plugins-extra/externalEventHelper.js"))
-                                .recruitTroops()
+                            await recruitTroops()
                             return true
                         }
                     }
