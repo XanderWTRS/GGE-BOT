@@ -1148,8 +1148,11 @@ const movementEvents = new EventEmitter()
 /** @param {Movement} movement */
 function newMovement(movement) {
     const e = movements.find(e => e.id == movement.id)
-    if(e)
+    if(e) {
+        if(e.canSeeArmy != movement.canSeeArmy)
+            movementEvents.emit("outgoing", movement)
         return Object.assign(e, movement)
+    }
 
     movements.push(movement)
 
