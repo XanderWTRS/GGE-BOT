@@ -1023,7 +1023,7 @@ const clientSearchPlayerName = (playerName) => {
 
     return async () => {
         await limiter
-        const [obj, result] = await waitForResult("wsp", 1000 * 10, o =>
+        const [obj, result] = await waitForResult("wsp", 1000 * 10, (o,r) =>
             r != 0 || o.gaa?.OI.find(e => e.N == playerName))
 
         return new ServerGetAreaInfo({ ...obj.gaa, result: result })
