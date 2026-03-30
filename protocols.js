@@ -199,7 +199,7 @@ const ServerUserAttackProtection = o => ({
 
 class OwnerInfo {
     constructor(o) {
-        this.ownerID = String(o.OID)
+        this.ownerID = Number(o.OID)
         this.isDummy = Boolean(o.DUM)
         this.name = String(o.N)
         this.crest = o.E ? Crest(o.E) : void 0
@@ -1126,7 +1126,7 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
 
 class Lord {
     constructor(e) {
-        this.lordID = String(e.ID)
+        this.lordID = Number(e.ID)
         // this.??? = Number(e.WID)
         this.lordPosition = Number(e.VIS)
         this.name = String(e.N)
@@ -1177,16 +1177,16 @@ function newMovement(movement) {
 class Movement {
     /** @param {Array<OwnerInfo>} ownerInfo */
     constructor(movement, ownerInfo) {
-        this.id = String(movement.M.MID)
+        this.id = Number(movement.M.MID)
         this.type = Number(movement.M.T)
         this.kingdomID = Number(movement.M.KID)
         this.totalTime = Number(movement.M.TT) * 1000
         this.deltaTime = Number(movement.M.PT) * 1000 + Date.now()
 
         this.lord = new Lord(movement.UM?.L ?? {})
-        this.owner = ownerInfo.find(o => o.ownerID == String(movement.M.OID))
-        this.targetOwner = ownerInfo.find(o => o.ownerID == String(movement.M.TID))
-        this.sourceOwner = ownerInfo.find(o => o.ownerID == String(movement.M.SID))
+        this.owner = ownerInfo.find(o => o.ownerID == Number(movement.M.OID))
+        this.targetOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.TID))
+        this.sourceOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.SID))
         this.targetAttack = MapObject(new GAAAreaInfo(movement.M.TA), movement.M.KID)
         this.sourceAttack = MapObject(new GAAAreaInfo(movement.M.SA), movement.M.KID)
 
