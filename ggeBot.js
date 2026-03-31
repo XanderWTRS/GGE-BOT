@@ -59,13 +59,14 @@ if (!botConfig.internalWorker) {
     console.debug = ggeConfig.debug ? _console.debug : _ => { }
     console.trace = _console.trace
 }
-
+let requestCount = 0
 const rawProtocolSeparator = "%"
 async function sendXT(cmdName, paramObj) {
     try {
     console.debug(cmdName, JSON.parse(paramObj))
     } catch {}
     await limiter.removeTokens(1)
+    requestCount++
     webSocket.send(rawProtocolSeparator + ["xt", botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
 }
 
@@ -277,7 +278,8 @@ events.once("load", async () => {
             Object.assign(status, {
                 aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
                 food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
-                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined)
+                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined),
+                requestCount
             })
             parentPort.postMessage([ActionType.StatusUser, status])
         })
