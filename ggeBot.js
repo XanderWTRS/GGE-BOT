@@ -276,7 +276,7 @@ events.once("load", async () => {
                 return
 
             Object.assign(status, {
-                aquamarine: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
+                aquamarin_name: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
                 food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
                 mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined),
                 requestCount
@@ -314,8 +314,8 @@ xtHandler.on("gpi", obj => {
 })
 xtHandler.on("gcu", obj => {
     Object.assign(status, {
-        Coin: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
-        Rubies: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
+        cash: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
+        gold: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
     })
     parentPort.postMessage([ActionType.StatusUser, status])
 })

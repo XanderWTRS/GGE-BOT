@@ -24,7 +24,9 @@ if (require('node:worker_threads').isMainThread) {
                 key: "useFeather",
                 default: false
             },
-            { type: "Checkbox", key: "useCoin", default: false }
+            { type: "Checkbox", key: "useCoin", default: false },
+            { type: "Checkbox", key: "meadReplace", default: false },
+            { type: "Checkbox", key: "resourceSend", default: false },
         ]
     }
     try {
@@ -37,16 +39,15 @@ if (require('node:worker_threads').isMainThread) {
     catch(e) {
         console.debug(e)
     }
-    module.exports.pluginOptions.push({
+    return module.exports.pluginOptions.push({
         type: "Text",
         key: "commanderWhiteList",
         default: "1-99"
     })
-    return
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes } = require('../../protocols.js')
+const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
@@ -57,46 +58,28 @@ const pretty = require('pretty-time')
 
 const minTroopCount = 100
 
-function spiralCoordinates(n) {
-    if (n === 0) return { x: 0, y: 0 }
-
-    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2)
-    const layerStart = (2 * (k - 1) + 1) ** 2
-    const offset = n - layerStart
-    const sideLength = 2 * k
-    const side = Math.floor(offset / sideLength)
-    const posInSide = offset % sideLength
-
-    let x, y
-
-    switch (side) {
-        case 0:
-            x = k
-            y = -k + 1 + posInSide
-            break
-        case 1:
-            x = k - 1 - posInSide
-            y = k
-            break
-        case 2:
-            x = -k
-            y = k - 1 - posInSide
-            break
-        case 3:
-            x = -k + 1 + posInSide
-            y = -k
-            break
-    }
-
-    return { x, y }
-}
-
 const pluginOptions =
     botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 
 if (pluginOptions.upgradeStormForts) {
     try {
         require("../../plugins-extra/upgradeStormCargo.js")
+    }
+    catch (e) {
+        console.warn(e)
+    }
+}
+if (pluginOptions.meadReplace) {
+    try {
+        require("../meadReplaceStorm.js")
+    }
+    catch (e) {
+        console.warn(e)
+    }
+}
+if (pluginOptions.resourceSend) {
+    try {
+        require("../resourceSendStorm.js")
     }
     catch (e) {
         console.warn(e)

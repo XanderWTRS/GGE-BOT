@@ -1,9 +1,5 @@
 if(require('node:worker_threads').isMainThread)
-{
-    module.exports = {
-    }
-    return
-}
+    return module.exports = { hidden : true}
 
 const { events } = require("../ggeBot.js")
 
