@@ -13,55 +13,17 @@ if (require('node:worker_threads').isMainThread) {
                 default: "2.5"
             },
             {
-                "type": "Text",
-                "key": "attackLimit",
-                "default": ""
+                type: "Text",
+                key: "attackLimit"
             }
         ]
     }
 }
 
-const { DatabaseSync } = require('node:sqlite')
 const { getPermanentCastle, resources } = require('../../protocols')
 const { botConfig, playerInfo, xtHandler } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
-
-const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
-
-const { setTimeTillTimeout, setLastHitTime, setTimeSpentInTimeout } = (() => {
-    while (true) {
-        try {
-            userDatabase.prepare('INSERT OR IGNORE INTO PlayerInfo (id, timeTillTimeout, lastHitTime, timeSpentInTimeout) VALUES(?,?,?,?)')
-                .run(botConfig.id, 0, 0, 0)
-            return ({
-                setTimeTillTimeout: userDatabase.prepare('UPDATE PlayerInfo SET timeTillTimeout = ? WHERE id = ?'),
-                setLastHitTime: userDatabase.prepare('UPDATE PlayerInfo SET lastHitTime = ? WHERE id = ?'),
-                setTimeSpentInTimeout: userDatabase.prepare('UPDATE PlayerInfo SET timeSpentInTimeout = ? WHERE id = ?'),
-            })
-        }
-        catch (e) {
-            console.debug("Possibly needs to be cleared:")
-            console.debug(e)
-            try {
-                userDatabase.exec(`DROP TABLE "PlayerInfo"`)
-            } catch {}
-            userDatabase.exec(`CREATE TABLE IF NOT EXISTS "PlayerInfo" (
-            "id"	INTEGER UNIQUE,
-            "timeTillTimeout"	INTEGER,
-            "lastHitTime"	INTEGER,
-            "timeSpentInTimeout" INTEGER,
-            PRIMARY KEY("id")
-            )`)
-        }
-    }
-})();
-
-
-let {timeTillTimeout, lastHitTime, timeSpentInTimeout} = userDatabase.prepare('Select timeTillTimeout, lastHitTime From PlayerInfo WHERE id=?')
-    .get(botConfig.id)
-
-timeTillTimeout = 0
-lastHitTime = 0
+const { RateLimiter } = require('limiter')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -272,7 +234,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
 const attacks = []
 let alreadyRunning = false
-const napTime = 1000 * 60 * 60 * 2
 let attackCount = undefined
 let attackThreshold = undefined
 
@@ -284,6 +245,9 @@ xtHandler.on("gai", obj => {
     attackThreshold = obj.ACTH
 })
 let announced = false
+
+const limiter = new RateLimiter({ tokensPerInterval : 60 / (8 / 60) - 8, interval: "hour"})
+
 const waitToAttack = callback => new Promise((resolve, reject) => {
     if(!botConfig.externalEvent && attackCount >= Number(pluginOptions.attackLimit ?? attackThreshold)) {
         if(!announced) {
@@ -291,11 +255,6 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
             console.log("Max attacks reached")
         }
         return reject("ATTACK_LIMIT_REACHED")
-    }
-
-    if (timeTillTimeout == 0) {
-        timeTillTimeout = Date.now() + napTime
-        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
     }
 
     attacks.push(() => {
@@ -320,31 +279,11 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
                     console.debug("attackDelayAttack", naturalDelay)
-
-                    const time = Date.now()
-                    const deltaLastHitTime = lastHitTime - time
-                    const deltaTimeTillTimeout = timeTillTimeout - time
-                    const takeBreak = async (timeTillNextHit) => {
-                        if (timeTillNextHit > 0) {
-                            timeSpentInTimeout = time + timeTillNextHit
-                            console.log("takingBreakPreventBan", Math.round(timeTillNextHit / 1000 / 60))
-                            await sleep(timeTillNextHit)
-                        }
-                        timeTillTimeout = Date.now() + napTime
-                        setTimeTillTimeout.run(timeTillTimeout, botConfig.id)
-                        timeSpentInTimeout = 0
-                        setTimeSpentInTimeout.run(timeSpentInTimeout, botConfig.id)
-                    }
-                    if(timeSpentInTimeout > 0)
-                        await takeBreak(timeSpentInTimeout - time)
-                    else if (deltaTimeTillTimeout + deltaLastHitTime <= 0)
-                        await takeBreak(1000 * 60 * 30 - (deltaTimeTillTimeout - deltaLastHitTime))
-
-                    lastHitTime = Date.now()
-                    setLastHitTime.run(lastHitTime, botConfig.id)
-
+                    
                     if (!await (attacks.shift()()))
                         continue
+
+                    await limiter.removeTokens(1)
 
                     await sleep(naturalDelay)
                 } catch (innerError) {
@@ -369,6 +308,5 @@ module.exports = {
     getAmountSoldiersFlank,
     getAmountSoldiersFront,
     getMaxUnitsInReinforcementWave,
-    boxMullerRandom,
-    sleep
+    boxMullerRandom
 }

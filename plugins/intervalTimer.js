@@ -6,7 +6,7 @@ if (!isMainThread)
 const { changeUser, getUser, events } = require("../main.js")
 const dayjs = require("dayjs")
 
-module.exports = {
+return module.exports = { //broken
     pluginOptions: [
         {
             type: "Text",
@@ -20,7 +20,8 @@ module.exports = {
             type: "Time",
             key: "stopTimer"
         }
-    ]
+    ],
+    hidden : true
 }
 function getTimeFromNow(hours, minutes) {
     const now = new Date()
