@@ -16,7 +16,8 @@ const ErrorType = require('./errors.json')
 const ActionType = require('./actions.json')
 const { I18n } = require('i18n')
 const { EventEmitter } = require('node:stream')
-
+if(process.platform === "win32")
+  require("node-prevent-sleep").enable()
 const events = new EventEmitter()
 
 

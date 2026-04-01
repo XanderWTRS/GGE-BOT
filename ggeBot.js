@@ -248,17 +248,7 @@ webSocket.onclose = () => {
 
 events.on("configModified", () => console.log("botConfigReloaded"))
 events.on("unload", () => console.debug("errorCount", errorCount))
-events.on("eventStart", eventInfo => {
-    if (eventInfo.EID != 117)
-        return
-    if (eventInfo.FTDC != 1)
-        return
-    if (playerInfo.rubies < 100)
-        return
 
-    console.log("grabbedFortuneTellerFortune")
-    sendXT("ftl", JSON.stringify({}))
-})
 events.once("load", async () => {
     const { getResourceCastleList, AreaType, KingdomID, ClassTypes } = require('./protocols.js')
     const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
