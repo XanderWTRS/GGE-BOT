@@ -38,9 +38,9 @@ if not exist "website\build\index.html" goto rebuild
 if exist "website\needsRebuild" goto rebuild
 
 :start
-
-if NOT exist "node_modules\" goto update
-if exist "update" goto update
+call npm i
+@REM if NOT exist "node_modules\" goto update
+@REM if exist "update" goto update
 
 start http://127.0.0.1:3001
 node --optimize-for-size --no-warnings main.js
@@ -49,13 +49,13 @@ exit
 :rebuild
 echo. 2> "website\needsRebuild"
 cd website
-call npm install
+call npm i
 call npm run build
 if exist "website\needsRebuild" del /f /q "needsRebuild"
 cd ..
 goto start
 :update
 echo. 2> "update"
-call npm install
+call npm i
 del /f /q "update"
 goto start
