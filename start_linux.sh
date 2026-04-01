@@ -40,9 +40,9 @@ if [ ! -f website/build/index.html ] || [ -f website/needsRebuild ]; then
   cd ..
 fi
 
-if test -f .update || [ ! -d "node_modules" ]; then
+if test -f update || [ ! -d "node_modules" ]; then
   npm i
-  rm -f .update
+  rm -f update
 fi
  
 if which xdg-open > /dev/null
@@ -53,4 +53,4 @@ then
   gnome-open $URL &
 fi
 
-node --no-warnings main.js
+node --optimize-for-size --no-warnings main.js

@@ -43,7 +43,7 @@ if NOT exist "node_modules\" goto update
 if exist "update" goto update
 
 start http://127.0.0.1:3001
-node --no-warnings main.js
+node --optimize-for-size --no-warnings main.js
 pause
 exit
 :rebuild
