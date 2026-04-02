@@ -250,6 +250,9 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     return true
                 })
 
+                if(result != 0)
+                    debugger
+
                 return { ...obj, result }
             })
 

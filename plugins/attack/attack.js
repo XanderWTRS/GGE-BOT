@@ -69,7 +69,7 @@ function assignUnit(unitSlot, units, maxUnits) {
 
     unit.amount -= unitAmount
 
-    if (unit[1] <= 0)
+    if (unit.amount <= 0)
         units.shift()
 
     if (unitAmount > 0) {

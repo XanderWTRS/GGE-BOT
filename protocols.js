@@ -1097,7 +1097,7 @@ movementEvents.on("return", async (/** @type {Movement} */ movement) => {
 xtHandler.on("cra", (o, r) => r == 0 ? 
     new Movement(o.AAM, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
 
-xtHandler.on("cra", (o, r) => r == err["MISSING_UNITS"] ? 
+xtHandler.on("cra", (_, r) => r == err["MISSING_UNITS"] ? 
     sendXT("dcl", JSON.stringify({ CD: 1 })) : undefined)
 xtHandler.on("cat", (o, r) => {
     if(r == 0) 
