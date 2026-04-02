@@ -23,7 +23,7 @@ const MinuteSkipType = Object.freeze({
     MS7: 60 * 24
 })
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 function haveEnoughSkips(time) {
     const skips = {

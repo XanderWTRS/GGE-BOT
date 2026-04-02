@@ -190,7 +190,7 @@ let errorCount = 0
 webSocket.onmessage = e => {
     let message = String(e.data.toString())
     if (message.charAt(0) == "%") {
-        const [cmd, _, r, obj] = message.split("%").splice(2)
+        const [,,cmd,, r, obj] = message.split("%")
         const result = Number(r)
 
         switch (cmd) {
@@ -432,7 +432,7 @@ xtHandler.on("lli", async (obj, r) => {
     parentPort.postMessage([ActionType.KillBot])
 })
 
-for (const [_, val] of Object.entries(botConfig.plugins)) {
+for (const [, val] of Object.entries(botConfig.plugins)) {
     if (!val.state)
         continue
     try {

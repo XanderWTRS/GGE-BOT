@@ -1,4 +1,3 @@
-const { PerformanceObserver } = require('node:perf_hooks')
 const { parentPort } = require("node:worker_threads")
 const EventEmitter = require("node:events")
 const NodeCache = require( "node-cache" )
@@ -70,6 +69,7 @@ const HighscoreType = Object.freeze({
 xtHandler.on("earlyLoad", () => sendXT("sce", "{}"))
 
 const map = {}
+const registry = new FinalizationRegistry(key => delete map[key])
 /**
  * @param {GAAAreaInfo} AI 
  * @param {Number} kingdomID 
@@ -77,23 +77,21 @@ const map = {}
  */
 const MapObject = (AI, kingdomID) => {
     if(kingdomID == undefined)
-        return obj
+        return AI
+    
+    const key = `${kingdomID}_${AI.x}_${AI.y}`
     /** @type {GAAAreaInfo} */
-    const obj = map[`${kingdomID}_${AI.x}_${AI.y}`]?.deref()
-        ?? (map[`${kingdomID}_${AI.x}_${AI.y}`] = new WeakRef(AI), AI)
+    const obj = map[key]?.deref()
+    if(!obj) {
+        map[key] = new WeakRef(AI)
+        registry.register(AI, key)
+        return AI
+    }
 
     Object.assign(obj, AI)
     
     return obj
 }
-
-new PerformanceObserver(_ => {
-    console.debug("GC Triggered")
-    for (const key in map) {
-        if(map[key].deref() == undefined)
-            delete map[key]
-    }
-}).observe({ entryTypes: ['gc'] })
 
 const KingdomSkipType = Object.freeze({
     sendResource: 2,

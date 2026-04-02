@@ -747,7 +747,7 @@ async function start() {
     }
 
     ws.addListener('message', async event => {
-      let [_, action, obj] = JSON.parse(event.toString())
+      const [, action, obj] = JSON.parse(event.toString())
 
       switch (action) {
         case ActionType.GetUsers: {

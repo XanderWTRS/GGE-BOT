@@ -141,7 +141,6 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
         ASCT: 0
     }
 
-    
     if (isNaN(waves) || waves <= 0)
         waves = Infinity
 
@@ -245,7 +244,7 @@ let announced = false
 
 const limiter = new RateLimiter({ tokensPerInterval : 60 / (8 / 60) - 8, interval: "hour"})
 
-const waitToAttack = callback => new Promise((resolve, reject) => {
+const waitToAttack = callback => new Promise(async (resolve, reject) => {
     if(!botConfig.externalEvent && attackCount >= Number(pluginOptions.attackLimit ?? attackThreshold)) {
         if(!announced) {
             announced = true
@@ -268,31 +267,28 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
     
     if (!alreadyRunning) {
         alreadyRunning = true
-        setImmediate(async () => {
-            while (attacks?.length > 0) {
-                try {
-                    const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
-                    const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
-                    const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
+        while (attacks?.length > 0) {
+            try {
+                const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
+                const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
+                const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
-                    console.debug("attackDelayAttack", naturalDelay)
-                    
-                    if (!await (attacks.shift()()))
-                        continue
+                console.debug("attackDelayAttack", naturalDelay)
 
-                    await limiter.removeTokens(1)
+                if (!await(attacks.shift()()))
+                    continue
 
-                    await sleep(naturalDelay)
-                } catch (innerError) {
-                    if (innerError !== "NO_MORE_TROOPS") {
-                        console.warn("failedToHandleAttack", innerError)
-                        console.error(innerError)
-                    }
+                await limiter.removeTokens(1)
+                await sleep(naturalDelay)
+            } catch (innerError) {
+                if (innerError !== "NO_MORE_TROOPS") {
+                    console.warn("failedToHandleAttack", innerError)
+                    console.error(innerError)
                 }
             }
-            
-            alreadyRunning = false
-        })
+        }
+
+        alreadyRunning = false
     }
 })
 

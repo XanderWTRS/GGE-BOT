@@ -1,10 +1,10 @@
-if (require('node:worker_threads').isMainThread)
+if (require("node:worker_threads").isMainThread)
     return module.exports = { hidden: true }
 
-const pretty = require('pretty-time')
+const pretty = require("pretty-time")
 const { getCommanderStats } = require("../../getEquipment")
 const { spendSkip, haveEnoughSkips } = require("../skips.js")
-const { castles, ClientCommands, AreaType, KingdomID, movements, movementEvents, resources } = require('../../protocols')
+const { castles, ClientCommands, AreaType, KingdomID, movements, movementEvents, resources } = require("../../protocols")
 const { 
     waitToAttack, 
     getAttackInfo, 
@@ -33,16 +33,14 @@ async function barronHit(type, kingdomID, options, maxLevel) {
     const castle = castles.find(e => e.kingdomID == kingdomID && 
         [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
 
-    /** @type {Array<import("../../protocols.js").ClassTypes.GAAAreaInfo>} */
-    const areas = []
     do {
         try {
-            areas.push(...((await ClientCommands.getAreaInfo(kingdomID,
+            var areas = (await ClientCommands.getAreaInfo(kingdomID,
                 castle.areaInfo.x - 50, castle.areaInfo.y - 50,
                 castle.areaInfo.x + 50, castle.areaInfo.y + 50))
                 .areaInfo.filter(ai => ai.type == type).sort((a, b) =>
                     (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
-                    (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))))
+                    (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
             break
         } catch (e) {
             console.warn(e)
@@ -58,7 +56,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
 
             await sendXT("msd", JSON.stringify({ 
                 X: areaInfo.x, Y: areaInfo.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
-            let result = (await waitForResult("msd", 7000, (obj, result) => {
+            const [, result] = (await waitForResult("msd", 7000, (obj, result) => {
                 if (result != 0)
                     return true
 
@@ -68,7 +66,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     obj.AI[2] != areaInfo.y)
                     return false
                 return true
-            }))[1]
+            }))
 
             if (result != 0)
                 break
@@ -118,13 +116,13 @@ async function barronHit(type, kingdomID, options, maxLevel) {
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
-                const attackerWallTools = []
                 const attackerShieldTools = []
+                const attackerWallTools = []
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
                     
-                    if (unit.unitInfo == undefined)
+                    if (unit.unitInfo == undefined || unit.amount <= 0)
                         continue
 
                     if (unit.unitInfo.toolCategory &&
@@ -250,20 +248,12 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     return true
                 })
 
-                if(result != 0)
-                    debugger
+                if (result != 0)
+                    throw err[result]
 
                 return { ...obj, result }
             })
 
-            if (!attackInfo) {
-                freeCommander(commander.lordID)
-                return false
-            }
-            if (attackInfo.result != 0) {
-                console.debug(`${JSON.stringify(attackInfo)}`)
-                throw err[attackInfo.result]
-            }
             console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {

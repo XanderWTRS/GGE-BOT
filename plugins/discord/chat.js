@@ -91,7 +91,7 @@ clientReady.then(async client => {
         if (message.attachments.size > 0)
             msg += "attached: "
         let i = 0
-        for await (const [_, attachment] of message.attachments.entries()) {
+        for await (const [, attachment] of message.attachments.entries()) {
             const url = await turl.shorten(attachment.proxyURL)
             msg += `<a href="${url}">${i++}</a> `
         }
