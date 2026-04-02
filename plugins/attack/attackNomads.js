@@ -158,7 +158,7 @@ events.on("eventStart", async eventInfo => {
     if(eventInfo.EDID == 0)
         classic = true
 
-    const castle = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.mainCastle)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
 
     do {
         try {
@@ -253,13 +253,13 @@ events.on("eventStart", async eventInfo => {
                     throw "NO_MORE_TROOPS"
 
                 attackerNomadTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
                 attackerGateNomadTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
                 attackerWallNomadTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
                 attackerShieldNomadTools.sort((a, b) =>
-                    Number(b[0].khanTabletBooster) - Number(a[0].khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
 
                 if (pluginOptions.lowValueChests) {
                     attackerNomadTools.reverse()

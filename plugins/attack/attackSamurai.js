@@ -148,7 +148,7 @@ events.on("eventStart", async eventInfo => {
     if([0,-1].includes(eventInfo.EDID))
         classic = true
 
-    const castle = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.mainCastle)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
     do {
         try {
             var gaa = await ClientCommands.getAreaInfo(kingdomID,

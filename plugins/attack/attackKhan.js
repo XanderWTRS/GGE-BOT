@@ -192,7 +192,7 @@ events.on("eventStart", async eventInfo => {
     if(eventInfo.EDID == 0)
         classic = true
 
-    const castle = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.mainCastle)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
 
     quit = false
 
@@ -278,8 +278,8 @@ events.on("eventStart", async eventInfo => {
                     throw "NO_MORE_TROOPS"
 
                 attackerBannerKhanTools.sort((a, b) =>
-                    Number(b[0].ragePointBonus + Number(b.unitInfo.khanTabletBooster ?? 0)) -
-                    Number(a[0].ragePointBonus + Number(a.unitInfo.khanTabletBooster ?? 0)))
+                    Number(b.unitInfo.ragePointBonus + Number(b.unitInfo.khanTabletBooster ?? 0)) -
+                    Number(a.unitInfo.ragePointBonus + Number(a.unitInfo.khanTabletBooster ?? 0)))
 
                 attackerNomadTools.sort((a, b) =>
                     Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
@@ -334,15 +334,15 @@ events.on("eventStart", async eventInfo => {
 
                         let maxTroops = maxTroopFlank
 
-                        wave.L.U.forEach((unitSlot, i) =>
+                        wave.L.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
+                        wave.R.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
+                        wave.M.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         attackerMeleeTroops.sort((a, b) => Number(a.unitInfo.meleeAttack) - Number(b.unitInfo.meleeAttack))

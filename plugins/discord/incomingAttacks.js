@@ -127,7 +127,7 @@ xtHandler.on("gam", func = async obj => {
         if (member != undefined) {
             let shouldAlertMember = () => member?.presence?.status == undefined || (member?.presence?.status !== PresenceUpdateStatus.Online && member?.presence?.status !== PresenceUpdateStatus.DoNotDisturb)
             if (movement.M.KID != 4 && shouldAlertMember()) {
-                let spreadAlert = async () => shouldAlertMember() ? await channelAlert.send(mention) : void 0
+                let spreadAlert = async () => shouldAlertMember() ? await channelAlert.send(mention) : undefined
                 setTimeout(spreadAlert, time * 1000 / 4).unref()
                 setTimeout(spreadAlert, time * 1000 / 3).unref()
                 setTimeout(spreadAlert, time * 1000 / 2).unref()

@@ -29,7 +29,7 @@ const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood
 const minimumFoodRate = pluginOptions.minimumFoodRate ? Number(pluginOptions.minimumFoodRate) : 0
 
 const tryToFeast = async () => {
-    let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.type == AreaType.mainCastle).id
+    let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle).id
     let feasts = 0
 
     castles.forEach(areaInfo => {

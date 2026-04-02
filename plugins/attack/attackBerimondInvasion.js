@@ -105,7 +105,7 @@ events.on("eventStart", async eventInfo => {
     
     quit = false
 
-    const castle = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.mainCastle)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
 
     do {
         try {
@@ -190,18 +190,18 @@ events.on("eventStart", async eventInfo => {
                     throw "NO_MORE_TROOPS"
                 if (pluginOptions.reputation) {
                     attackerBerimondTools.sort((a, b) =>
-                        Number(b[0].reputationBonus) - Number(a[0].reputationBonus))
+                        Number(b.unitInfo.reputationBonus) - Number(a.unitInfo.reputationBonus))
                 }
                 else {
                     attackerBerimondTools.sort((a, b) =>
-                        Number(b[0].pointBonus) - Number(a[0].pointBonus))
+                        Number(b.unitInfo.pointBonus) - Number(a.unitInfo.pointBonus))
                 }
                 attackerGateBerimondTools.sort((a, b) =>
-                    Number(b[0].pointBonus) - Number(a[0].pointBonus))
+                    Number(b.unitInfo.pointBonus) - Number(a.unitInfo.pointBonus))
                 attackerWallBerimondTools.sort((a, b) =>
-                    Number(b[0].pointBonus) - Number(a[0].pointBonus))
+                    Number(b.unitInfo.pointBonus) - Number(a.unitInfo.pointBonus))
                 attackerShieldBerimondTools.sort((a, b) =>
-                    Number(b[0].pointBonus) - Number(a[0].pointBonus))
+                    Number(b.unitInfo.pointBonus) - Number(a.unitInfo.pointBonus))
 
                 if (pluginOptions.lowValueChests) {
                     attackerBerimondTools.reverse()

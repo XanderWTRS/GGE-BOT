@@ -51,8 +51,7 @@ events.once("load", async () => {
 
         setTimeout(async () => {
             let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmmountMead - stormAreaInfo.mead))
-            let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire)
-                .areaInfo.find(e => e.type == AreaType.mainCastle).extraData[0]
+            let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle)
 
             let info = await ClientCommands.getKingdomInfo(
                 mainCastleAreaID,
