@@ -134,7 +134,7 @@ async function fortressHit(kingdomID, level, options) {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
-                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.areaInfo.extraData[0])
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.areaInfo.id)
                             return
 
                         movementEvents.off("return", self)
