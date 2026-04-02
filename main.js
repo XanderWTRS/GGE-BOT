@@ -42,7 +42,8 @@ const clientOptions = {
 const client = new Client(clientOptions)
 
 console.info(i18n.__("startBanner"))
-
+console.info("There is a new testing branch at the moment only barons are functional within it.")
+console.info("This branch is aimed to those who face time out errors regularly.")
 const ggeConfigExample = `{
     "webPort" : "3001",
     "fontPath" : "",
