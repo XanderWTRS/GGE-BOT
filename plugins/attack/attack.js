@@ -60,12 +60,11 @@ function getMaxWaveCount(e) {
 }
 
 function assignUnit(unitSlot, units, maxUnits) {
-    let unit = units[0]
+    let unit = units.find(e => e.amount > 0)
     if (!unit)
         return 0
 
-    let unitType = unit.unitInfo.wodID
-    let unitAmount = Math.floor(Math.max(Math.min(unit.amount, maxUnits), 0))
+    const unitAmount = Math.floor(Math.max(Math.min(unit.amount, maxUnits), 0))
 
     unit.amount -= unitAmount
 
@@ -73,7 +72,7 @@ function assignUnit(unitSlot, units, maxUnits) {
         units.shift()
 
     if (unitAmount > 0) {
-        unitSlot[0] = unitType
+        unitSlot[0] = unit.unitInfo.wodID
         unitSlot[1] = unitAmount
     }
 

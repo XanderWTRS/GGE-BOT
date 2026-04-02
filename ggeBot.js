@@ -60,14 +60,13 @@ if (!botConfig.internalWorker) {
     console.trace = _console.trace
 }
 let requestCount = 0
-const rawProtocolSeparator = "%"
 async function sendXT(cmdName, paramObj) {
     try {
     console.debug(cmdName, JSON.parse(paramObj))
     } catch {}
     await limiter.removeTokens(1)
     requestCount++
-    webSocket.send(rawProtocolSeparator + ["xt", botConfig.gameServer, cmdName, 1].join(rawProtocolSeparator) + rawProtocolSeparator + paramObj + rawProtocolSeparator)
+    webSocket.send(`%xt%${botConfig.gameServer}%${cmdName}%1%${paramObj}%`)
 }
 
 let lordErrors = 0
@@ -189,40 +188,42 @@ webSocket.onopen = () => webSocket.send('<msg t="sys"><body action="verChk" r="0
 let errorCount = 0
 
 webSocket.onmessage = e => {
-    let message = e.data.toString()
-    if (message.charAt(0) == rawProtocolSeparator) {
-        let params = message.substr(1, message.length - 2).split(rawProtocolSeparator)
-        let data = params.splice(1, params.length - 1)
+    let message = String(e.data.toString())
+    if (message.charAt(0) == "%") {
+        const [cmd, _, r, obj] = message.split("%").splice(2)
+        const result = Number(r)
 
-        switch (data[0]) {
+        switch (cmd) {
             case "gbd":
-                for (const [key, value] of Object.entries(JSON.parse(data[3])))
-                    xtHandler.emit(key, value, Number(data[2]))
+                for (const [key, value] of Object.entries(JSON.parse(obj)))
+                    xtHandler.emit(key, value, 0)
                 break
             case "vck":
-                xtHandler.emit(data[0], data[3], Number(data[2]))
+                xtHandler.emit(cmd, obj, result)
                 break
             case "gfl":
-                xtHandler.emit(data[0], data[3], Number(data[2]))
+                xtHandler.emit(cmd, obj, result)
                 break
             default:
-                if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
-                    console.debug(err[data[2]] ?? data[2], data[0])
+                if (result != 0 && !(cmd == "lli" && result == 453)) {
+                    console.debug(err[result] ?? result, cmd)
                     errorCount++
                 }
             case "core_pol":
             case "rlu":
-                if (xtHandler.listenerCount(data[0]) == 0)
+                if (xtHandler.listenerCount(cmd) == 0)
                     return
                 try {
-                    data[3] = JSON.parse(data[3])
+                    var obj2 = JSON.parse(obj)
                 }
-                catch {}
-                xtHandler.emit(data[0], data[3], Number(data[2]))
+                catch {
+                    obj2 = obj
+                }
+                xtHandler.emit(cmd, obj2, result)
         }
     }
 
-    else if (message.charAt(0) == "<") {
+    else if (message[0] == "<") {
         switch (message) {
             case "<msg t='sys'><body action='apiOK' r='0'></body></msg>":
                 webSocket.send(`<msg t="sys"><body action="login" r="0"><login z="${botConfig.gameServer}"><nick><![CDATA[]]></nick><pword><![CDATA[undefined%en%0]]></pword></login></body></msg>`)
