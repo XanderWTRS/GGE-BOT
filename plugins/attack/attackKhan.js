@@ -69,7 +69,6 @@ if (require('node:worker_threads').isMainThread)
 
     }
 
-const troopBlackList = [277, 34, 35]
 const err = require("../../err.json")
 const { spendSkip } = require("../skips.js")
 const { movementEvents, ClassTypes, castles, ClientCommands, AreaType, KingdomID } = require('../../protocols.js')
@@ -88,6 +87,7 @@ const kingdomID = KingdomID.greatEmpire
 const type = AreaType.khanCamp
 const minTroopCount = 100
 const eventID = 72
+const troopBlackList = [277, 34, 35]
 
 let campRageNeeded = NaN
 
@@ -232,44 +232,41 @@ events.on("eventStart", async eventInfo => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    const unitInfo = units.find(obj => unit.unitID == obj.wodID)
-                    if (unitInfo == undefined)
-                        continue
-
-                    if (unitInfo.ragePointBonus != undefined)
-                        attackerBannerKhanTools.push([unitInfo, unit.ammount])
-                    else if (unitInfo.khanTabletBooster != undefined) {
-                        if (unitInfo.gateBonus)
-                            attackerGateNomadTools.push([unitInfo, unit.ammount])
-                        else if (unitInfo.wallBonus)
-                            attackerWallNomadTools.push([unitInfo, unit.ammount])
-                        else if (unitInfo.defRangeBonus)
-                            attackerShieldNomadTools.push([unitInfo, unit.ammount])
+                    
+                    if (unit.unitInfo.ragePointBonus != undefined)
+                        attackerBannerKhanTools.push([unit.unitInfo, unit.ammount])
+                    else if (unit.unitInfo.khanTabletBooster != undefined) {
+                        if (unit.unitInfo.gateBonus)
+                            attackerGateNomadTools.push([unit.unitInfo, unit.ammount])
+                        else if (unit.unitInfo.wallBonus)
+                            attackerWallNomadTools.push([unit.unitInfo, unit.ammount])
+                        else if (unit.unitInfo.defRangeBonus)
+                            attackerShieldNomadTools.push([unit.unitInfo, unit.ammount])
                         else
-                            attackerNomadTools.push([unitInfo, unit.ammount])
+                            attackerNomadTools.push([unit.unitInfo, unit.ammount])
                     }
                     else if (
-                        unitInfo.toolCategory &&
-                        unitInfo.usageEventID == undefined &&
-                        unitInfo.allowedToAttack == undefined &&
-                        unitInfo.typ == 'Attack' &&
-                        unitInfo.amountPerWave == undefined
+                        unit.unitInfo.toolCategory &&
+                        unit.unitInfo.usageEventID == undefined &&
+                        unit.unitInfo.allowedToAttack == undefined &&
+                        unit.unitInfo.typ == 'Attack' &&
+                        unit.unitInfo.amountPerWave == undefined
                     ) {
-                        if (unitInfo.wallBonus)
-                            attackerWallTools.push([unitInfo, unit.ammount])
-                        else if (unitInfo.defRangeBonus)
-                            attackerShieldTools.push([unitInfo, unit.ammount])
+                        if (unit.unitInfo.wallBonus)
+                            attackerWallTools.push([unit.unitInfo, unit.ammount])
+                        else if (unit.unitInfo.defRangeBonus)
+                            attackerShieldTools.push([unit.unitInfo, unit.ammount])
                     }
-                    else if (unitInfo.fightType == 0) {
-                        if(troopBlackList.includes(unitInfo.wodID))
+                    else if (unit.unitInfo.fightType == 0) {
+                        if(troopBlackList.includes(unit.unitInfo.wodID))
                             continue
-                        if(unitInfo.foodSupply && !pluginOptions.useFood)
+                        if(unit.unitInfo.foodSupply && !pluginOptions.useFood)
                             continue
 
-                        if (unitInfo.role == "melee")
-                            attackerMeleeTroops.push([unitInfo, unit.ammount])
-                        else if (unitInfo.role == "ranged")
-                            attackerRangeTroops.push([unitInfo, unit.ammount])
+                        if (unit.unitInfo.role == "melee")
+                            attackerMeleeTroops.push([unit.unitInfo, unit.ammount])
+                        else if (unit.unitInfo.role == "ranged")
+                            attackerRangeTroops.push([unit.unitInfo, unit.ammount])
                     }
                 }
 

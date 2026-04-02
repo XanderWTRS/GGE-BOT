@@ -45,8 +45,9 @@ async function fortressHit(kingdomID, level, options) {
                     if (time > 0)
                         continue
 
-                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)()
-                    if ((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - Date.now() > 0)
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)
+
+                    if (Date.now() - (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) < 0)
                         continue
 
                     index = i
