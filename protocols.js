@@ -1,6 +1,6 @@
 const { parentPort } = require("node:worker_threads")
 const EventEmitter = require("node:events")
-const NodeCache = require( "node-cache" )
+const NodeCache = require("node-cache")
 const { RateLimiter } = require("limiter")
 const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require("./ggeBot.js")
 const currencies = require("./items/currencies.json")
@@ -93,18 +93,30 @@ const MapObject = (AI, kingdomID) => {
     return obj
 }
 
+
 const KingdomSkipType = Object.freeze({
     sendResource: 2,
-    sendTroops: 1
-})
+    sendTroops: 1,
+
+    1: "sendTroops",
+    2: "sendResource"
+});
 const KingdomID = Object.freeze({
     greatEmpire: 0,
     burningSands: 1,
     everWinterGlacier: 2,
     firePeaks: 3,
     stormIslands: 4,
-    berimond: 10
-})
+    berimond: 10,
+
+    0: "Great Empire",
+    1: "Burning Sands",
+    2: "EverWinter Glacier",
+    3: "Fire Peaks",
+    4: "Storm Islands",
+    10: "Berimond"
+});
+
 const OwnedCastlePositionList = o =>
     ({ kingdomID: o[0], id: o[1], X: o[2], Y: o[3], type: o[4] })
 

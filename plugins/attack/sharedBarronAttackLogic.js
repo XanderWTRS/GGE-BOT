@@ -251,7 +251,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 if (result != 0)
                     throw err[result]
 
-                return { ...obj, result }
+                return obj
             })
 
             console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")

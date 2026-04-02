@@ -3,53 +3,17 @@ if (require('node:worker_threads').isMainThread)
         hidden: true
     }
 
-const { movements, movementEvents, resourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
+const pretty = require('pretty-time')
+const { movements, movementEvents, castles, ClientCommands, AreaType, KingdomID, spiralCoordinates } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, playerInfo } = require("../../ggeBot.js")
+const { getCommanderStats } = require('../../getEquipment')
 const err = require('../../err.json')
-const units = require("../../items/units.json")
-const pretty = require('pretty-time')
-const { getCommanderStats } = require('../../getEquipment.js')
-const getAreaCached = require('../../getMap.js')
 
 const minTroopCount = 100
 const minTroopCountCY = 500
 const type = AreaType.fortress
-
-function spiralCoordinates(n) {
-    if (n === 0) return { x: 0, y: 0 }
-
-    const k = Math.ceil((Math.sqrt(n + 1) - 1) / 2)
-    const layerStart = (2 * (k - 1) + 1) ** 2
-    const offset = n - layerStart
-    const sideLength = 2 * k
-    const side = Math.floor(offset / sideLength)
-    const posInSide = offset % sideLength
-
-    let x, y
-
-    switch (side) {
-        case 0:
-            x = k
-            y = -k + 1 + posInSide
-            break
-        case 1:
-            x = k - 1 - posInSide
-            y = k
-            break
-        case 2:
-            x = -k
-            y = k - 1 - posInSide
-            break
-        case 3:
-            x = -k + 1 + posInSide
-            y = -k
-            break
-    }
-
-    return { x, y }
-}
 
 async function fortressHit(kingdomID, level, options) {
     options.useCoin = true
@@ -57,7 +21,7 @@ async function fortressHit(kingdomID, level, options) {
 
     const areas = []
     
-    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList,
@@ -91,38 +55,32 @@ async function fortressHit(kingdomID, level, options) {
                 if (index == -1)
                     return
 
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
-
                 let AI = areas[index]
 
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, undefined, options)
+                const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, undefined, options)
 
                 const attackerTroops = []
 
-                for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i]
-                    const unitInfo = units.find(obj => unit.unitID == obj.wodID)
-                    if (unitInfo == undefined)
-                        continue
+                for (let i = 0; i < castle.unitInventory.length; i++) {
+                    const unit = castle.unitInventory[i]
 
-                    if (unitInfo.fightType == 0) {
+                    if (unit.unitInfo.fightType == 0) {
                         if (kingdomID == KingdomID.firePeaks &&
-                            unitInfo.wodID == 277 && !hasShieldMadiens)
+                            unit.unitInfo.wodID == 277 && !hasShieldMadiens)
                             continue
 
-                        if (!unitInfo.role)
+                        if (!unit.unitInfo.role)
                             continue
 
-                        attackerTroops.push([unitInfo, unit.ammount])
+                        attackerTroops.push(unit)
                     }
                 }
 
-                attackerTroops.sort((a, b) => Number(b[0].speed) - Number(a[0].speed))
+                attackerTroops.sort((a, b) => Number(b.unitInfo.speed) - Number(a.unitInfo.speed))
 
                 let allTroopCount = 0
 
-                attackerTroops.forEach(e => allTroopCount += e[1])
+                attackerTroops.forEach(e => allTroopCount += e.amount)
 
                 if (allTroopCount < minTroopCount + (hasShieldMadiens ? 0 : minTroopCountCY))
                     throw "NO_MORE_TROOPS"
@@ -137,19 +95,19 @@ async function fortressHit(kingdomID, level, options) {
 
                     let maxTroops = maxTroopFlank
 
-                    wave.L.U.forEach((unitSlot, i) =>
+                    wave.L.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerTroops, maxTroops))
                 })
 
                 if (!hasShieldMadiens) {
                     let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level)
-                    attackInfo.RW.forEach((unitSlot, i) =>
+                    attackInfo.RW.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerTroops, maxTroops))
                 }
 
                 await sendXT("cra", JSON.stringify(attackInfo))
 
-                let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
+                const [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
 
@@ -158,15 +116,16 @@ async function fortressHit(kingdomID, level, options) {
                     return true
                 })
 
-                return { ...obj, result: r }
+                if (result != 0)
+                    throw err[result]
+                return obj
             })
+
             if (!attackInfo) {
                 freeCommander(commander.lordID)
                 return false
             }
-            if (attackInfo.result != 0)
-                throw err[attackInfo.result]
-
+            
             console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
@@ -174,7 +133,7 @@ async function fortressHit(kingdomID, level, options) {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
-                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.areaInfo.extraData[0])
                             return
 
                         movementEvents.off("return", self)
@@ -204,14 +163,16 @@ async function fortressHit(kingdomID, level, options) {
             rY *= 100
 
             rect = {
-                x: sourceCastleArea.x + rX - 50,
-                y: sourceCastleArea.y + rY - 50,
-                w: sourceCastleArea.x + rX + 50,
-                h: sourceCastleArea.y + rY + 50
+                x: castle.areaInfo.x + rX - 50,
+                y: castle.areaInfo.y + rY - 50,
+                w: castle.areaInfo.x + rX + 50,
+                h: castle.areaInfo.y + rY + 50
             }
             if (j > Math.pow(13 * 13, 2))
                 break done
-        } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+        } while ((castle.areaInfo.x + rX) <= -50 || 
+            (castle.areaInfo.y + rY) <= -50 || (castle.areaInfo.x + rX) >= (1286 + 50) || (castle.areaInfo.y + rY) >= (1286 + 50))
+        
         rect.x = rect.x < 0 ? 0 : rect.x
         rect.y = rect.y < 0 ? 0 : rect.y
         rect.w = rect.w < 0 ? 0 : rect.w
@@ -220,22 +181,12 @@ async function fortressHit(kingdomID, level, options) {
         rect.y = rect.y > 1286 ? 1286 : rect.y
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
-        let gaa
-        let attemptsLeft = 5
-        do {
-            try {
-                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
-            }
-            catch { attemptsLeft-- }
-            if (attemptsLeft <= 0)
-                continue done
-        } while (!gaa)
-
-        areas.push(...gaa.areaInfo.filter(e => e.type == type))
+        
+        areas.push(...(await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)).areaInfo.filter(e => e.type == type))
 
         areas.sort((a, b) =>
-            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+            (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
+            (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
         while (await sendHit());
     }
 
