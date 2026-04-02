@@ -6,32 +6,26 @@ const {
     KingdomSkipType,
     KingdomID,
     AreaType,
-    getResourceCastleList,
-    getKingdomInfoList
+    kingdomInfoList,
+    castles
 } = require("../protocols.js")
 
 const { events } = require("../ggeBot.js")
 
-let hoursLeftTillRefilMandatory = 2.1
-let hoursLeftTillRefilWarning = 3.1
-let sendResTimeout = 29 * 30 * 1000
-let targetKingdomID = KingdomID.stormIslands
+const hoursLeftTillRefilMandatory = 2.1
+const hoursLeftTillRefilWarning = 3.1
+const sendResTimeout = 29 * 30 * 1000
+const targetKingdomID = KingdomID.stormIslands
 
 events.once("load", async () => {
-    let kingdomInfoList = await getKingdomInfoList()
-    let resourceCastleList = await getResourceCastleList()
-
     if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
 
-    let checkMead = async () => {
-        let dcl = await ClientCommands.getDetailedCastleList()
-        let stormAreaID = resourceCastleList.castles.find(e => e.kingdomID == targetKingdomID)
-            .areaInfo.find(e => e.type == AreaType.externalKingdom)
-            .extraData[0] // AreaID
+    const stormAreaInfo = castles.find(e => e.kingdomID == targetKingdomID &&
+        e.type == AreaType.externalKingdom)
 
+    let checkMead = async () => {
         let resource = kingdomInfoList.resourceTransferList.find(e => e.kingdomID == targetKingdomID)
-        let stormAreaInfo = dcl.castles.find(e => e.kingdomID == targetKingdomID).areaInfo.find(ai => ai.areaID == stormAreaID)
 
         let resourceMead = resource?.resources?.find(e => e.type == "MEAD")
         if (resourceMead)
@@ -56,15 +50,8 @@ events.once("load", async () => {
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
 
         setTimeout(async () => {
-            let dcl = await ClientCommands.getDetailedCastleList()
-            let stormAreaID = resourceCastleList.castles.find(e => e.kingdomID == targetKingdomID)
-                .areaInfo.find(e => e.type == AreaType.externalKingdom)
-                .extraData[0] // AreaID
-
-            let stormAreaInfo = dcl.castles.find(e => e.kingdomID == targetKingdomID).areaInfo.find(ai => ai.areaID == stormAreaID)
-
             let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmmountMead - stormAreaInfo.mead))
-            let mainCastleAreaID = resourceCastleList.castles.find(e => e.kingdomID == KingdomID.greatEmpire)
+            let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire)
                 .areaInfo.find(e => e.type == AreaType.mainCastle).extraData[0]
 
             let info = await ClientCommands.getKingdomInfo(
@@ -74,9 +61,9 @@ events.once("load", async () => {
                 [["MEAD", ammount]]
             )()
             if (info.result == 0)
-                console.log("sentMeadReplace", ammount, "meadToMeadReplace", KingdomID[targetKingdomID])
+                console.log("sentMeadReplace", ammount, "meadToMeadReplace")
             else
-                console.log("failedToSendMead", KingdomID[targetKingdomID])
+                console.log("failedToSendMead")
             
             setTimeout(checkMead, sendResTimeout)
 

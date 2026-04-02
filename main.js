@@ -24,7 +24,7 @@ const events = new EventEmitter()
 const i18n = new I18n({
   locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs', 'nl', 'fr'],
   directory: path.join(__dirname, 'website', 'public', 'locales'),
-  updateFiles: false,
+  updateFiles: false
 })
 
 const clientOptions = { 
@@ -301,7 +301,7 @@ async function start() {
     console.debug(e)
   }
   try {
-    pluginData.push(...require('./plugins-exploits'))
+    pluginData.push(...require('./plugins-personal'))
   } catch {}
 
   const plugins = pluginData

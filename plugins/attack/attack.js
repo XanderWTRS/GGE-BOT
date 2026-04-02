@@ -20,10 +20,10 @@ if (require('node:worker_threads').isMainThread) {
     }
 }
 
-const { getPermanentCastle, resources } = require('../../protocols')
+const { RateLimiter } = require('limiter')
+const { resources } = require('../../protocols')
 const { botConfig, playerInfo, xtHandler } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
-const { RateLimiter } = require('limiter')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -64,25 +64,25 @@ function assignUnit(unitSlot, units, maxUnits) {
     if (!unit)
         return 0
 
-    let unitType = unit[0].wodID
-    let unitAmmount = Math.floor(Math.max(Math.min(unit[1], maxUnits),0))
+    let unitType = unit.unitInfo.wodID
+    let unitAmount = Math.floor(Math.max(Math.min(unit.amount, maxUnits), 0))
 
-    unit[1] -= unitAmmount
+    unit.amount -= unitAmount
 
     if (unit[1] <= 0)
         units.shift()
 
-    if (unitAmmount > 0) {
+    if (unitAmount > 0) {
         unitSlot[0] = unitType
-        unitSlot[1] = unitAmmount
+        unitSlot[1] = unitAmount
     }
 
-    return unitAmmount
+    return unitAmount
 }
 function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, additionalWaves) {
     const attackTarget = {
-        SX: sourceCastle.x,
-        SY: sourceCastle.y,
+        SX: sourceCastle.areaInfo.x,
+        SY: sourceCastle.areaInfo.y,
         TX: AI.x,
         TY: AI.y,
         KID: kid,
@@ -175,9 +175,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
         setupWave([0, 13], wave.R.U)
         attackTarget.A.push(wave)
     }
-    const castleData = getPermanentCastle().find(e => e.kingdomID == kid &&
-        (kid == 10 || e.areaID == sourceCastle.extraData[0]))
-    const unlockedHorses = castleData?.unlockedHorses
+    const unlockedHorses = sourceCastle.unlockedHorses
 
     if (options.useCoin && !options.useFeather) {
         let bestHorse = -1
@@ -272,7 +270,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
     if (!alreadyRunning) {
         alreadyRunning = true
         setImmediate(async () => {
-            do {
+            while (attacks?.length > 0) {
                 try {
                     const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
                     const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
@@ -293,7 +291,7 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
                     }
                 }
             }
-            while (attacks?.length > 0);
+            
             alreadyRunning = false
         })
     }

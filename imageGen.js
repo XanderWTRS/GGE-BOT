@@ -34,7 +34,7 @@ let wavePattern = {
 }
 
 
-let createLayout = ((GA) => {
+let createLayout = GA => {
   let passThroughStream = new Stream.PassThrough()
     ; (async () => {
       if(!ggeConfig.fontPath)
@@ -65,10 +65,10 @@ let createLayout = ((GA) => {
 
       await Promise.allSettled(resolves)
       await PImage.encodePNGToStream(img, passThroughStream, { deflateStrategy: 3, deflateLevel: 9 })
-    })();
+    })()
 
   return passThroughStream
-})
+}
 
 let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => 
   new Promise(async (resolve, reject) => {

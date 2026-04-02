@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, getResourceCastleList, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
+const { ClientCommands: { preSpyInfo }, resourceCastleList, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
 const getAreaCached = require('../../getMap.js')
 const { client } = require("./discord.js")
 
@@ -22,8 +22,7 @@ events.once("load", async () => {
     if (!(await getKingdomInfoList()).unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
     
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
+    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
 
     /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
     const areas = []

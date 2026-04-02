@@ -3,7 +3,7 @@ if (require('node:worker_threads').isMainThread)
         hidden: true
     }
 
-const { movements, movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
+const { movements, movementEvents, resourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, playerInfo } = require("../../ggeBot.js")
@@ -57,8 +57,7 @@ async function fortressHit(kingdomID, level, options) {
 
     const areas = []
     
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => AreaType.externalKingdom == e.type)
+    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList,
@@ -93,8 +92,7 @@ async function fortressHit(kingdomID, level, options) {
                     return
 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+                    .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
 
                 let AI = areas[index]
 

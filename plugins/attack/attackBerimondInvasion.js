@@ -40,7 +40,7 @@ if (require('node:worker_threads').isMainThread)
 
     }
 const { spendSkip } = require("../skips.js")
-const { movementEvents, ClassTypes, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols.js')
+const { movementEvents, ClassTypes, castles, ClientCommands, AreaType, KingdomID } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require('../commander.js')
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require('../../ggeBot.js')
@@ -105,8 +105,7 @@ events.on("eventStart", async eventInfo => {
     
     quit = false
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => AreaType.mainCastle == e.type)
+    const sourceCastleArea = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.mainCastle)
 
     let error = false
     let gaa
@@ -120,9 +119,10 @@ events.on("eventStart", async eventInfo => {
             console.error(e)
             error = true
         }
-    } while (error);
+    } while (error)
 
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
+    const sourceCastle = castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
 
     while (!quit) {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList)
@@ -133,11 +133,6 @@ events.on("eventStart", async eventInfo => {
                 areaInfo.push(AI)
 
                 await skipTarget(AI)
-
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-
                 const level = AI.extraData[1] + AI.extraData[6] == 100 ? 70 : 56
 
                 const attackerMeleeTroops = []

@@ -1,11 +1,15 @@
-const fs = require("fs/promises")
-const { RateLimiter } = require("limiter")
 const { PerformanceObserver } = require('node:perf_hooks')
+const { parentPort } = require("node:worker_threads")
+const EventEmitter = require("node:events")
+const NodeCache = require( "node-cache" )
+const { RateLimiter } = require("limiter")
 const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require("./ggeBot.js")
 const currencies = require("./items/currencies.json")
-const { parentPort } = require("node:worker_threads")
 const ActionType = require("./actions.json")
-const EventEmitter = require("node:events")
+const units = require("./items/units.json")
+const err = require("./err.json")
+
+const myCache = new NodeCache({useClones : false})
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -63,12 +67,9 @@ const HighscoreType = Object.freeze({
     honour: 5
 })
 
-xtHandler.on("earlyLoad", () =>
-    sendXT("sce", "{}"))
+xtHandler.on("earlyLoad", () => sendXT("sce", "{}"))
 
 const map = {}
-// const tillMapObjectExpires = 1000 * 60
-// const mapTimer = new WeakMap()
 /**
  * @param {GAAAreaInfo} AI 
  * @param {Number} kingdomID 
@@ -76,52 +77,15 @@ const map = {}
  */
 const MapObject = (AI, kingdomID) => {
     if(kingdomID == undefined)
-        return
+        return obj
     /** @type {GAAAreaInfo} */
     const obj = map[`${kingdomID}_${AI.x}_${AI.y}`]?.deref()
         ?? (map[`${kingdomID}_${AI.x}_${AI.y}`] = new WeakRef(AI), AI)
 
     Object.assign(obj, AI)
-
-    // const timer = mapTimer.get(obj)
-
-    // if(!timer)
-    //     mapTimer.set(obj, setTimeout(() => obj, tillMapObjectExpires))
-    // else
-    //     timer.refresh()
-
-    if(JSON.stringify(obj.extraData) == JSON.stringify(AI.extraData))
-        return obj
-
-    console.debug("Monitored object changed")
-    console.debug("original: ", obj)
-    console.debug("changed: ", AI)
-
-    // events.emit(`area_${obj.type}_${kingdomID}`, obj)
-
+    
     return obj
 }
-
-const GetMapObjects = (type, kingdomID, fromX, fromY, toX, toY) =>
-    Object.entries(map).map(([key, _value]) => {
-        if (!key.match(new RegExp(`${kingdomID}_\d+_\d+`)))
-            return
-        const value = _value.deref()
-
-        if (!value || value.type != type)
-            return
-
-        let startX = fromX < toX ? fromX : toX
-        let startY = fromY < toY ? fromY : toY
-        let endX = fromX >= toX ? fromX : toX
-        let endY = fromY >= toY ? fromY : toY
-
-        if (x < startX || x > endX ||
-            y < startY || y > endY)
-            return
-
-        return value
-    }).filter(e => e !== undefined)
 
 new PerformanceObserver(_ => {
     console.debug("GC Triggered")
@@ -133,28 +97,18 @@ new PerformanceObserver(_ => {
 
 const KingdomSkipType = Object.freeze({
     sendResource: 2,
-    sendTroops: 1,
-
-    1: "sendTroops",
-    2: "sendResource"
-});
+    sendTroops: 1
+})
 const KingdomID = Object.freeze({
     greatEmpire: 0,
     burningSands: 1,
     everWinterGlacier: 2,
     firePeaks: 3,
     stormIslands: 4,
-    berimond: 10,
-
-    0: "Great Empire",
-    1: "Burning Sands",
-    2: "EverWinter Glacier",
-    3: "Fire Peaks",
-    4: "Storm Islands",
-    10: "Berimond"
-});
+    berimond: 10
+})
 const OwnedCastlePositionList = o =>
-    ({ kingdomID: o[0], areaID: o[1], X: o[2], Y: o[3], areaType: o[4] })
+    ({ kingdomID: o[0], id: o[1], X: o[2], Y: o[3], type: o[4] })
 
 const Crest = o => ({
     backgroundType: Number(o.BGT),
@@ -180,7 +134,7 @@ class GAAAreaInfo {
         this.timeSinceRequest = Number(Date.now())
     }
 }
-const FactionData = o => (o ? {
+const FactionData = o => ({
     mainCampID: Number(o.MC),
     factionID: Number(o.FID),
     factionTitleID: Number(o.TID),
@@ -188,7 +142,7 @@ const FactionData = o => (o ? {
     protectionStatus: Number(o.PMS),
     protectionTime: Number(o.PMT),
     specialCampID: Number(o.SPC)
-} : undefined)
+})
 
 const ServerUserAttackProtection = o => ({
     kingdomID: Number(o?.KID),
@@ -202,7 +156,7 @@ class OwnerInfo {
         this.ownerID = Number(o.OID)
         this.isDummy = Boolean(o.DUM)
         this.name = String(o.N)
-        this.crest = o.E ? Crest(o.E) : void 0
+        this.crest = o.E ? Crest(o.E) : undefined
         this.level = Number(o.L + o.LL)
         this.honour = Number(o.H)
         this.achievementPoints = Number(o.AVP)
@@ -225,7 +179,7 @@ class OwnerInfo {
         this.remainingRelocationTime = Number(o.RRD)
         this.islandTitleID = Number(o.TI)
         this.remainingNoobTime = Number(o.RNP)
-        this.factionID = FactionData(o.FN)
+        this.factionID = o.FN ? FactionData(o.FN) : undefined
     }
 }
 
@@ -271,54 +225,62 @@ const clientPreSpyInfo = (x, y, kingdomID) => {
     }
 }
 
-const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" });
+const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" })
 
 /**
- * This will give you at max a 100x100 chunk of the map
-*/
-const clientGetAreaInfo = (kingdomID, fromX, fromY, toX, toY) => {
-    const waitObject = limiter.removeTokens(1).then(() => areaInfoLock(() => 
-        sendXT("gaa", JSON.stringify({
-            KID: Number(kingdomID),
-            AX1: Number(fromX),
-            AY1: Number(fromY),
-            AX2: Number(toX),
-            AY2: Number(toY)
-        })))).then(async (limiter) => {
-            await limiter
-            return waitForResult("gaa", 1000 * 10, (obj, result) => {
-                if (Number(result) != 0)
-                    return true
-
-                if (obj.KID != kingdomID)
-                    return false
-
-                let ai = obj.AI[0]
-                if (ai == undefined)
-                    return false
-
-                let x = ai[1]
-                let y = ai[2]
-
-                let startX = fromX < toX ? fromX : toX
-                let startY = fromY < toY ? fromY : toY
-                let endX = fromX >= toX ? fromX : toX
-                let endY = fromY >= toY ? fromY : toY
-
-                if (x < startX || x > endX ||
-                    y < startY || y > endY)
-                    return false
-
+ * 
+ * @param {Number} kingdomID 
+ * @param {Number} fromX 
+ * @param {Number} fromY 
+ * @param {Number} toX 
+ * @param {Number} toY 
+ * @returns {Promise<import("./protocols.js").ClassTypes.ServerGetAreaInfo>}
+ */
+async function getAreaInfo(kingdomID, fromX, fromY, toX, toY) {
+    const key = `${kingdomID}_${fromX}_${fromY}_${fromX}_${fromY}`
+    let response = myCache.get(key)
+    
+    if(!response) {
+        await limiter.removeTokens(1).then(() => kingdomLock(() =>
+            sendXT("gaa", JSON.stringify({
+                KID: Number(kingdomID),
+                AX1: Number(fromX),
+                AY1: Number(fromY),
+                AX2: Number(toX),
+                AY2: Number(toY)
+            }))))
+        const [o, result] = await waitForResult("gaa", 1000 * 10, (obj, result) => {
+            if (Number(result) != 0)
                 return true
 
-            })
+            if (obj.KID != kingdomID)
+                return false
+
+            let ai = obj.AI[0]
+            if (ai == undefined)
+                return false
+
+            let x = ai[1]
+            let y = ai[2]
+
+            let startX = fromX < toX ? fromX : toX
+            let startY = fromY < toY ? fromY : toY
+            let endX = fromX >= toX ? fromX : toX
+            let endY = fromY >= toY ? fromY : toY
+
+            if (x < startX || x > endX ||
+                y < startY || y > endY)
+                return false
+
+            return true
+
         })
-    return async () => {
-        const [gaa, result] = await waitObject
-        
-        gaa.result = result
-        return new ServerGetAreaInfo(gaa)
+        o.result = result
+        response = new ServerGetAreaInfo(o)
+        if(response == 0)
+            myCache.set(key, response, 60)
     }
+    return response
 }
 
 const StormInfo = e => ({
@@ -329,27 +291,14 @@ const StormInfo = e => ({
     playerAquaPoints: Number(e.AP),
     result: Number(e.result)
 })
-const clientGetStormIslandInfo = () => {
-    const limiter = sendXT("ssi", JSON.stringify({}))
-    
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("ssi", 1000 * 10)
+async function clientGetStormIslandInfo() {
+    await sendXT("ssi", JSON.stringify({}))
 
-        return StormInfo({ ...obj, result: result })
-    }
+    const [obj, result] = await waitForResult("ssi", 1000 * 10)
+
+    return StormInfo({ ...obj, result: result })
+
 }
-const AquaPlayerScores = e => ({
-    playerID: Number(e[0]),
-    playerName: String(e[1]),
-    level: Number(e[2]),
-    inStorm: Boolean(e[3]),
-    allianceRank: Number(e[4])
-})
-const AlliancePointsList = e => ({
-    alliancePlayerScores: Array.from(APH).map(AquaPlayerScores),
-    result: Number(e.result)
-})
 
 const GetProductionData = e => ({
     FoodConsumptionRate: Number(e.DFC) / 10,
@@ -429,91 +378,15 @@ const GetProductionData = e => ({
 })
 
 const Unit = e => ({
-    unitID: Number(e[0]),
-    ammount: Number(e[1])
+    unitInfo: units.find(a => a.wodID == e[0]),
+    amount: Number(e[1])
 })
-
 const UnitInventory = e => ({
     unitInventory: Array.from(e.I ?? []).map(Unit),
     strongHoldInventory: Array.from(e.SHI ?? []).map(Unit),
-    hospitalInventory: Array.from(e.HI ?? []).map(Unit)
-})
-const DCLAreaInfo = e => ({
-    areaID: Number(e.AID),
-    wood: Number(e.W),
-    stone: Number(e.S),
-    food: Number(e.F),
-    coal: Number(e.C),
-    oil: Number(e.O),
-    glass: Number(e.G),
-    iron: Number(e.I),
-    honey: Number(e.HONEY),
-    mead: Number(e.MEAD),
-    aqua: Number(e.A),
-    defence: Number(e.D),
-    getProductionData: GetProductionData(e.gpa),
-    unitInventory: Array.from(e.AC ?? []).map(Unit),
-    strongHoldInventory: Array.from(e.SHI ?? []).map(Unit),
     hospitalInventory: Array.from(e.HI ?? []).map(Unit),
-    travelingUnits: Array.from(e.TU ?? []).map(Unit), //TODO: check that this is valid
-    marketCarriagesCount: Number(e.MC ?? []),
-    hasBarracks: Boolean(e.B),
-    hasSiegeWorkshop: Boolean(e.WS),
-    hasDefenseWorkshop: Boolean(e.DW),
-    hasHospital: Boolean(e.H),
-    openGateTime: Number(e.OGT)
+    travelingUnits: Array.from(e.TU ?? []).map(Unit)
 })
-
-// const allianceHelpRequest = e => ({
-//     confirmed: Boolean(e.AC),
-//     listID: Integer(e.LID),
-//     playerName: String(e.PN),
-//     progress: Integer(e.P),
-//     playerID: Integer(e.PID),
-//     requestTypeId: Integer(e.TID),
-//     optionalParamsID: Integer(e.OP),
-//     remainingTime: Integer(e.RT)
-// })
-
-const DclCastleList = e => ({
-    kingdomID: Number(e.KID),
-    areaInfo: Array.from(e.AI).map(DCLAreaInfo)
-})
-const DetailedCastleList = e => ({
-    playerID: Number(e.PID),
-    castles: Array.from(e.C).map(DclCastleList),
-    result: Number(e.result)
-})
-const clientGetDetailedCastleList = async () => {
-    let waitObject
-    let attemptsLeft = 5
-    do {
-        await sendXT("dcl", JSON.stringify({ CD: 1 }))
-        try {
-            waitObject = waitForResult("dcl", 1000 * 60)
-        }
-        catch(e) {
-            if (attemptsLeft-- <= 0)
-                throw e
-            continue
-        }
-        break
-    } while (true)
-
-    const [obj, result] = await waitObject
-    return DetailedCastleList({ ...obj, result: result })
-}
-
-const clientGetUnitInventory = () => {
-    const limiter = sendXT("gui", JSON.stringify({}))
-    
-    return async () => {
-        await limiter
-        let [obj, result] = await waitForResult("gui", 1000 * 10)
-
-        return UnitInventory({ ...obj, result: result })
-    }
-}
 const UnlockInfo = e => ({
     kingdomID: Number(e.KID),
     isUnlocked: Boolean(e.U),
@@ -522,19 +395,15 @@ const UnlockInfo = e => ({
     kingdomResource: Number(e.KRS), //Probs relating to storm
     eventRewardsEndID: Number(e.CRS), //Probs relating to storm rewards
 })
-const UnitTransferResource = e => ({
-    type: String(e[0]),
-    count: Number(e[1])
-})
 const ResourceTransfer = e => ({
     kingdomID: Number(e.KID),
     remainingTime: Number(e.RS),
-    resources: Array.from(e.G).map(UnitTransferResource)
+    resources: Array.from(e.G).map(Unit)
 })
 const TroopTransfer = e => ({
     kingdomID: Number(e.KID),
     remainingTime: Number(e.RS),
-    units: Array.from(e.I).map(UnitTransferResource)
+    units: Array.from(e.I).map(Unit)
 })
 const KingdomInfo = e => ({ //KPI
     unlockInfo: Array.from(e.UL ?? []).map(UnlockInfo),
@@ -567,15 +436,12 @@ const ActiveQuests = e => ({
     result: Number(e.result)
 })
 
-const clientActiveQuestList = () => {
-    const limiter = sendXT("aqs", JSON.stringify({}))
+const clientActiveQuestList = async () => {
+    await sendXT("aqs", JSON.stringify({}))
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("aqs", 1000 * 10)
+    const [obj, result] = await waitForResult("aqs", 1000 * 10)
 
-        return ActiveQuests({ ...obj, result: result })
-    }
+    return ActiveQuests({ ...obj, result: result })
 }
 
 //TODO: May conflict with other clientGetMinuteSkipKingdom
@@ -589,47 +455,8 @@ const clientGetMinuteSkipKingdom = (skipType, kingdomID, kingdomSkipType) => {
         return KingdomInfo({ ...obj.kpi, result: result })
     }
 }
-const GCLCastles = o => ({
-    kingdomID: Number(o.KID),
-    areaInfo: Array.from(o.AI).map(e => ({
-        ...MapObject(new GAAAreaInfo(e.AI), o.KID),
-        abandonOutpostTime: Number(e.AOT),
-        abandonOutpostTimeCooldown: Number(e.TA)
-    }))
-})
-// const ResourceCastleList = e => ({
-//     playerID: Number(e.PID),
-//     castles: Array.from(e.C).map(GCLCastles),
-//     result: Number(e.result)
-// })
-class ResourceCastleList {
-    constructor(e) {
-        this.playerID = Number(e.PID)
-        this.castles = Array.from(e.C).map(GCLCastles)
-        this.result = Number(e.result)
-    }
-}
-function isEmpty(obj) {
-    for (const prop in obj) {
-        if (Object.hasOwn(obj, prop)) {
-            return false;
-        }
-    }
 
-    return true;
-}
 let _activeEventList = {}
-
-const getEventList = async () => {
-    if (!isEmpty(_activeEventList))
-        return _activeEventList
-
-    let [obj, result] = await waitForResult("sei", 1000 * 10)
-
-    Object.assign(_activeEventList, { ...obj, result })
-
-    return _activeEventList
-}
 
 function setEvent(obj, result) {
     if(result != 0)
@@ -654,34 +481,168 @@ function setEvent(obj, result) {
     Object.assign(_activeEventList, { ...obj, result })
 }
 
-xtHandler.on("fjf", (obj, result) => 
-    setEvent(obj.sei, result))
+xtHandler.on("fjf", (obj, result) =>  setEvent(obj.sei, result))
 xtHandler.on("sei", setEvent)
 
-let _resourceCastleList = {}
-/**
- * @returns {Promise<ResourceCastleList>}
- */
-const getResourceCastleList = async () => { //Never got
-    if (!isEmpty(_resourceCastleList))
-        return _resourceCastleList
-
-    let [obj, result] = await waitForResult("gcl", 1000 * 10)
-
-    Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj, result }))
-
-    return _resourceCastleList
+class CastleAreaInfo {
+    constructor(e, kingdomID) {
+        this.areaInfo = MapObject(new GAAAreaInfo(e.AI), kingdomID)
+        this.id = Number(this.areaInfo.extraData[0])
+        this.abandonOutpostTime = Number(e.AOT)
+        this.abandonOutpostTimeCooldown = Number(e.TA)
+        this.kingdomID = kingdomID
+    }
 }
-xtHandler.on("gcl", (obj, result) =>
-    Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj, result })))
+class CastleResourceInfo {
+    constructor(e, kingdomID) {
+        this.kingdomID = Number(kingdomID)
+        this.id = Number(e.AID)
+        this.wood = Number(e.W)
+        this.stone = Number(e.S)
+        this.food = Number(e.F)
+        this.coal = Number(e.C)
+        this.oil = Number(e.O)
+        this.glass = Number(e.G)
+        this.iron = Number(e.I)
+        this.honey = Number(e.HONEY)
+        this.mead = Number(e.MEAD)
+        this.aqua = Number(e.A)
+        this.defence = Number(e.D)
+        this.getProductionData = GetProductionData(e.gpa)
+        this.unitInventory = Array.from(e.AC ?? []).map(Unit)
+        this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
+        this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
+        this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
+        this.marketCarriagesCount = Number(e.MC ?? [])
+        this.hasBarracks = Boolean(e.B)
+        this.hasSiegeWorkshop = Boolean(e.WS)
+        this.hasDefenseWorkshop = Boolean(e.DW)
+        this.hasHospital = Boolean(e.H)
+        this.openGateTime = Number(e.OGT)
+    }
+}
+class PermanentCastleData {
+    constructor(e) {
+        this.unlockedHorses = Array.from(e.UH).map(Number)
+        this.id = Number(e.AID)
+        this.kingdomID = Number(e.KID)
+    }
+}
+class CastleInfo { //JSDOC: HACK
+    constructor() {
+        const e = undefined, kingdomID = undefined
+        this.areaInfo = MapObject(new GAAAreaInfo(e.AI), kingdomID)
+        this.id = Number(this.areaInfo.extraData[0])
+        this.abandonOutpostTime = Number(e.AOT)
+        this.abandonOutpostTimeCooldown = Number(e.TA)
+        this.kingdomID = Number(kingdomID)
+        this.id = Number(e.AID)
+        this.wood = Number(e.W)
+        this.stone = Number(e.S)
+        this.food = Number(e.F)
+        this.coal = Number(e.C)
+        this.oil = Number(e.O)
+        this.glass = Number(e.G)
+        this.iron = Number(e.I)
+        this.honey = Number(e.HONEY)
+        this.mead = Number(e.MEAD)
+        this.aqua = Number(e.A)
+        this.defence = Number(e.D)
+        this.getProductionData = GetProductionData(e.gpa)
+        this.unitInventory = Array.from(e.AC ?? []).map(Unit)
+        this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
+        this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
+        this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
+        this.marketCarriagesCount = Number(e.MC ?? [])
+        this.hasBarracks = Boolean(e.B)
+        this.hasSiegeWorkshop = Boolean(e.WS)
+        this.hasDefenseWorkshop = Boolean(e.DW)
+        this.hasHospital = Boolean(e.H)
+        this.openGateTime = Number(e.OGT)
+    }
+}
+/** @type {Array<CastleInfo>} */
+const castles = []
 
-xtHandler.on("fjf", (obj, result) =>
-    Object.assign(_resourceCastleList, new ResourceCastleList({ ...obj.mir.gcl, result })))
+xtHandler.on("dcl", (obj, result) => {
+    if(result != 0)
+        return
+    
+    const resourceCastleList = Array.from(obj.C)
+            .map(a => Array.from(a.AI).map(e => new CastleResourceInfo(e, a.KID))).flat()
+    resourceCastleList.forEach(castleChanges => {
+        const castle = castles.find(e => e.id == castleChanges.id)
+        if(castle)
+            return Object.assign(castle, castleChanges)
+        castles.push(castleChanges)
+    })
+})
+xtHandler.on("aci", (obj, result) => {
+    if(result != 0)
+        return
+
+    const castleInfo = castles.find(e => e.id == obj.SCID)
+    if(castleInfo)
+        Object.assign(castleInfo, UnitInventory(obj))
+    new ServerGetAreaInfo({ ...obj.gaa, result })
+    //obj.gli
+})
+xtHandler.on("gcl", (obj, result) => {
+    if(result != 0)
+        return
+    
+    const resourceCastleList = Array.from(obj.C)
+            .map(a => Array.from(a.AI).map(e => new CastleAreaInfo(e, a.KID))).flat()
+    resourceCastleList.forEach(castleChanges => {
+        const castle = castles.find(e => e.id == castleChanges.id)
+        if(castle)
+            return Object.assign(castle, castleChanges)
+        castles.push(castleChanges)
+    })
+})
+xtHandler.on("fjf", (obj, result) => {
+    if(result != 0)
+        return
+    const resourceCastleList = Array.from(obj.mir.gcl.C)
+            .map(a => Array.from(a.AI).map(e => new CastleAreaInfo(e, a.KID))).flat()
+    resourceCastleList.forEach(castleChanges => {
+        const castle = castles.find(e => e.id == castleChanges.id)
+        if(castle)
+            return Object.assign(castle, castleChanges)
+        castles.push(castleChanges)
+    })
+})
+xtHandler.on("gpc", (obj, result) => {
+    if(result != 0)
+        return
+    
+    const permanentCastleData = Array.from(obj.A).map(e => new PermanentCastleData(e))
+
+    permanentCastleData.forEach(castleChanges => {
+        const castle = castles.find(e => e.id == castleChanges.id)
+        if(castle)
+            return Object.assign(castle, castleChanges)
+        castles.push(castleChanges)
+    })
+})
+
+let kingdomInfoList = {}
+
+xtHandler.on("kpi", (obj, result) => {
+    if(result != 0)
+        return
+    Object.assign(kingdomInfoList, KingdomInfo(obj))
+})
+xtHandler.on("fjf", (obj, result) => {
+    if(result != 0)
+        return
+    Object.assign(kingdomInfoList, KingdomInfo(obj.kpi))
+})
 
 const ResourceList = obj => {
     let resource = {}
     function decapitalizeFirstLetter(val) {
-        return String(val).charAt(0).toLocaleLowerCase() + String(val).slice(1);
+        return String(val).charAt(0).toLocaleLowerCase() + String(val).slice(1)
     }
     obj.forEach(([type, ammount]) => {
         const nameOverrides = {
@@ -812,59 +773,17 @@ xtHandler.on("gcu", obj => {
 xtHandler.on("sce", obj =>
     Object.assign(resources, ResourceList(obj)))
 
-const PermanentCastleData = e => e.map(e => ({
-    //Units? : Array.from(U.U).map(Number), 
-    //Tools? : Array.from(U.L).map(Number),
-
-    unlockedHorses : Array.from(e.UH).map(Number),
-    areaID : Number(e.AID),
-    kingdomID : Number(e.KID),
-}))
-
-const permanentCastleData = []
-
-const getPermanentCastle = () => PermanentCastleData(permanentCastleData)
-
-xtHandler.on("gpc", obj => {
-    obj.A.forEach(e => {
-        const castleData = permanentCastleData.find(a => e.AID == a.AID && e.KID == a.KID)
-        if(!castleData)
-            permanentCastleData.push(e)
-        else
-            Object.assign(castleData, e)
-    })
-})
-
-let _kingdomInfoList = {}
-
-const getKingdomInfoList = async () => {
-    if (!isEmpty(_kingdomInfoList))
-        return KingdomInfo(_kingdomInfoList)
-
-    let [obj, result] = await waitForResult("kpi", 1000 * 10) //TODO: Remove?
-
-    Object.assign(_kingdomInfoList, { ...obj, result })
-
-    return KingdomInfo(_kingdomInfoList)
-}
-xtHandler.on("kpi", (obj, result) =>
-    Object.assign(_kingdomInfoList, { ...obj, result }))
-xtHandler.on("fjf", (obj, result) => 
-    Object.assign(_kingdomInfoList, { ...obj.kpi, result }))
 const Feast = e => ({
     type: Number(e.T),
     deltaTime: Number(e.RT),
     result: Number(e.result)
 })
-const clientStartFeast = (type, areaID, kingdomID) => {
-    const limiter = sendXT("bfs", JSON.stringify({ T: type, CID: areaID, KID: kingdomID, PO: -1, PWR: 0 }))
+async function clientStartFeast(type, areaID, kingdomID) {
+    await sendXT("bfs", JSON.stringify({ T: type, CID: areaID, KID: kingdomID, PO: -1, PWR: 0 }))
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("bfs", 1000 * 10)
+    const [obj, result] = await waitForResult("bfs", 1000 * 10)
 
-        return Feast({ ...obj, result: result })
-    }
+    return Feast({ ...obj, result: result })
 }
 const HighscoreList = e => ({
     score: Number(e[0]),
@@ -901,13 +820,6 @@ const clientGetHighscore = (LT, LID, SV) => {
         return Highscore({ ...obj, result: result })
     }
 }
-const PlayerAlliance = e => ({
-    allianceID: Number(e.AID),
-    rank : Number(e.R),
-    allianceName: String(e.N),
-    //??? : Number(e.ACF),
-    //??? : Number(e.SA)
-})
 const Alliance = e => ({
     members: Array.from(e.M).map(o => new OwnerInfo(o)),
     allianceID: Number(e.AID),
@@ -982,7 +894,7 @@ class JoinArea {
         this.type = Number(e.type)
         this.getCastleArea = CastleArea(e.gca, e.KID)
         this.userAttackProtection = ServerUserAttackProtection(e.uap)
-        this.areaInfo = DCLAreaInfo((e.grc.gpa ??= e.gpa, e.grc))
+        this.areaInfo = new CastleResourceInfo((e.grc.gpa ??= e.gpa, e.grc))
         //??? : Number(e.scl.SSC)
         ///??? : csl : {///??? : Number(e.SL)}
     }
@@ -1003,7 +915,6 @@ const clientJoinArea = (x, y, kingdomID) => {
 
             return true
         })
-
 
         return new JoinArea({ ...obj, result: result })
     }
@@ -1038,62 +949,21 @@ const AllianceQuestPlayerScore = e => ({
     playerName: String(e.PN),
     level: Number(e.L),
     points: Number(e.OP),
-    allianceRank: Number(e.R),
+    allianceRank: Number(e.R)
 })
 const AllianceQuestPointCount = e => ({
     list: Array.from(e.AQPC).map(AllianceQuestPlayerScore),
     result: Number(e.result)
 })
-const clientAllianceQuestPointCount = () => {
-    const limiter = sendXT("aqpc", JSON.stringify({}))
+async function clientAllianceQuestPointCount() {
+    await sendXT("aqpc", JSON.stringify({}))
+    const [obj, result] = await waitForResult("aqpc", 1000 * 10)
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("aqpc", 1000 * 10)
-
-        return AllianceQuestPointCount({ ...obj, result: result })
-    }
+    return AllianceQuestPointCount({ ...obj, result: result })
 }
 
-let areaInfoCallbacks = []
 let kingdomLockCallbacks = []
 let kingdomLockInUse = false
-let currentKingdom = { AID: undefined }
-
-let areaInfoLock = callback => new Promise(async (resolve, reject) => {
-    if (callback)
-        areaInfoCallbacks.push(async () => {
-            try {
-                currentKingdom.AID = undefined
-                resolve(await callback())
-            }
-            catch (e) {
-                console.warn(e)
-                reject(e)
-            }
-        })
-    else resolve()
-
-    if(areaInfoCallbacks.length <= 0)
-        return
-
-    if (kingdomLockInUse)
-        return
-
-    kingdomLockInUse = true
-    
-    do {
-        await areaInfoCallbacks.shift()()
-    }
-    while (areaInfoCallbacks.length > 0);
-
-    kingdomLockInUse = false
-
-    if (kingdomLockCallbacks.length <= 0)
-        return
-
-    kingdomLock()
-})
 
 let kingdomLock = callback => new Promise(async (resolve, reject) => {
     if (callback)
@@ -1107,25 +977,17 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
         })
     else resolve()
 
-    if(kingdomLockCallbacks.length <= 0)
-        return
-
     if (kingdomLockInUse)
         return
 
     kingdomLockInUse = true
 
-    do {
+    while (kingdomLockCallbacks.length > 0) {
         await (kingdomLockCallbacks.shift())()
     }
-    while (kingdomLockCallbacks.length > 0);
+    
 
     kingdomLockInUse = false
-
-    if (areaInfoCallbacks.length <= 0)
-        return
-
-    areaInfoLock()
 })
 
 class Lord {
@@ -1206,14 +1068,37 @@ class Movement {
         this.middle = Array.from(movement.GA?.M ?? []).map(Unit)
         this.right = Array.from(movement.GA?.R ?? []).map(Unit)
         this.courtyard = Array.from(movement.GA?.RW ?? []).map(Unit)
+        
+        this.left ??= Array.from(movement.FA?.L ?? []).map(Unit)
+        this.middle ??= Array.from(movement.FA?.M ?? []).map(Unit)
+        this.right ??= Array.from(movement.FA?.R ?? []).map(Unit)
+        this.courtyard ??= Array.from(movement.FA?.RW ?? []).map(Unit)
+
         this.station = Array.from(movement.A ?? []).map(Unit)
 
         newMovement(this)
     }
 }
 
+movementEvents.on("return", async (/** @type {Movement} */ movement) => {
+    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+        return
+
+    const castle = castles.find(castle => castle.kingdomID == movement.kingdomID && castle.id == movement.targetAttack.extraData[0])
+    if(!castle)
+        debugger
+    movement.station.forEach(unit => {
+        const unitInInventory = castle.unitInventory.find(e => e.unitInfo.wodID == unit.unitInfo.wodID)
+        if(unitInInventory)
+            return unitInInventory.amount += unit.amount
+        castle.unitInventory.push(unit)
+    })
+})
 xtHandler.on("cra", (o, r) => r == 0 ? 
     new Movement(o.AAM, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
+
+xtHandler.on("cra", (o, r) => r == err["MISSING_UNITS"] ? 
+    sendXT("dcl", JSON.stringify({ CD: 1 })) : undefined)
 xtHandler.on("cat", (o, r) => {
     if(r == 0) 
         new Movement(o.A, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))
@@ -1242,7 +1127,6 @@ const clientGetAllianceByID = AID => {
         return Alliance({ ...obj.A, result: result })
     }
 }
-
 const clientGetAllianceByName = name => {
     const limiter = sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
 
@@ -1303,16 +1187,18 @@ xtHandler.on("sce", updateStatus)
 
 module.exports = {
     spiralCoordinates,
+    kingdomLock,
     movementEvents,
     movements,
+    castles,
+    kingdomInfoList,
+    resources,
     ClientCommands: {
         preSpyInfo : clientPreSpyInfo,
         getHighScore: clientGetHighscore,
-        getAreaInfo: clientGetAreaInfo,
+        getAreaInfo: getAreaInfo,
         startFeast: clientStartFeast,
         getStormIslandInfo: clientGetStormIslandInfo,
-        getDetailedCastleList: clientGetDetailedCastleList,
-        getUnitInventory: clientGetUnitInventory,
         getKingdomInfo: clientGetKingdomInfo,
         getMinuteSkipKingdom: clientGetMinuteSkipKingdom,
         activeQuestList: clientActiveQuestList,
@@ -1323,17 +1209,6 @@ module.exports = {
         getAllianceByName : clientGetAllianceByName,
         joinCastle: clientJoinCastle
     },
-    kingdomLock,
-    areaInfoLock,
-    KingdomID,
-    AreaType,
-    KingdomSkipType,
-    getResourceCastleList,
-    getKingdomInfoList,
-    getEventList,
-    getPermanentCastle,
-    resources,
-    HighscoreType,
     ClassTypes: {
         UnitInventory,
         JoinArea,
@@ -1342,8 +1217,10 @@ module.exports = {
         Lord,
         GAAAreaInfo,
         Movement,
-        KingdomInfo,
-        DetailedCastleList
+        KingdomSkipType,
+        HighscoreType,
+        KingdomInfo
     },
-    currentKingdom
+    KingdomID,
+    AreaType
 }

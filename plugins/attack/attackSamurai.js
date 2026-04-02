@@ -53,7 +53,7 @@ if (require('node:worker_threads').isMainThread)
 
     }
 const { spendSkip } = require("../skips.js")
-const { movementEvents, ClassTypes, getResourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
+const { movementEvents, ClassTypes, resourceCastleList, ClientCommands, AreaType, KingdomID } = require('../../protocols')
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
@@ -152,8 +152,7 @@ events.on("eventStart", async eventInfo => {
     if([0,-1].includes(eventInfo.EDID))
         classic = true
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => AreaType.mainCastle == e.type);
+    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.mainCastle)
     let error = false
     let gaa
     do {
@@ -180,8 +179,7 @@ events.on("eventStart", async eventInfo => {
         try {
             const attackInfo = await waitToAttack(async () => {
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+                    .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
 
                 const AI = areaInfo.shift()
 

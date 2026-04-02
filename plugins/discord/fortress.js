@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, spiralCoordinates, ClientCommands, getResourceCastleList, AreaType } = require("../../protocols")
+const { ClientCommands: { preSpyInfo }, spiralCoordinates, ClientCommands, resourceCastleList, AreaType } = require("../../protocols")
 const getAreaCached = require('../../getMap.js')
 const { client } = require("./discord.js")
 
@@ -23,8 +23,7 @@ events.once("load", async () => {
 
 
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
-        const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-            .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
+        const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
         done:
         for (let i = 0, j = 0; i < 13 * 13; i++) {
             let rX, rY

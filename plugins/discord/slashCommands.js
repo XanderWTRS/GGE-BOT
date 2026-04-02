@@ -217,7 +217,7 @@ async function getAllianceEventRank(interaction, LT) {
     let lootTable = []
     if (LT == 30) {
         for (let i = 0; i < members.length; i++) {
-            const member = members[i];
+            const member = members[i]
 
             if (member.R) {
                 if (!lootTable.every(a => a[0] != member.N))

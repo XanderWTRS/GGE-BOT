@@ -1,9 +1,8 @@
-const path = require('node:path');
+const path = require('node:path')
 const fs = require("fs")
 const ggeConfig = require("../ggeConfig.json")
 
 const dir = fs.readdirSync(__dirname, {recursive : true})
-
 const plugins = []
 
 dir.forEach(file => {

@@ -47,7 +47,7 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates } = require('../../protocols.js')
+const { movementEvents, resourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
@@ -90,12 +90,10 @@ const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 xtHandler.on("dcl", async obj => {
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom)
+    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
     
     const castleProd = ClassTypes.DetailedCastleList(obj)
-        .castles.find(a => a.kingdomID == kingdomID)
-        .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+        .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
 
     if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <=
         Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
@@ -149,8 +147,7 @@ events.once("load", async () => {
 
     let sortedAreaInfo = []
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => e.type == AreaType.externalKingdom)
+    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
@@ -204,8 +201,7 @@ events.once("load", async () => {
                 const attackerWallTools = []
                 
                 const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
+                    .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
                     const unit = sourceCastle.unitInventory[i]

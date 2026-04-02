@@ -1,25 +1,25 @@
-const { isMainThread, workerData : botConfig, parentPort } = require('node:worker_threads')
+const { isMainThread, workerData : botConfig, parentPort } = require("node:worker_threads")
 if (isMainThread)
     throw new Error("Run as worker")
 
-process.on('uncaughtException', console.error) //Wanna cry? Remove this.
+process.on("uncaughtException", console.error) //Wanna cry? Remove this.
 
-const { getCallSites } = require('node:util')
-const EventEmitter = require('node:events')
-const path = require('node:path')
+const { getCallSites } = require("node:util")
+const EventEmitter = require("node:events")
+const path = require("node:path")
 const { RateLimiter } = require("limiter")
-const WebSocket = require('ws')
-const { I18n } = require('i18n')
+const WebSocket = require("ws")
+const { I18n } = require("i18n")
 const ggeConfig = require("./ggeConfig.json")
-const ActionType = require('./actions.json')
-const err = require('./err.json')
+const ActionType = require("./actions.json")
+const err = require("./err.json")
 
-const limiter = new RateLimiter({ tokensPerInterval: 15, interval: "sec" });
+const limiter = new RateLimiter({ tokensPerInterval: 15, interval: "sec" })
 const events = new EventEmitter()
 const xtHandler = new EventEmitter()
 const i18n = new I18n({
     locales: ['en', 'de', 'ar', 'fi', 'he', 'hu', 'pl', 'ro', 'tr', 'cs', 'nl', 'fr'],
-    directory: path.join(__dirname, 'website', 'public', 'locales'),
+    directory: path.join(__dirname, "website", "public", 'locales'),
     updateFiles: false
 })
 const _console = console
@@ -46,7 +46,7 @@ function mngLog(logLevel, msg) {
         return msg
     })
 
-    _console.log(`[${botConfig.name}] ${message.map(i18n.__).join('')}`)
+    _console.log(`[${botConfig.name}] ${message.map(i18n.__).join("")}`)
     parentPort.postMessage([ActionType.GetLogs, logLevel, message])
 }
 
@@ -84,7 +84,6 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     if (timeout == undefined)
         reject(`waitForResult: No timeout specified`)
 
-    timeout *= 2.5
     func ??= _ => true
 
     let timer
@@ -201,10 +200,10 @@ webSocket.onmessage = e => {
                     xtHandler.emit(key, value, Number(data[2]))
                 break
             case "vck":
-                xtHandler.emit(data[0], data[3], Number(data[2]));
+                xtHandler.emit(data[0], data[3], Number(data[2]))
                 break
             case "gfl":
-                xtHandler.emit(data[0], data[3], Number(data[2]));
+                xtHandler.emit(data[0], data[3], Number(data[2]))
                 break
             default:
                 if (data[2] != 0 && !(data[0] == "lli" && data[2] == 453)) {
@@ -247,33 +246,24 @@ webSocket.onclose = () => {
 }
 
 events.on("configModified", () => console.log("botConfigReloaded"))
-events.on("unload", () => console.debug("errorCount", errorCount))
 
 events.once("load", async () => {
-    const { getResourceCastleList, AreaType, KingdomID, ClassTypes } = require('./protocols.js')
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == KingdomID.stormIslands)?.areaInfo.find(e => e.type == AreaType.externalKingdom);
+    const { KingdomID, castles } = require("./protocols.js")
+    function getStormStats() {
+        const castle = castles.find(e => e.kingdomID == KingdomID.stormIslands)
+        if(!castle)
+            return
 
-    sendXT("dcl", JSON.stringify({ CD: 1 }))
-    setInterval(() =>
-        sendXT("dcl", JSON.stringify({ CD: 1 })),
-        1000 * 60 * 5)
-    if (sourceCastleArea) {
-        xtHandler.on("dcl", obj => {
-            const castleProd = ClassTypes.DetailedCastleList(obj)
-                .castles.find(a => a.kingdomID == KingdomID.stormIslands)?.areaInfo[0]
-
-            if (!castleProd)
-                return
-
-            Object.assign(status, {
-                aquamarin_name: castleProd.aqua != 0 ? Math.floor(castleProd.aqua) : undefined,
-                food: castleProd.food != 0 ? Math.floor(castleProd.food) : undefined,
-                mead: Math.floor(castleProd.mead != 0 ? Math.floor(castleProd.mead) : undefined),
-                requestCount
-            })
-            parentPort.postMessage([ActionType.StatusUser, status])
+        Object.assign(status, {
+            aquamarin_name: castle.aqua != 0 ? Math.floor(castle.aqua) : undefined,
+            food: castle.food != 0 ? Math.floor(castle.food) : undefined,
+            mead: Math.floor(castle.mead != 0 ? Math.floor(castle.mead) : undefined),
         })
+        parentPort.postMessage([ActionType.StatusUser, status])
     }
+
+    getStormStats()
+    setInterval(getStormStats, 1000 * 60 * 5)
 })
 
 xtHandler.on("rlu", () => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
@@ -306,6 +296,8 @@ xtHandler.on("gcu", obj => {
     Object.assign(status, {
         cash: obj.C1 != 0 ? Math.floor(playerInfo.coin = obj.C1) : undefined,
         gold: obj.C2 != 0 ? Math.floor(playerInfo.rubies = obj.C2) : undefined,
+        requestCount,
+        errorCount
     })
     parentPort.postMessage([ActionType.StatusUser, status])
 })
@@ -315,35 +307,16 @@ xtHandler.on("gai", obj => {
     })
     parentPort.postMessage([ActionType.StatusUser, status])
 })
-// xtHandler.on("gcs", obj => {
-//     obj.CHR.forEach(offering => {
-//         for (let i = 0; i < offering.FOA; i++) {
-//             if (offering.CID == 1) {
-//                 console.log("GrabbedOffering", "grabbedLudwig")
-//                 sendXT("sct", JSON.stringify({ CID: 1, OID: 6001, IF: 1, AMT: 1 }))
-//             }
-//             if (offering.CID == 2) {
-//                 console.log("GrabbedOffering", "grabbedKnight")
-//                 sendXT("sct", JSON.stringify({ CID: 2, OID: 6002, IF: 1, AMT: 1 }))
-//             }
-//             if (offering.CID == 3) {
-//                 console.log("GrabbedOffering", "grabbedBeatrice")
-//                 sendXT("sct", JSON.stringify({ CID: 3, OID: 6003, IF: 1, AMT: 1 }))
-//             }
-//         }
-//     })
-// })
-
 parentPort.on("message", async obj => {
     switch (obj[0]) {
         case ActionType.SetPluginOptions:
             function deepCopy(old_, new_) {
                 Object.keys(new_).forEach(key => {
-                    if (typeof new_[key] === 'object' && !Array.isArray(new_[key]) && new_[key] !== null)
+                    if (typeof new_[key] === "object" && !Array.isArray(new_[key]) && new_[key] !== null)
                         deepCopy(old_[key], new_[key])
                     else
-                        old_[key] = new_[key];
-                });
+                        old_[key] = new_[key]
+                })
             }
             deepCopy(botConfig, obj[1])
             events.emit("configModified")
@@ -369,21 +342,6 @@ parentPort.on("message", async obj => {
 async function retry() {
     if (botConfig.externalEvent) {
         sendXT("tlep", JSON.stringify({ TLT: botConfig.tempServerData.glt.TLT }))
-        // let [obj, result] = await waitForResult("tlep", 1000 * 10)
-
-        // if (result == 453) {
-        //     console.log("retryLogin", obj.CD, "retryLoginSeconds")
-        //     setTimeout(retry, obj.CD * 1000)
-        //     return
-        // }
-
-        // if (err[result] == "IS_BANNED") {
-        //     console.log("retryLogin", (obj.RS / 60 / 60).toFixed(2), "retryLoginHours")
-        //     setTimeout(retry, obj.RS * 1000)
-        //     return
-        // }
-
-        return
     }
     if (botConfig.lt) {
         sendXT("lli", JSON.stringify({
@@ -472,11 +430,6 @@ xtHandler.on("lli", async (obj, r) => {
     parentPort.postMessage([ActionType.StatusUser, status])
     parentPort.postMessage([ActionType.KillBot])
 })
-
-try {
-    if (botConfig.externalEvent)
-        require("./plugins-extra/externalEventHelper.js")
-} catch {}
 
 for (const [_, val] of Object.entries(botConfig.plugins)) {
     if (!val.state)
