@@ -119,6 +119,7 @@ async function fortressHit(kingdomID, level, options) {
 
                 if (result != 0)
                     throw err[result]
+                
                 return obj
             })
 

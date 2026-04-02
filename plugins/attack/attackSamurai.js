@@ -251,10 +251,10 @@ events.on("eventStart", async eventInfo => {
                 }
 
                 attackerWallTools.sort((a, b) =>
-                    Number(a[0].wallBonus) - Number(b[0].wallBonus))
+                    Number(a.unitInfo.wallBonus) - Number(b.unitInfo.wallBonus))
 
                 attackerShieldTools.sort((a, b) =>
-                    Number(a[0].defRangeBonus) - Number(b[0].defRangeBonus))
+                    Number(a.unitInfo.defRangeBonus) - Number(b.unitInfo.defRangeBonus))
 
                 attackerWallSamuraiTools.push(...attackerWallTools)
                 attackerShieldSamuraiTools.push(...attackerShieldTools)
@@ -374,12 +374,12 @@ events.on("eventStart", async eventInfo => {
                         return false
                     return true
                 })
+
                 if(result != 0) 
                     throw err[result]
 
                 return obj
             })
-
             if (!attackInfo) {
                 freeCommander(commander.lordID)
                 continue

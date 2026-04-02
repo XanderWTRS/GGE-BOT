@@ -211,10 +211,10 @@ events.on("eventStart", async eventInfo => {
                 }
                 
                 attackerWallTools.sort((a, b) =>
-                    Number(a[0].wallBonus) - Number(b[0].wallBonus))
+                    Number(a.unitInfo.wallBonus) - Number(b.unitInfo.wallBonus))
 
                 attackerShieldTools.sort((a, b) =>
-                    Number(a[0].defRangeBonus) - Number(b[0].defRangeBonus))
+                    Number(a.unitInfo.defRangeBonus) - Number(b.unitInfo.defRangeBonus))
 
                 attackerWallBerimondTools.push(...attackerWallTools)
                 attackerShieldBerimondTools.push(...attackerShieldTools)
@@ -325,7 +325,7 @@ events.on("eventStart", async eventInfo => {
 
                     await sendXT("cra", JSON.stringify(attackInfo))
 
-                let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
+                let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
 
@@ -333,15 +333,15 @@ events.on("eventStart", async eventInfo => {
                         return false
                     return true
                 })
-                return { ...obj, result: r }
+                if (result != 0)
+                    throw err[result]
+                return obj
             })
-
             if (!attackInfo) {
                 freeCommander(commander.lordID)
                 continue
             }
-            if (attackInfo.result != 0)
-                throw err[attackInfo.result]
+
 
 
             console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")

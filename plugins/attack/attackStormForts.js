@@ -255,7 +255,7 @@ events.once("load", async () => {
 
                 await sendXT("cra", JSON.stringify(attackInfo))
 
-                let [obj, r] = await waitForResult("cra", 1000 * 10, (obj, result) => {
+                let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
 
@@ -263,8 +263,9 @@ events.once("load", async () => {
                         return false
                     return true
                 })
-                
-                return {...obj, result: r}
+                if (result != 0)
+                    throw err[result]
+                return obj
             })
             
             if (!attackInfo) {

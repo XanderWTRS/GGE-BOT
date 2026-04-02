@@ -426,7 +426,6 @@ events.on("eventStart", async eventInfo => {
                     throw err[result]
                 return obj
             })
-
             if (!attackInfo) {
                 freeCommander(commander.lordID)
                 continue
