@@ -47,11 +47,11 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, resourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates } = require('../../protocols.js')
+const { movementEvents, resourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates, castles } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
-const getAreaCached = require('../../getMap.js')
+
 const err = require("../../err.json")
 const units = require("../../items/units.json")
 const pretty = require('pretty-time')
@@ -90,10 +90,10 @@ const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 xtHandler.on("dcl", async obj => {
-    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
     
     const castleProd = ClassTypes.DetailedCastleList(obj)
-        .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
+        .castles.find(a => a.kingdomID == kingdomID && a.id == castle.id)
 
     if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <=
         Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
@@ -147,7 +147,7 @@ events.once("load", async () => {
 
     let sortedAreaInfo = []
 
-    const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
@@ -165,16 +165,15 @@ events.once("load", async () => {
                                         movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
-                    let time = (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch
-                    if (time > 0)
+                    if ((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch > 0)
                         continue
 
-                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)()
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)
 
                     if(!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
 
-                    if ((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now() > 0)
+                    if (timeSinceEpoch - (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) < 0)
                         continue
 
                     index = i
@@ -199,15 +198,10 @@ events.once("load", async () => {
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
                 const attackerWallTools = []
-                
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID && a.id == sourceCastleArea.extraData[0])
 
-                for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i]
-                    const unitInfo = units.find(obj => unit.unitID == obj.wodID)
-                    if (unitInfo == undefined)
-                        continue
+                for (let i = 0; i < castle.unitInventory.length; i++) {
+                    const unit = castle.unitInventory[i]
+                    
 
                     if (
                         unitInfo.toolCategory &&
@@ -217,13 +211,13 @@ events.once("load", async () => {
                         unitInfo.amountPerWave == undefined
                     ) {
                         if (unitInfo.wallBonus)
-                            attackerWallTools.push([unitInfo, unit.ammount])
+                            attackerWallTools.push(unit)
                     }
                     else if (unitInfo.fightType == 0) {
                         if (unitInfo.role == "melee")
-                            attackerMeleeTroops.push([unitInfo, unit.ammount])
+                            attackerMeleeTroops.push(unit)
                         else if (unitInfo.role == "ranged")
-                            attackerRangeTroops.push([unitInfo, unit.ammount])
+                            attackerRangeTroops.push(unit)
                     }
                 }
 
@@ -236,7 +230,7 @@ events.once("load", async () => {
                     throw "NO_MORE_TROOPS"
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, 3, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, 3, pluginOptions, commanderStats.additionalWaves)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
                 const maxToolsFlank = 10
 
@@ -287,7 +281,7 @@ events.once("load", async () => {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
-                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.id)
                             return
 
                         movementEvents.off("return", self)
@@ -316,14 +310,14 @@ events.once("load", async () => {
             rY *= 100
 
             rect = {
-                x: sourceCastleArea.x + rX - 50,
-                y: sourceCastleArea.y + rY - 50,
-                w: sourceCastleArea.x + rX + 50,
-                h: sourceCastleArea.y + rY + 50
+                x: castle.areaInfo.x + rX - 50,
+                y: castle.areaInfo.y + rY - 50,
+                w: castle.areaInfo.x + rX + 50,
+                h: castle.areaInfo.y + rY + 50
             }
             if (j > Math.pow(13 * 13, 2))
                 break done
-        } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+        } while ((castle.areaInfo.x + rX) <= -50 || (castle.areaInfo.y + rY) <= -50 || (castle.areaInfo.x + rX) >= (1286 + 50) || (castle.areaInfo.y + rY) >= (1286 + 50))
         rect.x = rect.x < 0 ? 0 : rect.x
         rect.y = rect.y < 0 ? 0 : rect.y
         rect.w = rect.w < 0 ? 0 : rect.w
@@ -344,8 +338,8 @@ events.once("load", async () => {
         } while (!gaa)
         
         let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
-            (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-            (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))
+            (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
+            (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
 
         sortedAreaInfo.push(...areaInfo)
 

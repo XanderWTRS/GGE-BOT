@@ -122,9 +122,6 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
                     
-                    if (unit.unitInfo == undefined || unit.amount <= 0)
-                        continue
-
                     if (unit.unitInfo.toolCategory &&
                         unit.unitInfo.usageEventID == undefined &&
                         unit.unitInfo.allowedToAttack == undefined &&
@@ -271,7 +268,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     }
                     console.log(`[${KingdomID[kingdomID]}] Waiting for more troops`)
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
-                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.extraData[0])
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.id)
                             return
 
                         movementEvents.off("return", self)

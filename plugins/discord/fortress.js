@@ -11,7 +11,7 @@ if (require('node:worker_threads').isMainThread)
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
 const { ClientCommands: { preSpyInfo }, spiralCoordinates, ClientCommands, resourceCastleList, AreaType } = require("../../protocols")
-const getAreaCached = require('../../getMap.js')
+
 const { client } = require("./discord.js")
 
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
@@ -23,7 +23,7 @@ events.once("load", async () => {
 
 
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
-        const sourceCastleArea = (resourceCastleList).castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
+        const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
         done:
         for (let i = 0, j = 0; i < 13 * 13; i++) {
             let rX, rY
@@ -34,14 +34,14 @@ events.once("load", async () => {
                 rY *= 100
 
                 rect = {
-                    x: sourceCastleArea.x + rX - 50,
-                    y: sourceCastleArea.y + rY - 50,
-                    w: sourceCastleArea.x + rX + 50,
-                    h: sourceCastleArea.y + rY + 50
+                    x: castle.areaInfo.x + rX - 50,
+                    y: castle.areaInfo.y + rY - 50,
+                    w: castle.areaInfo.x + rX + 50,
+                    h: castle.areaInfo.y + rY + 50
                 }
                 if (j > Math.pow(13 * 13, 2))
                     break done
-            } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+            } while ((castle.areaInfo.x + rX) <= -50 || (castle.areaInfo.y + rY) <= -50 || (castle.areaInfo.x + rX) >= (1286 + 50) || (castle.areaInfo.y + rY) >= (1286 + 50))
             rect.x = rect.x < 0 ? 0 : rect.x
             rect.y = rect.y < 0 ? 0 : rect.y
             rect.w = rect.w < 0 ? 0 : rect.w
