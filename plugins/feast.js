@@ -32,22 +32,22 @@ const tryToFeast = async () => {
     let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle).id
     let feasts = 0
 
-    castles.forEach(areaInfo => {
-        if(areaInfo.kingdomID == KingdomID.stormIslands)
+    castles.forEach(castle => {
+        if(castle.kingdomID == KingdomID.stormIslands)
             return
-        if (areaInfo.kingdomID == KingdomID.berimond)
+        if (castle.kingdomID == KingdomID.berimond)
             return
 
-        let foodRate = areaInfo.getProductionData.deltaFood - areaInfo.getProductionData.FoodConsumptionRate * 
-            areaInfo.getProductionData.foodConsumptionReductionPercentage
+        let foodRate = castle.getProductionData.deltaFood - castle.getProductionData.FoodConsumptionRate * 
+            castle.getProductionData.foodConsumptionReductionPercentage
         if (foodRate < Math.max(0, minimumFoodRate))
             return
-        if (areaInfo.id == mainCastleAreaID && areaInfo.getProductionData.maxAmmountFood < areaInfo.food)
+        if (castle.id == mainCastleAreaID && castle.getProductionData.maxAmmountFood < castle.food)
             return
-        while (minimumFood < (areaInfo.food - feastFoodReduction) && feastFoodReduction <= areaInfo.food) {
-            ClientCommands.startFeast(8, areaInfo.areaID, areaInfo.kingdomID)
+        while (minimumFood < (castle.food - feastFoodReduction) && feastFoodReduction <= castle.food) {
+            ClientCommands.startFeast(8, castle.id, castle.kingdomID)
             feasts++
-            areaInfo.food -= feastFoodReduction
+            castle.food -= feastFoodReduction
         }
     })
 

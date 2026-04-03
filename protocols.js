@@ -570,7 +570,7 @@ class CastleInfo extends EventEmitter { //JSDOC: HACK
 }
 /** @type {Array<CastleInfo>} */
 const castles = []
-// xtHandler.on("lli", () => sendXT("dcl", JSON.stringify({ CD : 1})))
+
 xtHandler.on("dcl", (obj, result) => {
     if(result != 0)
         return
@@ -587,26 +587,6 @@ xtHandler.on("dcl", (obj, result) => {
         castles.push(castleChanges)
     })
 })
-// xtHandler.on("aci", (obj, result) => {
-//     if(result != 0)
-//         return
-
-//     const castleInfo = castles.find(e => e.id == obj.SCID)
-//     if(castleInfo)
-//         Object.assign(castleInfo, new UnitInventory(obj.gui))
-//     new ServerGetAreaInfo({ ...obj.gaa, result })
-//     //obj.gli
-// })
-// xtHandler.on("adi", (obj, result) => {
-//     if(result != 0)
-//         return
-
-//     const castleInfo = castles.find(e => e.id == obj.SCID)
-//     if(castleInfo)
-//         Object.assign(castleInfo, new UnitInventory(obj.gui))
-//     new ServerGetAreaInfo({ ...obj.gaa, result })
-//     //obj.gli
-// })
 
 xtHandler.on("gcl", (obj, result) => {
     if(result != 0)
@@ -954,16 +934,13 @@ const clientJoinCastle = (areaID, kingdomID) => {
     }
 }
 
-const clientSearchPlayerName = (playerName) => {
-    const limiter = sendXT("wsp", JSON.stringify({ PN: playerName }))
+async function clientSearchPlayerName(playerName) {
+    await sendXT("wsp", JSON.stringify({ PN: playerName }))
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("wsp", 1000 * 10, (o,r) =>
-            r != 0 || o.gaa?.OI.find(e => e.N == playerName))
+    const [obj, result] = await waitForResult("wsp", 1000 * 10, (o, r) =>
+        r != 0 || o.gaa?.OI.find(e => e.N == playerName))
 
-        return new ServerGetAreaInfo({ ...obj.gaa, result: result })
-    }
+    return new ServerGetAreaInfo({ ...obj.gaa, result: result })
 }
 const AllianceQuestPlayerScore = e => ({
     playerID: Number(e.PID),

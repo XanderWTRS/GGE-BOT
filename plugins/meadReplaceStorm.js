@@ -21,6 +21,7 @@ events.once("load", async () => {
     if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
 
+    const mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle)
     const stormAreaInfo = castles.find(e => e.kingdomID == targetKingdomID &&
         e.areaInfo.type == AreaType.externalKingdom)
 
@@ -51,7 +52,6 @@ events.once("load", async () => {
 
         setTimeout(async () => {
             let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmmountMead - stormAreaInfo.mead))
-            let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle)
 
             let info = await ClientCommands.getKingdomInfo(
                 mainCastleAreaID,
