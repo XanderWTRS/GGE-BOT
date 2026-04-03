@@ -1058,7 +1058,7 @@ async function newMovement(movement) {
         if (movement.targetOwner?.ownerID == movement.owner?.ownerID)
             movementEvents.emit("return", movement)
 
-    },  movement.totalTime - (movement.deltaTime - Date.now()) + 1000)
+    },  Math.max(0, movement.totalTime - (movement.deltaTime - Date.now()) + 1000))
 }
 
 class Movement {
