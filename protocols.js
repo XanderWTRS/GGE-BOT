@@ -583,26 +583,26 @@ xtHandler.on("dcl", (obj, result) => {
         castles.push(castleChanges)
     })
 })
-xtHandler.on("aci", (obj, result) => {
-    if(result != 0)
-        return
+// xtHandler.on("aci", (obj, result) => {
+//     if(result != 0)
+//         return
 
-    const castleInfo = castles.find(e => e.id == obj.SCID)
-    if(castleInfo)
-        Object.assign(castleInfo, new UnitInventory(obj.gui))
-    new ServerGetAreaInfo({ ...obj.gaa, result })
-    //obj.gli
-})
-xtHandler.on("adi", (obj, result) => {
-    if(result != 0)
-        return
+//     const castleInfo = castles.find(e => e.id == obj.SCID)
+//     if(castleInfo)
+//         Object.assign(castleInfo, new UnitInventory(obj.gui))
+//     new ServerGetAreaInfo({ ...obj.gaa, result })
+//     //obj.gli
+// })
+// xtHandler.on("adi", (obj, result) => {
+//     if(result != 0)
+//         return
 
-    const castleInfo = castles.find(e => e.id == obj.SCID)
-    if(castleInfo)
-        Object.assign(castleInfo, new UnitInventory(obj.gui))
-    new ServerGetAreaInfo({ ...obj.gaa, result })
-    //obj.gli
-})
+//     const castleInfo = castles.find(e => e.id == obj.SCID)
+//     if(castleInfo)
+//         Object.assign(castleInfo, new UnitInventory(obj.gui))
+//     new ServerGetAreaInfo({ ...obj.gaa, result })
+//     //obj.gli
+// })
 
 xtHandler.on("gcl", (obj, result) => {
     if(result != 0)
