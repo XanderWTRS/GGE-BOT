@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, spiralCoordinates, ClientCommands, resourceCastleList, AreaType } = require("../../protocols")
+const { ClientCommands: { preSpyInfo }, spiralCoordinates, castles, AreaType } = require("../../protocols")
 
 const { client } = require("./discord.js")
 

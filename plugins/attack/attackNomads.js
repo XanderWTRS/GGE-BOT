@@ -72,7 +72,6 @@ const { getCommanderStats } = require("../../getEquipment.js")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const nomadCampsClassic = require("../../items/nomadCamps.json")
-const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 const getAreaCached = require('../../getMap')
 const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}

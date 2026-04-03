@@ -47,13 +47,12 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, resourceCastleList, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates, castles } = require('../../protocols.js')
+const { movementEvents, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates, castles } = require('../../protocols.js')
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
 
 const err = require("../../err.json")
-const units = require("../../items/units.json")
 const pretty = require('pretty-time')
 
 const minTroopCount = 100

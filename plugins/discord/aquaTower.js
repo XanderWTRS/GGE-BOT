@@ -9,7 +9,7 @@ if (require('node:worker_threads').isMainThread)
     }
 
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, resourceCastleList, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
+const { ClientCommands: { preSpyInfo }, castles, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
 
 const { client } = require("./discord.js")
 
