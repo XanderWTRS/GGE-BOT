@@ -203,7 +203,7 @@ events.on("eventStart", async eventInfo => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if (unit.unitInfo == undefined)
+                    if(unit.amount > 0)
                         continue
 
                     if (unit.unitInfo.wodID == 277)

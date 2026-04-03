@@ -487,11 +487,12 @@ function setEvent(obj, result) {
     Object.assign(_activeEventList, { ...obj, result })
 }
 
-xtHandler.on("fjf", (obj, result) =>  setEvent(obj.sei, result))
+xtHandler.on("fjf", (obj, result) => setEvent(obj.sei, result))
 xtHandler.on("sei", setEvent)
 
-class CastleAreaInfo {
+class CastleAreaInfo extends EventEmitter {
     constructor(e, kingdomID) {
+        super()
         this.areaInfo = MapObject(new GAAAreaInfo(e.AI), kingdomID)
         this.id = Number(this.areaInfo.extraData[0])
         this.abandonOutpostTime = Number(e.AOT)
@@ -534,7 +535,7 @@ class PermanentCastleData {
         this.kingdomID = Number(e.KID)
     }
 }
-class CastleInfo { //JSDOC: HACK
+class CastleInfo extends EventEmitter { //JSDOC: HACK
     constructor() {
         const e = undefined, kingdomID = undefined
         this.areaInfo = MapObject(new GAAAreaInfo(e.AI), kingdomID)
@@ -578,8 +579,11 @@ xtHandler.on("dcl", (obj, result) => {
             .map(a => Array.from(a.AI).map(e => new CastleResourceInfo(e, a.KID))).flat()
     resourceCastleList.forEach(castleChanges => {
         const castle = castles.find(e => e.kingdomID == castleChanges.kingdomID && e.id == castleChanges.id)
-        if(castle)
-            return Object.assign(castle, castleChanges)
+        if(castle) {
+            Object.assign(castle, castleChanges)
+            castle.emit("resourceUpdate")
+            return
+        }
         castles.push(castleChanges)
     })
 })
@@ -1060,7 +1064,20 @@ async function newMovement(movement) {
 
     },  Math.max(0, movement.totalTime - (movement.deltaTime - Date.now()) + 1000))
 }
-
+class Resources {
+    constructor(e) {
+        this.wood = Number(e.W ?? 0)
+        this.stone = Number(e.S ?? 0)
+        this.food = Number(e.F ?? 0)
+        this.coal = Number(e.C ?? 0)
+        this.oil = Number(e.O ?? 0)
+        this.glass = Number(e.G ?? 0)
+        this.iron = Number(e.I ?? 0)
+        this.honey = Number(e.HONEY ?? 0)
+        this.mead = Number(e.MEAD ?? 0)
+        this.aqua = Number(e.A ?? 0)
+    }
+}
 class Movement {
     /** @param {Array<OwnerInfo>} ownerInfo */
     constructor(movement, ownerInfo) {
@@ -1092,7 +1109,7 @@ class Movement {
         this.courtyard ??= Array.from(movement.FA?.RW ?? []).map(Unit)
 
         this.station = Array.from(movement.A ?? []).map(Unit)
-
+        this.resources = new Resources(Object.fromEntries(movement?.G ?? []))
         newMovement(this)
     }
 }
@@ -1110,12 +1127,15 @@ movementEvents.on("return", async (/** @type {Movement} */ movement) => {
             return unitInInventory.amount += unit.amount
         castle.unitInventory.push(unit)
     })
+    Object.entries(movement.resources).forEach((([key,value]) => castle[key] += value))
+    castle.emit("resourceUpdate", movement.resources)
 })
 xtHandler.on("cra", (o, r) => r == 0 ? 
     new Movement(o.AAM, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
 
 xtHandler.on("cra", (_, r) => r == err["MISSING_UNITS"] ? 
     sendXT("dcl", JSON.stringify({ CD: 1 })) : undefined)
+
 xtHandler.on("cat", (o, r) => {
     if(r == 0) 
         new Movement(o.A, Array.from(o.O ?? []).map(o => new OwnerInfo(o)))

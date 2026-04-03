@@ -250,21 +250,20 @@ events.on("configModified", () => console.log("botConfigReloaded"))
 
 events.once("load", async () => {
     const { KingdomID, castles } = require("./protocols.js")
+    const castle = castles.find(e => e.kingdomID == KingdomID.stormIslands)
     function getStormStats() {
-        const castle = castles.find(e => e.kingdomID == KingdomID.stormIslands)
-        if(!castle)
-            return
-
         Object.assign(status, {
             aquamarin_name: castle.aqua != 0 ? Math.floor(castle.aqua) : undefined,
             food: castle.food != 0 ? Math.floor(castle.food) : undefined,
-            mead: Math.floor(castle.mead != 0 ? Math.floor(castle.mead) : undefined),
+            mead: Math.floor(castle.mead != 0 ? Math.floor(castle.mead) : undefined)
         })
         parentPort.postMessage([ActionType.StatusUser, status])
     }
+    if(!castle)
+        return
 
+    castle.on("resourceUpdate", getStormStats)
     getStormStats()
-    setInterval(getStormStats, 1000 * 60 * 5)
 })
 
 xtHandler.on("rlu", () => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
