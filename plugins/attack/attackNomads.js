@@ -231,7 +231,7 @@ events.on("eventStart", async eventInfo => {
                         else if (unit.unitInfo.defRangeBonus)
                             attackerShieldTools.push(unit)
                     }
-                    else if (unit.unitInfo.fightType == 0) {
+                    else if (unit.unitInfo.fightType == 0 && !unit.unitInfo.beefSupply) {
                         if (unit.unitInfo.foodSupply && !pluginOptions.useFood)
                             continue
                         if (unit.unitInfo.role == "melee")

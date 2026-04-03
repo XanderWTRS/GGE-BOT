@@ -217,7 +217,7 @@ events.once("load", async () => {
                         if (unit.unitInfo.wallBonus)
                             attackerWallTools.push(unit)
                     }
-                    else if (unit.unitInfo.fightType == 0) {
+                    else if (unit.unitInfo.fightType == 0 && !unit.unitInfo.beefSupply) {
                         if (unit.unitInfo.role == "melee")
                             attackerMeleeTroops.push(unit)
                         else if (unit.unitInfo.role == "ranged")

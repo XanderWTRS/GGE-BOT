@@ -8,9 +8,6 @@ const event = new EventTarget()
 let usedCommanders = []
 let commanders = []
 
-// xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : undefined)
-// xtHandler.on("aci", (obj, r) => !r ? commanders = obj.gli.C : undefined)
-// xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : undefined)
 xtHandler.on("gli", (obj, r) => !r ? commanders = obj.C : undefined)
 
 function freeCommander(lordID) {
@@ -32,16 +29,12 @@ movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassT
     if(movement.owner?.ownerID != playerInfo.playerID)
         return
 
-    // console.log(`Used Commander: ${movement.lord.lordPosition + 1}`)
-    
     useCommander(movement.lord.lordID)
 })
 
 movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if (movement.targetOwner?.ownerID != playerInfo.playerID)
         return
-
-    // console.log(`Freed Commander: ${movement.lord.lordPosition + 1}`)
 
     freeCommander(movement.lord.lordID)
 })
