@@ -15,7 +15,11 @@ if not exist ".git"\ (
   git submodule init website >NUL 2>&1
   git submodule deinit -f plugins-extra >NUL 2>&1
   git submodule init plugins-extra >NUL 2>&1
-
+  cd website
+  call npm i
+  call npm run build
+  cd ..
+  call npm i
 )
 
 git config --local core.hooksPath .githooks/
