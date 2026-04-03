@@ -385,12 +385,14 @@ const Unit = e => ({
     unitInfo: units.find(a => a.wodID == e[0]),
     amount: Number(e[1])
 })
-const UnitInventory = e => ({
-    unitInventory: Array.from(e.I ?? []).map(Unit),
-    strongHoldInventory: Array.from(e.SHI ?? []).map(Unit),
-    hospitalInventory: Array.from(e.HI ?? []).map(Unit),
-    travelingUnits: Array.from(e.TU ?? []).map(Unit)
-})
+class UnitInventory { 
+    constructor(e) {
+    this.unitInventory = Array.from(e.I ?? []).map(Unit)
+    this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
+    this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
+    this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
+    }
+}
 const UnlockInfo = e => ({
     kingdomID: Number(e.KID),
     isUnlocked: Boolean(e.U),
@@ -587,7 +589,7 @@ xtHandler.on("aci", (obj, result) => {
 
     const castleInfo = castles.find(e => e.id == obj.SCID)
     if(castleInfo)
-        Object.assign(castleInfo, UnitInventory(obj))
+        Object.assign(castleInfo, new UnitInventory(obj.gui))
     new ServerGetAreaInfo({ ...obj.gaa, result })
     //obj.gli
 })
@@ -597,7 +599,7 @@ xtHandler.on("adi", (obj, result) => {
 
     const castleInfo = castles.find(e => e.id == obj.SCID)
     if(castleInfo)
-        Object.assign(castleInfo, UnitInventory(obj))
+        Object.assign(castleInfo, new UnitInventory(obj.gui))
     new ServerGetAreaInfo({ ...obj.gaa, result })
     //obj.gli
 })
