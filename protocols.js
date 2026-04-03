@@ -1030,11 +1030,11 @@ const movements = []
 const movementEvents = new EventEmitter()
 /** @param {Movement} movement */
 async function newMovement(movement) {
-    const e = movements.find(e => e.id == movement.id)
     if (playerInfo.playerID == '')
         playerInfo.playerID = await new Promise(resolve =>
             xtHandler.once("gpi", obj => resolve(String(obj.PID))))
 
+    const e = movements.find(e => e.id == movement.id)
     if(e) {
         Object.assign(e, movement)
         if(e.canSeeArmy != movement.canSeeArmy)
