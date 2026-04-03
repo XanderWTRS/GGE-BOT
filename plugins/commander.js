@@ -8,6 +8,7 @@ const event = new EventTarget()
 let usedCommanders = []
 let commanders = []
 
+xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : undefined)
 xtHandler.on("aci", (obj, r) => !r ? commanders = obj.gli.C : undefined)
 xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : undefined)
 xtHandler.on("gli", (obj, r) => !r ? commanders = obj.C : undefined)

@@ -591,6 +591,17 @@ xtHandler.on("aci", (obj, result) => {
     new ServerGetAreaInfo({ ...obj.gaa, result })
     //obj.gli
 })
+xtHandler.on("adi", (obj, result) => {
+    if(result != 0)
+        return
+
+    const castleInfo = castles.find(e => e.id == obj.SCID)
+    if(castleInfo)
+        Object.assign(castleInfo, UnitInventory(obj))
+    new ServerGetAreaInfo({ ...obj.gaa, result })
+    //obj.gli
+})
+
 xtHandler.on("gcl", (obj, result) => {
     if(result != 0)
         return
