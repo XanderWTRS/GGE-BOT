@@ -132,7 +132,8 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         else if (unit.unitInfo.defRangeBonus)
                             attackerShieldTools.push(unit)
                     }
-                    else if (unit.unitInfo.fightType == 0) {
+                    else if (unit.unitInfo.fightType == 0 && 
+                                unit.unitInfo.beefSupply == undefined) {
                         if (troopBlackList.includes(unit.unitInfo.wodID))
                             continue
                         if (unit.unitInfo.role == "melee")

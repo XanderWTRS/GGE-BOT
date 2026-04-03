@@ -22,7 +22,7 @@ events.once("load", async () => {
         return console.warn("wontRunWithoutStormUnlocked")
 
     const stormAreaInfo = castles.find(e => e.kingdomID == targetKingdomID &&
-        e.type == AreaType.externalKingdom)
+        e.areaInfo.type == AreaType.externalKingdom)
 
     let checkMead = async () => {
         let resource = kingdomInfoList.resourceTransferList.find(e => e.kingdomID == targetKingdomID)

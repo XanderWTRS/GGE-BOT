@@ -90,7 +90,7 @@ const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
 xtHandler.on("dcl", async obj => {
-    const castle = castles.find(e => e.kingdomID == kingdomID && e.type == AreaType.externalKingdom)
+    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
     
     const castleProd = ClassTypes.DetailedCastleList(obj)
         .castles.find(a => a.kingdomID == kingdomID && a.id == castle.id)

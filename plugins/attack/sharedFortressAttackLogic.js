@@ -65,12 +65,12 @@ async function fortressHit(kingdomID, level, options) {
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
 
-                    if (unit.unitInfo.fightType == 0) {
+                    if (unit.unitInfo.fightType == 0 &&
+                        unit.unitInfo.beefSupply == undefined &&
+                        unit.unitInfo.role
+                    ) {
                         if (kingdomID == KingdomID.firePeaks &&
                             unit.unitInfo.wodID == 277 && !hasShieldMadiens)
-                            continue
-
-                        if (!unit.unitInfo.role)
                             continue
 
                         attackerTroops.push(unit)
