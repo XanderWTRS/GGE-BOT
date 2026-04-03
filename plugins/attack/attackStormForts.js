@@ -88,46 +88,46 @@ if (pluginOptions.resourceSend) {
 const kingdomID = KingdomID.stormIslands
 const type = AreaType.stormTower
 
-xtHandler.on("dcl", async obj => {
-    const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
+// xtHandler.on("dcl", async obj => {
+//     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
     
-    const castleProd = ClassTypes.DetailedCastleList(obj)
-        .castles.find(a => a.kingdomID == kingdomID && a.id == castle.id)
+//     const castleProd = ClassTypes.DetailedCastleList(obj)
+//         .castles.find(a => a.kingdomID == kingdomID && a.id == castle.id)
 
-    if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <=
-        Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-        for (let i = 0; i < Math.floor(castleProd.aqua / 75000); i++) {
-            castleProd.aqua -= 75000
-            sendXT("sbp", JSON.stringify({
-                PID: 2798, BT: 3, TID: -1, AMT: 1,
-                KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
-            }))
-            console.info("broughtCoins")
-        }
-    }
-    if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <=
-        Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-        for (let i = 0; i < Math.floor(castleProd.aqua / 100000); i++) {
-            castleProd.aqua -= 100000
-            sendXT("sbp", JSON.stringify({
-                PID: 3117, BT: 3, TID: -1, AMT: 1,
-                KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
-            }))
-            console.info("broughtDeco")
-        }
-    }
-    if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <=
-        Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
-        for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
-            castleProd.aqua -= 10000
-            sendXT("sbp", JSON.stringify({
-                PID: 3114, BT: 3, TID: -1, AMT: 1,
-                KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
-            }))
-            console.info("broughtXP")
-        }
-    }
-})
+//     if (pluginOptions["buyCoins"] && castleProd.getProductionData.maxAmmountAqua <=
+//         Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
+//         for (let i = 0; i < Math.floor(castleProd.aqua / 75000); i++) {
+//             castleProd.aqua -= 75000
+//             sendXT("sbp", JSON.stringify({
+//                 PID: 2798, BT: 3, TID: -1, AMT: 1,
+//                 KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+//             }))
+//             console.info("broughtCoins")
+//         }
+//     }
+//     if (pluginOptions["buyDecoration"] && castleProd.getProductionData.maxAmmountAqua <=
+//         Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
+//         for (let i = 0; i < Math.floor(castleProd.aqua / 100000); i++) {
+//             castleProd.aqua -= 100000
+//             sendXT("sbp", JSON.stringify({
+//                 PID: 3117, BT: 3, TID: -1, AMT: 1,
+//                 KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+//             }))
+//             console.info("broughtDeco")
+//         }
+//     }
+//     if (pluginOptions["buyXP"] && castleProd.getProductionData.maxAmmountAqua <=
+//         Math.min(castleProd.getProductionData.maxAmmountAqua, castleProd.aqua + 100000)) {
+//         for (let i = 0; i < Math.floor(castleProd.aqua / 10000); i++) {
+//             castleProd.aqua -= 10000
+//             sendXT("sbp", JSON.stringify({
+//                 PID: 3114, BT: 3, TID: -1, AMT: 1,
+//                 KID: 4, AID: -1, PC2: -1, BA: 0, PWR: 0, _PO: -1
+//             }))
+//             console.info("broughtXP")
+//         }
+//     }
+// })
 
 events.once("load", async () => {
     let allowedLevels = []
@@ -158,10 +158,10 @@ events.once("load", async () => {
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < sortedAreaInfo.length; i++) {
                     const areaInfo = sortedAreaInfo[i]
-                    
-                    if(movements.find(movement =>
-                                        movement.kingdomID == kingdomID &&
-                                        movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
+
+                    if (movements.find(movement =>
+                        movement.kingdomID == kingdomID &&
+                        movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
                     if ((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch > 0)
@@ -181,7 +181,7 @@ events.once("load", async () => {
                 if (index == -1)
                     return
 
-                let AI = sortedAreaInfo[index]
+                const areaInfo = sortedAreaInfo[index]
 
                 const level = {
                     7: 60,
@@ -192,7 +192,7 @@ events.once("load", async () => {
                     12: 60,
                     13: 70,
                     14: 80,
-                }[AI.extraData[2]]
+                }[areaInfo.extraData[2]]
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -200,36 +200,35 @@ events.once("load", async () => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    
 
                     if (
-                        unitInfo.toolCategory &&
-                        unitInfo.usageEventID == undefined &&
-                        unitInfo.allowedToAttack == undefined &&
-                        unitInfo.typ == 'Attack' &&
-                        unitInfo.amountPerWave == undefined
+                        unit.unitInfo.toolCategory &&
+                        unit.unitInfo.usageEventID == undefined &&
+                        unit.unitInfo.allowedToAttack == undefined &&
+                        unit.unitInfo.typ == 'Attack' &&
+                        unit.unitInfo.amountPerWave == undefined
                     ) {
-                        if (unitInfo.wallBonus)
+                        if (unit.unitInfo.wallBonus)
                             attackerWallTools.push(unit)
                     }
-                    else if (unitInfo.fightType == 0) {
-                        if (unitInfo.role == "melee")
+                    else if (unit.unitInfo.fightType == 0) {
+                        if (unit.unitInfo.role == "melee")
                             attackerMeleeTroops.push(unit)
-                        else if (unitInfo.role == "ranged")
+                        else if (unit.unitInfo.role == "ranged")
                             attackerRangeTroops.push(unit)
                     }
                 }
 
                 let allTroopCount = 0
 
-                attackerRangeTroops.forEach(e => allTroopCount += e[1])
-                attackerMeleeTroops.forEach(e => allTroopCount += e[1])
+                attackerRangeTroops.forEach(e => allTroopCount += e.amount)
+                attackerMeleeTroops.forEach(e => allTroopCount += e.amount)
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, 3, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, 3, pluginOptions, commanderStats.additionalWaves)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
                 const maxToolsFlank = 10
 
@@ -258,7 +257,7 @@ events.once("load", async () => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo.x || obj.AAM.M.TA[2] != areaInfo.y)
                         return false
                     return true
                 })
@@ -271,8 +270,6 @@ events.once("load", async () => {
                 freeCommander(commander.lordID)
                 return false
             }
-            if(attackInfo.result != 0)
-                throw err[attackInfo.result]
 
             console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
@@ -326,11 +323,10 @@ events.once("load", async () => {
         rect.y = rect.y > 1286 ? 1286 : rect.y
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
-        let gaa
         let attemptsLeft = 5
         do {
             try {
-                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+                var gaa = await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)
             }
             catch { attemptsLeft-- }
             if (attemptsLeft <= 0)

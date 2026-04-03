@@ -185,8 +185,6 @@ events.on("eventStart", async eventInfo => {
 
                 areaInfo.push(AI)
 
-                // await ClientCommands.preSpyInfo(AI.x, AI.y, kingdomID)()
-
                 await skipTarget(AI)
 
                 const campInfo = classic ? nomadCampsClassic.find(obj => AI.extraData[1] == obj.id) :
@@ -245,8 +243,8 @@ events.on("eventStart", async eventInfo => {
 
                 let allTroopCount = 0
 
-                attackerRangeTroops.forEach(e => allTroopCount += e[1])
-                attackerMeleeTroops.forEach(e => allTroopCount += e[1])
+                attackerRangeTroops.forEach(e => allTroopCount += e.amount)
+                attackerMeleeTroops.forEach(e => allTroopCount += e.amount)
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
@@ -303,15 +301,15 @@ events.on("eventStart", async eventInfo => {
 
                         let maxTroops = maxTroopFlank
 
-                        wave.L.U.forEach((unitSlot, i) =>
+                        wave.L.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
+                        wave.R.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
+                        wave.M.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         attackerMeleeTroops.sort((a, b) => Number(a.unitInfo.meleeAttack) - Number(b.unitInfo.meleeAttack))
@@ -346,27 +344,27 @@ events.on("eventStart", async eventInfo => {
                             return tools
                         }
 
-                        wave.L.T.forEach((unitSlot, i) =>
+                        wave.L.T.forEach(unitSlot =>
                             maxTools -= assignUnit(unitSlot, selectTool(0), maxTools))
                         maxTools = maxToolsFlank
-                        wave.R.T.forEach((unitSlot, i) =>
+                        wave.R.T.forEach(unitSlot =>
                             maxTools -= assignUnit(unitSlot, selectTool(1), maxTools))
                         maxTools = maxToolsFront
-                        wave.M.T.forEach((unitSlot, i) =>
+                        wave.M.T.forEach(unitSlot =>
                             maxTools -= assignUnit(unitSlot, selectTool(2), maxTools))
                     }
 
                     let maxTroops = maxTroopFlank
 
-                    wave.L.U.forEach((unitSlot, i) =>
+                    wave.L.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     maxTroops = maxTroopFlank
-                    wave.R.U.forEach((unitSlot, i) =>
+                    wave.R.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     maxTroops = maxTroopFront
-                    wave.M.U.forEach((unitSlot, i) =>
+                    wave.M.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                             attackerMeleeTroops : attackerRangeTroops, maxTroops))
                 })
@@ -390,8 +388,10 @@ events.on("eventStart", async eventInfo => {
                         return false
                     return true
                 })
+
                 if (result != 0)
                     throw err[result]
+
                 return obj
             })
             if (!attackInfo) {
@@ -399,7 +399,6 @@ events.on("eventStart", async eventInfo => {
                 continue
             }
 
-            
             console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
         } catch (e) {
             freeCommander(commander.lordID)

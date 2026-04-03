@@ -569,7 +569,7 @@ class CastleInfo { //JSDOC: HACK
 }
 /** @type {Array<CastleInfo>} */
 const castles = []
-
+// xtHandler.on("lli", () => sendXT("dcl", JSON.stringify({ CD : 1})))
 xtHandler.on("dcl", (obj, result) => {
     if(result != 0)
         return
@@ -577,7 +577,7 @@ xtHandler.on("dcl", (obj, result) => {
     const resourceCastleList = Array.from(obj.C)
             .map(a => Array.from(a.AI).map(e => new CastleResourceInfo(e, a.KID))).flat()
     resourceCastleList.forEach(castleChanges => {
-        const castle = castles.find(e => e.id == castleChanges.id)
+        const castle = castles.find(e => e.kingdomID == castleChanges.kingdomID && e.id == castleChanges.id)
         if(castle)
             return Object.assign(castle, castleChanges)
         castles.push(castleChanges)
@@ -804,7 +804,7 @@ async function clientStartFeast(type, areaID, kingdomID) {
 }
 const HighscoreList = e => ({
     score: Number(e[0]),
-    ammount: Number(e[1]),
+    amount: Number(e[1]),
     playerData: new OwnerInfo(e[2])
 })
 const Highscore = e => ({

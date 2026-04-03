@@ -439,7 +439,7 @@ let getHonourRanking = async (interaction) => {
                     continue
                 if (e.playerData.remainingPeaceTime)
                     continue
-                if (e.ammount == 0)
+                if (e.amount == 0)
                     break fullout
                 if(ggeConfig.blackListedAlliances?.includes(e.playerData.allianceName))
                     continue

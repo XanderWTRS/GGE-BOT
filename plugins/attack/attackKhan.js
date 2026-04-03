@@ -256,7 +256,7 @@ events.on("eventStart", async eventInfo => {
                         else if (unit.unitInfo.defRangeBonus)
                             attackerShieldTools.push(unit)
                     }
-                    else if (unit.unitInfo.fightType == 0) {
+                    else if (unit.unitInfo.fightType == 0 && !unit.unitInfo.beefSupply) {
                         if(troopBlackList.includes(unit))
                             continue
                         if(unit.unitInfo.foodSupply && !pluginOptions.useFood)
@@ -390,15 +390,15 @@ events.on("eventStart", async eventInfo => {
                     }
                     let maxTroops = maxTroopFlank
 
-                    wave.L.U.forEach((unitSlot, i) =>
+                    wave.L.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     maxTroops = maxTroopFlank
-                    wave.R.U.forEach((unitSlot, i) =>
+                    wave.R.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerMeleeTroops.length <= 0 ?
                             attackerRangeTroops : attackerMeleeTroops, maxTroops))
                     maxTroops = maxTroopFront
-                    wave.M.U.forEach((unitSlot, i) =>
+                    wave.M.U.forEach(unitSlot =>
                         maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                             attackerMeleeTroops : attackerRangeTroops, maxTroops))
                 })
