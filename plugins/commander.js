@@ -31,6 +31,8 @@ function useCommander(lordID) {
 movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if(movement.owner?.ownerID != playerInfo.playerID)
         return
+
+    console.log(`Used Commander: ${movement.lord.lordPosition + 1}`)
     
     useCommander(movement.lord.lordID)
 })
@@ -38,6 +40,8 @@ movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassT
 movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if (movement.targetOwner?.ownerID != playerInfo.playerID)
         return
+
+    console.log(`Freed Commander: ${movement.lord.lordPosition + 1}`)
 
     freeCommander(movement.lord.lordID)
 })

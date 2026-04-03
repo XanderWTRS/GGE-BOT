@@ -287,7 +287,6 @@ const waitToAttack = callback => new Promise(async (resolve, reject) => {
                 }
             }
         }
-
         alreadyRunning = false
     }
 })
