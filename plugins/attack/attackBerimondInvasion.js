@@ -248,25 +248,25 @@ events.on("eventStart", async eventInfo => {
                     else if (!pluginOptions.noeventTools) {
                         const selectTool = i => {
                             let tools = attackerBerimondTools
-                            if (tools.length == 0 || ((!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))) {
+                            if (tools.length == 0 || ((!tools[0]?.unitInfo.pointBonus && !tools[0]?.unitInfo.reputationBonus))) {
                                 if (i == 0) {
                                     tools = attackerWallBerimondTools
-                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
+                                    if (tools.length == 0 || (!tools[0]?.unitInfo.pointBonus && !tools[0]?.unitInfo.reputationBonus))
                                         tools = attackerShieldBerimondTools
                                 }
                                 else if (i == 1) {
                                     tools = attackerShieldBerimondTools
-                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
+                                    if (tools.length == 0 || (!tools[0]?.unitInfo.pointBonus && !tools[0]?.unitInfo.reputationBonus))
                                         tools = attackerWallBerimondTools
                                 }
                                 if (i == 2) {
                                     tools = attackerGateBerimondTools
-                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
+                                    if (tools.length == 0 || (!tools[0]?.unitInfo.pointBonus && !tools[0]?.unitInfo.reputationBonus))
                                         tools = attackerWallBerimondTools
-                                    if (tools.length == 0 || (!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
+                                    if (tools.length == 0 || (!tools[0]?.unitInfo.pointBonus && !tools[0]?.unitInfo.reputationBonus))
                                         tools = attackerShieldBerimondTools
                                 }
-                                if ((!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))
+                                if ((!tools[0]?.unitInfo.pointBonus && !tools[0]?.unitInfo.reputationBonus))
                                     tools = []
                             }
 
