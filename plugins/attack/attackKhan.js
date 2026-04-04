@@ -203,7 +203,6 @@ events.on("eventStart", async ({EID, EDID}) => {
             const attackInfo = await waitToAttack(async () => {
                 await skipTarget(areaInfo)
                 
-
                 const campInfo = classic ? nomadCampsClassic.find(obj => areaInfo.extraData[1] == obj.id) :
                     eventAutoScalingCamps.find(obj => areaInfo.extraData[6] == obj.eventAutoScalingCampID)
                     

@@ -235,7 +235,7 @@ async function clientSkipTarget(type, x, y, kingdomID, skip) {
     if (result != 0)
         return { result }
     
-    return { areaInfo: MapObject(new GAAAreaInfo(obj), kingdomID), result: 0 }
+    return { areaInfo: MapObject(new GAAAreaInfo(obj.AI), kingdomID), result: 0 }
 }
 async function clientGetNextMapObject(type, kingdomID) {
     await sendXT("fnm", JSON.stringify({ T: type, KID: kingdomID, LMIN: -1, LMAX: -1, NID: -801 }))
@@ -568,11 +568,10 @@ class CastleInfo extends EventEmitter { //JSDOC: HACK
     constructor() {
         const e = undefined, kingdomID = undefined
         this.areaInfo = MapObject(new GAAAreaInfo(e.AI), kingdomID)
-        this.id = Number(this.areaInfo.extraData[0])
+        this.id = Number(this.areaInfo.extraData[0]) ?? Number(e.AID)
         this.abandonOutpostTime = Number(e.AOT)
         this.abandonOutpostTimeCooldown = Number(e.TA)
         this.kingdomID = Number(kingdomID)
-        this.id = Number(e.AID)
         this.wood = Number(e.W)
         this.stone = Number(e.S)
         this.food = Number(e.F)
@@ -595,6 +594,7 @@ class CastleInfo extends EventEmitter { //JSDOC: HACK
         this.hasDefenseWorkshop = Boolean(e.DW)
         this.hasHospital = Boolean(e.H)
         this.openGateTime = Number(e.OGT)
+        this.unlockedHorses = Array.from(e.UH).map(Number)
     }
 }
 /** @type {Array<CastleInfo>} */

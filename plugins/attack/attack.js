@@ -78,10 +78,10 @@ function assignUnit(unitSlot, units, maxUnits) {
 
     return unitAmount
 }
-function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, additionalWaves) {
+function getAttackInfo(kid, castle, AI, commander, level, waves, options, additionalWaves) {
     const attackTarget = {
-        SX: sourceCastle.areaInfo.x,
-        SY: sourceCastle.areaInfo.y,
+        SX: castle.areaInfo.x,
+        SY: castle.areaInfo.y,
         TX: AI.x,
         TY: AI.y,
         KID: kid,
@@ -173,7 +173,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
         setupWave([0, 13], wave.R.U)
         attackTarget.A.push(wave)
     }
-    const unlockedHorses = sourceCastle.unlockedHorses
+    const unlockedHorses = castle.unlockedHorses
 
     if (options.useCoin && !options.useFeather) {
         let bestHorse = -1
