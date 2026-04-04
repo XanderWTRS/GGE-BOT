@@ -49,18 +49,16 @@ events.once("load", async () => {
             rect.y = rect.y > 1286 ? 1286 : rect.y
             rect.w = rect.w > 1286 ? 1286 : rect.w
             rect.h = rect.h > 1286 ? 1286 : rect.h
-            let gaa
             let attemptsLeft = 5
             do {
                 try {
-                    gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+                    areas.push(...(await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)).filter(e => e.type == type))
+                    break
                 }
                 catch { attemptsLeft-- }
                 if (attemptsLeft <= 0)
                     continue done
-            } while (!gaa)
-
-            areas.push(...gaa.areaInfo.filter(e => e.type == type))
+            } while (true)
         }
     }
 
@@ -84,18 +82,18 @@ events.once("load", async () => {
         let msg = "```ansi\nLocation           Coords  Time\n"
         let everwinterGlacier = 0
 
-        areas.every(area => {
-            const kingdomID = area.extraData[4]
-            const deltaTime = area.extraData[2] - (date - area.timeSinceRequest) / 1000
+        areas.every(areaInfo => {
+            const kingdomID = areaInfo.extraData[4]
+            const deltaTime = areaInfo.extraData[2] - (date - areaInfo.timeSinceRequest) / 1000
 
             if (kingdomID == 2 && everwinterGlacier++ >= 15)
                 return true
 
             if (deltaTime <= 0)
-                preSpyInfo(area.x, area.y, kingdomID).then(({ areaInfo: area }) =>
-                    area.extraData[2] > 0 && sortData())
+                preSpyInfo(areaInfo.x, areaInfo.y, kingdomID).then(({ areaInfo }) =>
+                    areaInfo.extraData[2] > 0 && sortData())
 
-            msg += `${KingdomNames[kingdomID]} ${area.x}\:${area.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
+            msg += `${KingdomNames[kingdomID]} ${areaInfo.x}\:${areaInfo.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
 
             if (msg.length > 2000 - 3)
                 return (msg = msg.replace(/\n.*\n$/, ''), false)
@@ -114,6 +112,6 @@ events.once("load", async () => {
         if (message.content == msg)
             return
 
-        message.edit(msg)
+        await message.edit(msg)
     }, 6 * 1000).unref()
 })

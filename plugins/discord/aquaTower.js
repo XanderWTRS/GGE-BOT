@@ -85,7 +85,7 @@ events.once("load", async () => {
 
     setInterval(async () => {
         const date = Date.now()
-        let msg = "```Location           Coords  Time\n"
+        let msg = "```Location             Hits left\n"
 
         areas.every(areaInfo => {
             const deltaTime = areaInfo.extraData[3] - (date - areaInfo.timeSinceRequest) / 1000

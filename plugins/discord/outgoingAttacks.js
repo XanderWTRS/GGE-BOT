@@ -59,7 +59,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
         return
 
     const data = {
-        content : `${mention}` +
+        content :
         "```ansi\n" +
         `${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.targetOwner.allianceName}`
             `${i18n.__("incomingIsAttacking")}${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
