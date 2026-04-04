@@ -69,8 +69,7 @@ async function sendXT(cmdName, paramObj) {
     webSocket.send(`%xt%${botConfig.gameServer}%${cmdName}%1%${paramObj}%`)
 }
 
-let lordErrors = 0
-let tooManyUnits = 0
+let importantErrors = 0
 
 /**
  * 
@@ -88,33 +87,20 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     let timer
     let result
     const checkForLordIssues = () => {
-        if (err[result] == "LORD_IS_USED")
-            lordErrors++
-        if (err[result] == "ATTACK_TOO_MANY_UNITS")
-            tooManyUnits++
-        if (lordErrors == 5) {
-            console.error("closedReason", "LORD_IS_USED")
+        
+        if (["LORD_IS_USED", "ATTACK_TOO_MANY_UNITS", "ATTACK_TOO_MANY_UNITS"].includes(err[result]))
+            importantErrors++
+        if (importantErrors == 5) {
+            console.error("closedReason", "tooManyImportantErrors")
             return webSocket.pause()
-            parentPort.postMessage([ActionType.KillBot])
-            return
-        }
-        if (tooManyUnits == 12) {
-            console.error("closedReason", "ATTACK_TOO_MANY_UNITS")
-            return webSocket.pause()
-            parentPort.postMessage([ActionType.KillBot])
-            return
         }
         if (err[result] == "MOVEMENT_HAS_NO_UNITS") {
             console.error("closedReason", "MOVEMENT_HAS_NO_UNITS")
             return webSocket.pause()
-            parentPort.postMessage([ActionType.KillBot])
-            return
         }
         if (err[result] == "CANT_START_NEW_ARMIES") {
             console.error("closedReason", "CANT_START_NEW_ARMIES")
             return webSocket.pause()
-            parentPort.postMessage([ActionType.KillBot])
-            return
         }
     }
 
