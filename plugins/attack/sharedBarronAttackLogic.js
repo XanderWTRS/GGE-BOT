@@ -54,7 +54,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
             if (skip == undefined)
                 throw new Error("couldntFindSkip")
 
-            const [, result] = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
+            const { result } = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
             if (result != 0)
                 break

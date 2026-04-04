@@ -97,7 +97,7 @@ const skipTarget = async areaInfo => {
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        const [, result] = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
+        const { result } = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
         if (result != 0)
             break
@@ -131,7 +131,7 @@ xtHandler.on("rpr", ({EID, PCRP : rage}) => {
     if (EID != eventID)
         return
     
-    if (obj.PCRP >= campRageNeeded) {
+    if (rage >= campRageNeeded) {
         if (rage > campRageNeeded)
             console.warn("rageTooHigh")
 

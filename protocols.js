@@ -235,7 +235,7 @@ async function clientSkipTarget(type, x, y, kingdomID, skip) {
     if (result != 0)
         return { result }
     
-    return { areaInfo: new ServerGetAreaInfo(obj.gaa, result).areaInfo[0], result: 0 }
+    return { areaInfo: MapObject(new GAAAreaInfo(obj), kingdomID), result: 0 }
 }
 async function clientGetNextMapObject(type, kingdomID) {
     await sendXT("fnm", JSON.stringify({ T: type, KID: kingdomID, LMIN: -1, LMAX: -1, NID: -801 }))

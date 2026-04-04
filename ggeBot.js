@@ -173,8 +173,8 @@ const playerInfo = {
 
 module.exports = {
     sendXT,
-    xtHandler,
     waitForResult,
+    xtHandler,
     webSocket,
     events,
     botConfig,
