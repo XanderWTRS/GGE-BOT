@@ -1,6 +1,3 @@
-[submodule "plugins-extra"]
-	path = plugins-extra
-	url = https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git
 [submodule "website"]
 	path = website
 	url = https://github.com/darrenthebozz/GGE-BOT-Website.git
