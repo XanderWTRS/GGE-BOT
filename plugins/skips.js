@@ -5,7 +5,43 @@ if (require('node:worker_threads').isMainThread)
                 type: "Checkbox",
                 key: "bypassSkipTypeFilter",
                 default: false
-            }
+            },
+            { type: "Label", key: "skipTypes" },
+            {
+                type: "Checkbox",
+                key: "1minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "5minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "10minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "30minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "1hour",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "5hour",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "24hour",
+                default: true
+            },
         ],
         force: true
     }
@@ -27,13 +63,13 @@ const pluginOptions = botConfig.plugins[require("path").basename(__filename).sli
 
 function haveEnoughSkips(time) {
     const skips = {
-        MS1: resources['1MinSkip'],
-        MS2: resources['5MinSkip'],
-        MS3: resources['10MinSkip'],
-        MS4: resources['30MinSkip'],
-        MS5: resources['60MinSkip'],
-        MS6: resources['5HourSkip'],
-        MS7: resources['24HourSkip']
+        MS1: pluginOptions["1MinuteSkip"] ? resources['1MinSkip'] : 0,
+        MS2: pluginOptions["5MinuteSkip"] ? resources['5MinSkip'] : 0,
+        MS3: pluginOptions["10MinuteSkip"] ? resources['10MinSkip'] : 0,
+        MS4: pluginOptions["30MinuteSkip"] ? resources['30MinSkip'] : 0,
+        MS5: pluginOptions["1HourSkip"] ? resources['60MinSkip'] : 0,
+        MS6: pluginOptions["5HourSkip"] ? resources['5HourSkip'] : 0,
+        MS7: pluginOptions["24HourSkip"] ? resources['24HourSkip'] : 0
     }
     time = Math.ceil(time / 60)
     
@@ -42,7 +78,7 @@ function haveEnoughSkips(time) {
             .filter(e => e[1] > 0)
             .filter(e => pluginOptions.bypassSkipTypeFilter || MinuteSkipType[e[0]] <= time * 2)
             .sort((a, b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
-            .sort((a, b) => Math.max(b[1], 950) - Math.max(a[1], 950))
+            .sort((a, b) => Math.min(Math.max(b[1], 950), 951) - Math.min(Math.max(a[1], 950), 951))
 
         if (skip[0] == undefined)
             return false
