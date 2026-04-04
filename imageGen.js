@@ -1,6 +1,6 @@
 const { Stream } = require("stream")
 const PImage = require("pureimage")
-const fs = require('fs')
+const fs = require("fs")
 
 const { getAsset } = require("./units.js")
 const ggeConfig = require("./ggeConfig.json")
@@ -72,8 +72,7 @@ let createLayout = (left, middle, right, courtyard) => {
   return passThroughStream
 }
 
-let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => 
-  new Promise(async (resolve, reject) => {
+let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => new Promise(async (resolve, reject) => {
   try {
     const asset = await getAsset(`${unit?.name}_${unit?.group}_${unit?.type}`)
 
@@ -118,7 +117,7 @@ let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxH
 
     if (unit?.level) {
       let asset = await getAsset(`Colleactable_LevelIndicator_Unit`)
-      
+
       let image = await PImage.decodePNGFromStream(asset)
       textHeight = 12
       ctx.font = `${textHeight}px arial`

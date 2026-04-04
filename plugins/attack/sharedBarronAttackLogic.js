@@ -111,8 +111,8 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 if (index == -1)
                     return
 
-                const AI = areas[index]
-                const level = getLevel(AI.extraData[1], kingdomID)
+                const areaInfo = areas[index]
+                const level = getLevel(areaInfo.extraData[1], kingdomID)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -161,7 +161,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
 
                 const autoConfigure = !(options.attackLeft || options.attackRight || options.attackMiddle)
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
                 const maxToolsFlank = options.useShields ? getTotalAmountToolsFlank(level, 0) : 10
@@ -243,7 +243,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo.x || obj.AAM.M.TA[2] != areaInfo.y)
                         return false
                     return true
                 })

@@ -29,7 +29,7 @@ function parseMessage(e) {
         .replace(/%5C/g, "\\")
         .replace(/(\[|\])/g, " ") : ""
 }
-const cleanUnmatchedTags = (t) =>
+const cleanUnmatchedTags = t =>
     t.replace(/<(?![^<>]*>)/g, '').replace(/(?<!<[^<>]*)>/g, '')
 
 function unparseMessage(e) {

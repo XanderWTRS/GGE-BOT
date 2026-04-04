@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require("fs")
 const sharp = require('sharp')
 const { Readable } = require('stream')
 const assets = require('./assets.json')

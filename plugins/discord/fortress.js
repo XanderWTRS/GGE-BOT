@@ -21,7 +21,6 @@ events.once("load", async () => {
     /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
     const areas = []
 
-
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
         const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaType.type))
         done:
@@ -74,7 +73,7 @@ events.once("load", async () => {
 
     sortData()
 
-    const KIDNames = [,
+    const KingdomNames = [,
         "\u001b[2;33mBurning Sands\u001b[0m     ",
         "\u001b[2;34mEverwinter Glacier\u001b[0m",
         "\u001b[2;31mFire peaks\u001b[0m        "
@@ -96,7 +95,7 @@ events.once("load", async () => {
                 preSpyInfo(area.x, area.y, kingdomID).then(({ areaInfo: area }) =>
                     area.extraData[2] > 0 && sortData())
 
-            msg += `${KIDNames[kingdomID]} ${area.x}\:${area.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
+            msg += `${KingdomNames[kingdomID]} ${area.x}\:${area.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
 
             if (msg.length > 2000 - 3)
                 return (msg = msg.replace(/\n.*\n$/, ''), false)

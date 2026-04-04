@@ -6,7 +6,6 @@ const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require
 const currencies = require("./items/currencies.json")
 const ActionType = require("./actions.json")
 const units = require("./items/units.json")
-const err = require("./err.json")
 
 const myCache = new NodeCache({useClones : false})
 
@@ -66,7 +65,7 @@ const HighscoreType = Object.freeze({
     honour: 5
 })
 
-xtHandler.on("earlyLoad", () => sendXT("sce", "{}"))
+// xtHandler.on("earlyLoad", () => sendXT("sce", "{}"))
 
 const map = {}
 const registry = new FinalizationRegistry(key => delete map[key])
@@ -1107,7 +1106,7 @@ movementEvents.on("return", async (/** @type {Movement} */ movement) => {
 xtHandler.on("cra", (o, r) => r == 0 ? 
     new Movement(o.AAM, Array.from(o.O ?? []).map(o => new OwnerInfo(o))) : undefined)
 
-xtHandler.on("cra", (_, r) => r == err["MISSING_UNITS"] ? 
+xtHandler.on("cra", (_, r) => r != 0 ? 
     sendXT("dcl", JSON.stringify({ CD: 1 })) : undefined)
 
 xtHandler.on("cat", (o, r) => {

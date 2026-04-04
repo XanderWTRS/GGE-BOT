@@ -430,7 +430,14 @@ xtHandler.on("lli", async (obj, r) => {
     parentPort.postMessage([ActionType.StatusUser, status])
     parentPort.postMessage([ActionType.KillBot])
 })
-require("./plugins/misc.js")
+
+try {
+    require("./plugins/misc.js")
+}
+catch(e) {
+    console.debug(e)
+}
+
 for (const [, val] of Object.entries(botConfig.plugins)) {
     if (!val.state)
         continue

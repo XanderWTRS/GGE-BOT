@@ -90,20 +90,20 @@ const troopBlackList = [277, 34, 35]
 
 let campRageNeeded = NaN
 
-const skipTarget = async AI => {
-    while (AI[5] > 0) {
-        let skip = spendSkip(AI[5])
+const skipTarget = async areaInfo => {
+    while (areaInfo[5] > 0) {
+        let skip = spendSkip(areaInfo[5])
 
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        await sendXT("msd", JSON.stringify({ X: AI[1], Y: AI[2], MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
+        await sendXT("msd", JSON.stringify({ X: areaInfo[1], Y: areaInfo[2], MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || obj.AI[0] == type)
 
         if (Number(result) != 0)
             break
 
-        Object.assign(AI, obj.AI)
+        Object.assign(areaInfo, obj.AI)
     }
 }
 
@@ -130,12 +130,10 @@ movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTyp
     skipTarget(movement.sourceAttack)
 })
 
-xtHandler.on("rpr", obj => {
-    if (obj.EID != eventID)
+xtHandler.on("rpr", ({EID, PCRP : rage}) => {
+    if (EID != eventID)
         return
     
-    let rage = obj.PCRP
-
     if (obj.PCRP >= campRageNeeded) {
         if (rage > campRageNeeded)
             console.warn("rageTooHigh")
@@ -147,10 +145,11 @@ xtHandler.on("rpr", obj => {
 let nomadsPoints = 0
 let quit = false
 
-xtHandler.on("pep", obj => {
-    if (obj.EID != eventID)
+xtHandler.on("pep", ({EID, OP}) => {
+    if (EID != eventID)
         return
-    nomadsPoints = Number(obj.OP[0])
+
+    nomadsPoints = Number(OP[0])
     
     if(quit)
         return
@@ -163,8 +162,8 @@ xtHandler.on("pep", obj => {
         quit = true
     }
 })
-events.on("eventStop", eventInfo => {
-    if (eventInfo.EID != eventID)
+events.on("eventStop", ({EID}) => {
+    if (EID != eventID)
         return
 
     if(quit)
@@ -173,11 +172,11 @@ events.on("eventStop", eventInfo => {
     console.log("shuttingDownEvent", "eventEnded")
     quit = true
 })
-events.on("eventStart", async eventInfo => {
-    if (eventInfo.EID != eventID)
+events.on("eventStart", async ({EID, EDID}) => {
+    if (EID != eventID)
         return
 
-    if (eventInfo.EDID == -1) {
+    if (EDID == -1) {
         const eventDifficultyID =
             Number(eventsDifficulties.find(e =>
                 ((pluginOptions.eventDifficulty)) == e.difficultyTypeID &&
@@ -186,10 +185,10 @@ events.on("eventStart", async eventInfo => {
 
         await sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
         await waitForResult("sede", 1000 * 10)
-        eventInfo.EDID = eventDifficultyID
+        EDID = eventDifficultyID
     }
     let classic = false
-    if(eventInfo.EDID == 0)
+    if(EDID == 0)
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
@@ -284,13 +283,13 @@ events.on("eventStart", async eventInfo => {
                     Number(a.unitInfo.ragePointBonus + Number(a.unitInfo.khanTabletBooster ?? 0)))
 
                 attackerNomadTools.sort((a, b) =>
-                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster ?? 0) - Number(a.unitInfo.khanTabletBooster ?? 0))
                 attackerGateNomadTools.sort((a, b) =>
-                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster ?? 0) - Number(a.unitInfo.khanTabletBooster ?? 0))
                 attackerWallNomadTools.sort((a, b) =>
-                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster ?? 0) - Number(a.unitInfo.khanTabletBooster ?? 0))
                 attackerShieldNomadTools.sort((a, b) =>
-                    Number(b.unitInfo.khanTabletBooster) - Number(a.unitInfo.khanTabletBooster))
+                    Number(b.unitInfo.khanTabletBooster ?? 0) - Number(a.unitInfo.khanTabletBooster ?? 0))
 
                 if (pluginOptions.lowValueChests) {
                     attackerBannerKhanTools.reverse()
