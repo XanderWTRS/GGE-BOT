@@ -92,7 +92,7 @@ let campRageNeeded = NaN
 
 const skipTarget = async areaInfo => {
     while (areaInfo.extraData[2] > 0) {
-        let skip = spendSkip(areaInfo[5])
+        let skip = spendSkip(areaInfo.extraData[2])
 
         if (skip == undefined)
             throw new Error("couldntFindSkip")
@@ -293,7 +293,7 @@ events.on("eventStart", async ({EID, EDID}) => {
                 attackerShieldNomadTools.push(...attackerShieldTools)
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, castle, new ClassTypes.GAAAreaInfo(areaInfo), commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
@@ -403,7 +403,7 @@ events.on("eventStart", async ({EID, EDID}) => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo[1] || obj.AAM.M.TA[2] != areaInfo[2])
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo.x || obj.AAM.M.TA[2] != areaInfo.y)
                         return false
                     return true
                 })
