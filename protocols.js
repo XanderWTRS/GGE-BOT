@@ -369,17 +369,17 @@ const GetProductionData = e => ({
     meadConsumptionReductionPercentage: Number(e.MEADCR / 100),
     beefConsumptionReductionPercentage: Number(e.BEEFCR / 100),
 
-    maxAmmountFood: Number(e.MRF),
-    maxAmmountStone: Number(e.MRS),
-    maxAmmountWood: Number(e.MRF),
-    maxAmmountCoal: Number(e.MRC),
-    maxAmmountIron: Number(e.MRI),
-    maxAmmountOil: Number(e.MRO),
-    maxAmmountGlass: Number(e.MRG),
-    maxAmmountMead: Number(e.MRMEAD),
-    maxAmmountHoney: Number(e.MRHONEY),
-    maxAmmountBeef: Number(e.MRBEEF),
-    maxAmmountAqua: Number(e.MRA),
+    maxAmountFood: Number(e.MRF),
+    maxAmountStone: Number(e.MRS),
+    maxAmountWood: Number(e.MRF),
+    maxAmountCoal: Number(e.MRC),
+    maxAmountIron: Number(e.MRI),
+    maxAmountOil: Number(e.MRO),
+    maxAmountGlass: Number(e.MRG),
+    maxAmountMead: Number(e.MRMEAD),
+    maxAmountHoney: Number(e.MRHONEY),
+    maxAmountBeef: Number(e.MRBEEF),
+    maxAmountAqua: Number(e.MRA),
 
     safeFood: Number(e.SAFE_F),
     safeStone: Number(e.SAFE_S),
@@ -1134,7 +1134,7 @@ movementEvents.on("return", async (/** @type {Movement} */ movement) => {
         castle.unitInventory.push(unit)
     })
     Object.entries(movement.resources).forEach((([key,value]) => {
-        castle[key] = Math.min(castle[key] + value, castle.getProductionData[`maxAmmount${capitalizeFirstLetter(key)}`])
+        castle[key] = Math.min(castle[key] + value, castle.getProductionData[`maxAmount${capitalizeFirstLetter(key)}`])
     }))
     castle.emit("resourceUpdate", movement.resources)
 })

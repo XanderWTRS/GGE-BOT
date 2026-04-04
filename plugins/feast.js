@@ -42,7 +42,7 @@ const tryToFeast = async () => {
             castle.getProductionData.foodConsumptionReductionPercentage
         if (foodRate < Math.max(0, minimumFoodRate))
             return
-        if (castle.id == mainCastleAreaID && castle.getProductionData.maxAmmountFood < castle.food)
+        if (castle.id == mainCastleAreaID && castle.getProductionData.maxAmountFood < castle.food)
             return
         while (minimumFood < (castle.food - feastFoodReduction) && feastFoodReduction <= castle.food) {
             ClientCommands.startFeast(8, castle.id, castle.kingdomID)

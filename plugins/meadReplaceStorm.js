@@ -38,7 +38,7 @@ events.once("load", async () => {
         if (meadLossPerHour == Infinity || isNaN(meadLossPerHour))
             return console.log("dontNeedToSendMead")
 
-        if (stormAreaInfo.getProductionData.maxAmmountMead / stormAreaInfo.getProductionData.MeadConsumptionRate < hoursLeftTillRefilWarning)
+        if (stormAreaInfo.getProductionData.maxAmountMead / stormAreaInfo.getProductionData.MeadConsumptionRate < hoursLeftTillRefilWarning)
             console.warn("notEnoughTimeForMeadReplace", hoursLeftTillRefilWarning, "hoursForFoodMeadReplace")
 
         if (resource?.remainingTime >= (stormAreaInfo.mead - (resourceMead ? resourceMead.count : 0)) / stormAreaInfo.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
@@ -51,7 +51,7 @@ events.once("load", async () => {
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
 
         setTimeout(async () => {
-            let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmmountMead - stormAreaInfo.mead))
+            let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmountMead - stormAreaInfo.mead))
 
             let info = await ClientCommands.getKingdomInfo(
                 mainCastleAreaID,

@@ -32,8 +32,8 @@ async function trySendRes() {
         if (kingdomInfoList.resourceTransferList.find(e => e.kingdomID == castle.kingdomID)?.remainingTime > 0)
             continue
 
-        let maxWoodToSend = Math.min(castle.getProductionData.maxAmmountWood - castle.wood, stormAreaInfo.wood)
-        let maxStoneToSend = Math.min(castle.getProductionData.maxAmmountStone - castle.stone, stormAreaInfo.stone)
+        let maxWoodToSend = Math.min(castle.getProductionData.maxAmountWood - castle.wood, stormAreaInfo.wood)
+        let maxStoneToSend = Math.min(castle.getProductionData.maxAmountStone - castle.stone, stormAreaInfo.stone)
 
         const G = [
             ["W", maxWoodToSend],

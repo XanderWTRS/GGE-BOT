@@ -91,8 +91,8 @@ const type = AreaType.stormTower
 events.once("load", async () => {
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
     async function onResourceUpdate() {
-        if (pluginOptions["buyCoins"] && castle.getProductionData.maxAmmountAqua <=
-            Math.min(castle.getProductionData.maxAmmountAqua, castle.aqua + 100000)) {
+        if (pluginOptions["buyCoins"] && castle.getProductionData.maxAmountAqua <=
+            Math.min(castle.getProductionData.maxAmountAqua, castle.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castle.aqua / 75000); i++) {
                 castle.aqua -= 75000
                 sendXT("sbp", JSON.stringify({
@@ -102,8 +102,8 @@ events.once("load", async () => {
                 console.info("broughtCoins")
             }
         }
-        if (pluginOptions["buyDecoration"] && castle.getProductionData.maxAmmountAqua <=
-            Math.min(castle.getProductionData.maxAmmountAqua, castle.aqua + 100000)) {
+        if (pluginOptions["buyDecoration"] && castle.getProductionData.maxAmountAqua <=
+            Math.min(castle.getProductionData.maxAmountAqua, castle.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castle.aqua / 100000); i++) {
                 castle.aqua -= 100000
                 sendXT("sbp", JSON.stringify({
@@ -113,8 +113,8 @@ events.once("load", async () => {
                 console.info("broughtDeco")
             }
         }
-        if (pluginOptions["buyXP"] && castle.getProductionData.maxAmmountAqua <=
-            Math.min(castle.getProductionData.maxAmmountAqua, castle.aqua + 100000)) {
+        if (pluginOptions["buyXP"] && castle.getProductionData.maxAmountAqua <=
+            Math.min(castle.getProductionData.maxAmountAqua, castle.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castle.aqua / 10000); i++) {
                 castle.aqua -= 10000
                 sendXT("sbp", JSON.stringify({
