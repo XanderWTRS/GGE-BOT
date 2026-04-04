@@ -107,29 +107,25 @@ const skipTarget = async AI => {
     }
 }
 
-xtHandler.on("cra", (obj, r) => {
-    if (r != 0)
-        return false
+movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
+    if(movement.owner?.ownerID != playerInfo.playerID)
+        return
 
-    if (obj.AAM.M.TA[0] != type)
-        return false
-
-    campRageNeeded = eventAutoScalingCamps.find(obj2 => obj.AAM.M.TA[9] == obj2.eventAutoScalingCampID).playerRageCap
+    campRageNeeded = eventAutoScalingCamps.find(campInfo => movement.targetAttack.extraData[6] == campInfo.eventAutoScalingCampID).playerRageCap
 })
-xtHandler.on("cat", (obj, r) => {
-    if (r != 0)
-        return false
-    
-    const attackSource = obj.A.M.SA
-    
-    if (attackSource[0] != type)
-        return false
 
-    campRageNeeded = eventAutoScalingCamps.find(obj2 => 
-        attackSource[9] == obj2.eventAutoScalingCampID).playerRageCap
+movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
+    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+        return
 
-    skipTarget(attackSource)
+    if(movement.sourceAttack.type != type)
+        return
+    
+    campRageNeeded = eventAutoScalingCamps.find(campInfo => 
+        movement.sourceAttack.extraData[6] == campInfo.eventAutoScalingCampID).playerRageCap
+    skipTarget(movement.sourceAttack)
 })
+
 xtHandler.on("rpr", obj => {
     if (obj.EID != eventID)
         return

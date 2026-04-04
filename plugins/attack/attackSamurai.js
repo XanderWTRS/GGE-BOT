@@ -92,17 +92,16 @@ const skipTarget = async (AI) => {
     }
 }
 
-xtHandler.on("cat", (obj, result) => {
-    if (result != 0)
+movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
+    if (movement.targetOwner?.ownerID != playerInfo.playerID)
         return
 
-    let attackSource = obj.A.M.SA
-
-    if (attackSource[0] != type)
+    if(movement.sourceAttack.type != type)
         return
-
-    skipTarget(new ClassTypes.GAAAreaInfo(attackSource))
+    
+    skipTarget(movement.sourceAttack)
 })
+
 let quit = false
 xtHandler.on("pep", obj => {
     if (pluginOptions.scoreShutoff <= 0)

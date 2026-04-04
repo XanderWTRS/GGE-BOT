@@ -1021,6 +1021,9 @@ async function newMovement(movement) {
 
     movementEvents.emit("outgoing", movement)
 
+    if (movement.targetOwner?.ownerID == movement.owner?.ownerID)
+        movementEvents.emit("returning", movement)
+    
     setTimeout(() => {
         const movementIndex = movements.findIndex(e => e.id == movement.id)
         if(movementIndex == -1) {
