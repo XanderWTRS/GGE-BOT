@@ -111,18 +111,22 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if(movement.owner?.ownerID != playerInfo.playerID)
         return
 
-    campRageNeeded = eventAutoScalingCamps.find(campInfo => movement.targetAttack.extraData[6] == campInfo.eventAutoScalingCampID).playerRageCap
+    if(movement.targetAttack.type != type)
+        return
+
+    campRageNeeded = eventAutoScalingCamps.find(campInfo => 
+        campInfo.eventAutoScalingCampID == movement.targetAttack.extraData[6]).playerRageCap
 })
 
 movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
-    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+    if (movement.owner?.ownerID != playerInfo.playerID)
         return
 
     if(movement.sourceAttack.type != type)
         return
     
     campRageNeeded = eventAutoScalingCamps.find(campInfo => 
-        movement.sourceAttack.extraData[6] == campInfo.eventAutoScalingCampID).playerRageCap
+        campInfo.eventAutoScalingCampID == movement.sourceAttack.extraData[6]).playerRageCap
     skipTarget(movement.sourceAttack)
 })
 

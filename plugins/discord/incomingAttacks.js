@@ -36,11 +36,13 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (![0, 25, 31, 24, 29].includes(movement.type))
         return
+    if (movement.sourceOwner == undefined)
+        return
+    if (movement.targetOwner == undefined)
+        return
     if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
         return
     if (movement.targetOwner.allianceID != playerInfo.alliance.id)
-        return
-    if (movement.targetOwner == undefined)
         return
 
     if (kingdomName[movement.kingdomID] == undefined)

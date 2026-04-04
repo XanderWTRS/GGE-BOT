@@ -1,7 +1,7 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = { hidden: true }
 
-const { xtHandler, playerInfo } = require('../ggeBot.js')
+const { xtHandler, playerInfo, waitForResult } = require('../ggeBot.js')
 const { ClassTypes, movementEvents } = require('../protocols.js')
 
 const event = new EventTarget()
