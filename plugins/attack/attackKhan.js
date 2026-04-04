@@ -173,7 +173,7 @@ events.on("eventStart", async ({EID, EDID}) => {
     if (EID != eventID)
         return
 
-    if (EDID == -1) {
+    if (EDID == -1 && !(ggeConfig.classicBug && pluginOptions.eventDifficulty == 0)) {
         const eventDifficultyID =
             Number(eventsDifficulties.find(e =>
                 ((pluginOptions.eventDifficulty)) == e.difficultyTypeID &&
@@ -185,7 +185,7 @@ events.on("eventStart", async ({EID, EDID}) => {
         EDID = eventDifficultyID
     }
     let classic = false
-    if(EDID == 0)
+    if([-1, 0].includes(eventInfo.EDID))
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)

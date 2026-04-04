@@ -62,9 +62,10 @@ if (require('node:worker_threads').isMainThread)
 
     }
 
+const pretty = require('pretty-time')
 const err = require("../../err.json")
 const { spendSkip } = require("../skips.js")
-const { movementEvents, ClassTypes, AreaType, KingdomID, castles, ClientCommands } = require("../../protocols.js")
+const { movementEvents, AreaType, KingdomID, castles, ClientCommands } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
@@ -72,7 +73,6 @@ const { getCommanderStats } = require("../../getEquipment.js")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const nomadCampsClassic = require("../../items/nomadCamps.json")
-const pretty = require('pretty-time')
 const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 const kingdomID = KingdomID.greatEmpire
@@ -135,7 +135,7 @@ events.on("eventStart", async eventInfo => {
     if (eventInfo.EID != eventID)
         return
 
-    if (eventInfo.EDID == -1) {
+    if (eventInfo.EDID == -1 && !(ggeConfig.classicBug && pluginOptions.eventDifficulty == 0)) {
         const eventDifficultyID =
             Number(eventsDifficulties.find(e =>
                 ((pluginOptions.eventDifficulty)) == e.difficultyTypeID &&
@@ -147,7 +147,7 @@ events.on("eventStart", async eventInfo => {
         eventInfo.EDID = eventDifficultyID
     }
     let classic = false
-    if(eventInfo.EDID == 0)
+    if([-1, 0].includes(eventInfo.EDID))
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
