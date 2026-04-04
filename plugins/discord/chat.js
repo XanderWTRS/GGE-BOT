@@ -22,20 +22,21 @@ const { clientReady } = require("./discord")
 const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 function parseMessage(e) {
-    if (!e)
-        return ""
-    return e = e.replace(/&percnt;/g, "%").replace(/&quot;/g, '"').replace(/&145;/g, "'").replace(/<br \/>/g, "\n").replace(/%5C/g, "\\").replace(/(\[|\])/g, " ")
+    return e ? e.replace(/&percnt;/g, "%")
+        .replace(/&quot;/g, '"')
+        .replace(/&145;/g, "'")
+        .replace(/<br \/>/g, "\n")
+        .replace(/%5C/g, "\\")
+        .replace(/(\[|\])/g, " ") : ""
 }
-function cleanUnmatchedTags(t) {
-    return t.replace(/<(?![^<>]*>)/g, '').replace(/(?<!<[^<>]*)>/g, '')
-}
+const cleanUnmatchedTags = (t) =>
+    t.replace(/<(?![^<>]*>)/g, '').replace(/(?<!<[^<>]*)>/g, '')
+
 function unparseMessage(e) {
     if (!e)
         return ""
-
-    e = cleanUnmatchedTags(e)
-
-    e = e.replace(/<.*?>/g, (m) => {
+    
+    return cleanUnmatchedTags(e).replace(/<.*?>/g, m => {
         if (m.match(/<\/?color.*?>/))
             return m
         if (m.match(/<\/?b>/))
@@ -46,9 +47,12 @@ function unparseMessage(e) {
             return m
 
         return ""
-    })
-
-    return e = e.replaceAll("%", "&percnt;").replaceAll('"', "&quot;").replaceAll("'", "&145;").replaceAll("\n", "<br>").replaceAll("\\", "%5C").replaceAll(/(\[|\])/g, " ")
+    }).replaceAll("%", "&percnt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&145;")
+        .replaceAll("\n", "<br>")
+        .replaceAll("\\", "%5C")
+        .replaceAll(/(\[|\])/g, " ")
 }
 clientReady.then(async client => {
     let channel = await client.channels.fetch(pluginOptions.channelID)
