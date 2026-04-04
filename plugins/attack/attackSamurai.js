@@ -18,7 +18,7 @@ if (require('node:worker_threads').isMainThread)
                     "Master+",
                     "Archmaster"
                 ],
-                default : "4"
+                default: "4"
             },
             {
                 type: "Text",
@@ -90,9 +90,9 @@ movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTyp
     if (movement.targetOwner?.ownerID != playerInfo.playerID)
         return
 
-    if(movement.sourceAttack.type != type)
+    if (movement.sourceAttack.type != type)
         return
-    
+
     skipTarget(movement.sourceAttack)
 })
 
@@ -104,8 +104,8 @@ xtHandler.on("pep", obj => {
     if (obj.EID != eventID)
         return
     samsPoints = Number(obj.OP[0])
-    
-    if(quit)
+
+    if (quit)
         return
 
     if (samsPoints >= pluginOptions.scoreShutoff) {
@@ -116,29 +116,29 @@ xtHandler.on("pep", obj => {
 events.on("eventStop", eventInfo => {
     if (eventInfo.EID != eventID)
         return
-    if(quit)
+    if (quit)
         return
 
     console.log("shuttingDownEvent", "eventEnded")
     quit = true
 })
 events.on("eventStart", async eventInfo => {
-    if(eventInfo.EID != eventID)
+    if (eventInfo.EID != eventID)
         return
 
     if (eventInfo.EDID == -1 && !(ggeConfig.classicBug && pluginOptions.eventDifficulty == 0)) {
-        const eventDifficultyID = 
-            Number(eventsDifficulties.find(e => 
-                ((pluginOptions.eventDifficulty)) == e.difficultyTypeID && 
+        const eventDifficultyID =
+            Number(eventsDifficulties.find(e =>
+                ((pluginOptions.eventDifficulty)) == e.difficultyTypeID &&
                 e.eventID == eventID)
                 .difficultyID)
-                
+
         await sendXT("sede", JSON.stringify({ EID: eventID, EDID: eventDifficultyID, C2U: 0 }))
         await waitForResult("sede", 1000 * 10)
         eventInfo.EDID = eventDifficultyID
     }
     let classic = false
-    if([0,-1].includes(eventInfo.EDID))
+    if ([0, -1].includes(eventInfo.EDID))
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
@@ -152,7 +152,7 @@ events.on("eventStart", async eventInfo => {
         }
     } while (!gaa)
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-        .sort((a, b) => 
+        .sort((a, b) =>
             (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
             (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
         .sort((a, b) => a.extraData[6] - b.extraData[6])
@@ -185,10 +185,10 @@ events.on("eventStart", async eventInfo => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount <= 0)
+                    if (unit.amount <= 0)
                         continue
 
-                    if(unitInfo.wodID == 277)
+                    if (unitInfo.wodID == 277)
                         continue
 
                     else if (unitInfo.samuraiTokenBooster != undefined) {
@@ -203,10 +203,10 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if (
                         unitInfo.toolCategory &&
-                    unitInfo.usageEventID  == undefined &&
-                    unitInfo.allowedToAttack  == undefined &&
-                    unitInfo.typ == 'Attack' &&
-                    unitInfo.amountPerWave == undefined
+                        unitInfo.usageEventID == undefined &&
+                        unitInfo.allowedToAttack == undefined &&
+                        unitInfo.typ == 'Attack' &&
+                        unitInfo.amountPerWave == undefined
                     ) {
                         if (unitInfo.wallBonus)
                             attackerWallTools.push(unit)
@@ -253,7 +253,7 @@ events.on("eventStart", async eventInfo => {
 
                 attackerWallSamuraiTools.push(...attackerWallTools)
                 attackerShieldSamuraiTools.push(...attackerShieldTools)
-                
+
                 const commanderStats = getCommanderStats(commander)
                 const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
@@ -297,7 +297,7 @@ events.on("eventStart", async eventInfo => {
                         attackerRangeTroops.sort((a, b) => Number(a.unitInfo.rangeAttack) - Number(b.unitInfo.rangeAttack))
                         return
                     }
-                    else if(!pluginOptions.noChests) {
+                    else if (!pluginOptions.noChests) {
                         const selectTool = i => {
                             let tools = attackerSamuraiTools
                             if (tools.length == 0 || !tools[0]?.unitInfo?.samuraiTokenBooster) {
@@ -318,7 +318,7 @@ events.on("eventStart", async eventInfo => {
                                     if (tools.length == 0 || !tools[0]?.unitInfo?.samuraiTokenBooster)
                                         tools = attackerShieldSamuraiTools
                                 }
-                                if(!tools[0]?.unitInfo?.samuraiTokenBooster)
+                                if (!tools[0]?.unitInfo?.samuraiTokenBooster)
                                     tools = []
                             }
 
@@ -351,15 +351,15 @@ events.on("eventStart", async eventInfo => {
                 })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                 attackInfo.RW.forEach((unitSlot, i) => {
-                    let attacker = i & 1 ? 
-                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
+                    let attacker = i & 1 ?
+                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
                         Math.floor(maxTroops / 2) - 1)
-                    })
+                })
 
-                    await sendXT("cra", JSON.stringify(attackInfo))
+                await sendXT("cra", JSON.stringify(attackInfo))
 
                 let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
@@ -370,7 +370,7 @@ events.on("eventStart", async eventInfo => {
                     return true
                 })
 
-                if(result != 0) 
+                if (result != 0)
                     throw err[result]
 
                 return obj
@@ -379,9 +379,9 @@ events.on("eventStart", async eventInfo => {
                 freeCommander(commander.lordID)
                 continue
             }
-            
+
             console.info("hittingTargetAttack", 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
-            } catch (e) {
+        } catch (e) {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
@@ -397,6 +397,7 @@ events.on("eventStart", async eventInfo => {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "CANT_START_NEW_ARMIES":
                     break
                 default:

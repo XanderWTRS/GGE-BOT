@@ -75,9 +75,9 @@ movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTyp
     if (movement.targetOwner?.ownerID != playerInfo.playerID)
         return
 
-    if(movement.sourceAttack.type != type)
+    if (movement.sourceAttack.type != type)
         return
-    
+
     skipTarget(movement.sourceAttack)
 })
 
@@ -86,17 +86,17 @@ let quit = false
 events.on("eventStop", eventInfo => {
     if (eventInfo.EID != eventID)
         return
-    
-    if(quit)
+
+    if (quit)
         return
 
     console.log("shuttingDownEvent", "eventEnded")
     quit = true
 })
 events.on("eventStart", async eventInfo => {
-    if(eventInfo.EID != eventID)
+    if (eventInfo.EID != eventID)
         return
-    
+
     quit = false
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
@@ -104,8 +104,8 @@ events.on("eventStart", async eventInfo => {
     do {
         try {
             var gaa = await ClientCommands.getAreaInfo(kingdomID,
-                            castle.areaInfo.x - 50, castle.areaInfo.y - 50,
-                            castle.areaInfo.x + 50, castle.areaInfo.y + 50)
+                castle.areaInfo.x - 50, castle.areaInfo.y - 50,
+                castle.areaInfo.x + 50, castle.areaInfo.y + 50)
             error = false
         } catch (e) {
             console.error(e)
@@ -137,11 +137,11 @@ events.on("eventStart", async eventInfo => {
 
                 for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
                     const unit = sourceCastle.unitInventory[i]
-                    
 
-                    if(unitInfo.wodID == 277)
+
+                    if (unitInfo.wodID == 277)
                         continue
-                    
+
                     else if (unitInfo.pointBonus && !pluginOptions.noEventTools) {
                         if (unitInfo.gateBonus)
                             attackerGateBerimondTools.push(unit)
@@ -157,10 +157,10 @@ events.on("eventStart", async eventInfo => {
                     }
                     else if (
                         unitInfo.toolCategory &&
-                    unitInfo.usageEventID  == undefined &&
-                    unitInfo.allowedToAttack  == undefined &&
-                    unitInfo.typ == 'Attack' &&
-                    unitInfo.amountPerWave == undefined
+                        unitInfo.usageEventID == undefined &&
+                        unitInfo.allowedToAttack == undefined &&
+                        unitInfo.typ == 'Attack' &&
+                        unitInfo.amountPerWave == undefined
                     ) {
                         if (unitInfo.wallBonus)
                             attackerWallTools.push(unit)
@@ -203,7 +203,7 @@ events.on("eventStart", async eventInfo => {
                     attackerWallBerimondTools.reverse()
                     attackerShieldBerimondTools.reverse()
                 }
-                
+
                 attackerWallTools.sort((a, b) =>
                     Number(a.unitInfo.wallBonus) - Number(b.unitInfo.wallBonus))
 
@@ -255,7 +255,7 @@ events.on("eventStart", async eventInfo => {
                         attackerMeleeTroops.sort((a, b) => Number(a.unitInfo.meleeAttack) - Number(b.unitInfo.meleeAttack))
                         attackerRangeTroops.sort((a, b) => Number(a.unitInfo.rangeAttack) - Number(b.unitInfo.rangeAttack))
                     }
-                    else if(!pluginOptions.noeventTools) {
+                    else if (!pluginOptions.noeventTools) {
                         const selectTool = i => {
                             let tools = attackerBerimondTools
                             if (tools.length == 0 || ((!tools[0]?.[0]?.pointBonus && !tools[0]?.[0]?.reputationBonus))) {
@@ -309,15 +309,15 @@ events.on("eventStart", async eventInfo => {
                 })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                 attackInfo.RW.forEach((unitSlot, i) => {
-                    let attacker = i & 1 ? 
-                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
+                    let attacker = i & 1 ?
+                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
                         Math.floor(maxTroops / 2) - 1)
-                    })
+                })
 
-                    await sendXT("cra", JSON.stringify(attackInfo))
+                await sendXT("cra", JSON.stringify(attackInfo))
 
                 let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
@@ -344,9 +344,9 @@ events.on("eventStart", async eventInfo => {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
-                        if(movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.id)
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.id)
                             return
-                        
+
                         movementEvents.off("return", self)
                         resolve()
                     }))
@@ -355,6 +355,7 @@ events.on("eventStart", async eventInfo => {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "CANT_START_NEW_ARMIES":
                     break
                 default:

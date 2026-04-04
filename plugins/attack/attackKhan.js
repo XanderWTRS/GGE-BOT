@@ -107,13 +107,13 @@ const skipTarget = async areaInfo => {
 }
 
 movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
-    if(movement.owner?.ownerID != playerInfo.playerID)
+    if (movement.owner?.ownerID != playerInfo.playerID)
         return
 
-    if(movement.targetAttack.type != type)
+    if (movement.targetAttack.type != type)
         return
 
-    campRageNeeded = eventAutoScalingCamps.find(campInfo => 
+    campRageNeeded = eventAutoScalingCamps.find(campInfo =>
         campInfo.eventAutoScalingCampID == movement.targetAttack.extraData[6]).playerRageCap
 })
 
@@ -121,18 +121,18 @@ movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTyp
     if (movement.owner?.ownerID != playerInfo.playerID)
         return
 
-    if(movement.sourceAttack.type != type)
+    if (movement.sourceAttack.type != type)
         return
-    
-    campRageNeeded = eventAutoScalingCamps.find(campInfo => 
+
+    campRageNeeded = eventAutoScalingCamps.find(campInfo =>
         campInfo.eventAutoScalingCampID == movement.sourceAttack.extraData[6]).playerRageCap
     skipTarget(movement.sourceAttack)
 })
 
-xtHandler.on("rpr", ({EID, PCRP : rage}) => {
+xtHandler.on("rpr", ({ EID, PCRP: rage }) => {
     if (EID != eventID)
         return
-    
+
     if (rage >= campRageNeeded) {
         if (rage > campRageNeeded)
             console.warn("rageTooHigh")
@@ -144,13 +144,13 @@ xtHandler.on("rpr", ({EID, PCRP : rage}) => {
 let nomadsPoints = 0
 let quit = false
 
-xtHandler.on("pep", ({EID, OP}) => {
+xtHandler.on("pep", ({ EID, OP }) => {
     if (EID != eventID)
         return
 
     nomadsPoints = Number(OP[0])
-    
-    if(quit)
+
+    if (quit)
         return
 
     if (pluginOptions.nomadsScoreShutoff <= 0)
@@ -161,17 +161,17 @@ xtHandler.on("pep", ({EID, OP}) => {
         quit = true
     }
 })
-events.on("eventStop", ({EID}) => {
+events.on("eventStop", ({ EID }) => {
     if (EID != eventID)
         return
 
-    if(quit)
+    if (quit)
         return
 
     console.log("shuttingDownEvent", "eventEnded")
     quit = true
 })
-events.on("eventStart", async ({EID, EDID}) => {
+events.on("eventStart", async ({ EID, EDID }) => {
     if (EID != eventID)
         return
 
@@ -188,7 +188,7 @@ events.on("eventStart", async ({EID, EDID}) => {
     }
     let classic = false
 
-    if([-1, 0].includes(EDID))
+    if ([-1, 0].includes(EDID))
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
@@ -202,10 +202,10 @@ events.on("eventStart", async ({EID, EDID}) => {
         try {
             const attackInfo = await waitToAttack(async () => {
                 await skipTarget(areaInfo)
-                
+
                 const campInfo = classic ? nomadCampsClassic.find(obj => areaInfo.extraData[1] == obj.id) :
                     eventAutoScalingCamps.find(obj => areaInfo.extraData[6] == obj.eventAutoScalingCampID)
-                    
+
                 const level = Number(classic ? (80 + campInfo.countVictory) : campInfo.camplevel)
 
                 const attackerMeleeTroops = []
@@ -220,9 +220,9 @@ events.on("eventStart", async ({EID, EDID}) => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount <= 0)
+                    if (unit.amount <= 0)
                         continue
-                    
+
                     if (unit.unitInfo.ragePointBonus != undefined)
                         attackerBannerKhanTools.push(unit)
                     else if (unit.unitInfo.khanTabletBooster != undefined) {
@@ -248,9 +248,9 @@ events.on("eventStart", async ({EID, EDID}) => {
                             attackerShieldTools.push(unit)
                     }
                     else if (unit.unitInfo.fightType == 0 && !unit.unitInfo.beefSupply) {
-                        if(troopBlackList.includes(unit))
+                        if (troopBlackList.includes(unit))
                             continue
-                        if(unit.unitInfo.foodSupply && !pluginOptions.useFood)
+                        if (unit.unitInfo.foodSupply && !pluginOptions.useFood)
                             continue
 
                         if (unit.unitInfo.role == "melee")
@@ -363,7 +363,7 @@ events.on("eventStart", async ({EID, EDID}) => {
                                         if (tools.length == 0 || (!tools[0]?.unitInfo?.khanTabletBooster && !tools[0]?.unitInfo?.ragePointBonus))
                                             tools = attackerShieldNomadTools
                                     }
-                                    if(!tools[0]?.unitInfo?.khanTabletBooster && !tools[0]?.unitInfo?.ragePointBonus)
+                                    if (!tools[0]?.unitInfo?.khanTabletBooster && !tools[0]?.unitInfo?.ragePointBonus)
                                         tools = []
                                 }
                             }
@@ -395,16 +395,16 @@ events.on("eventStart", async ({EID, EDID}) => {
                 })
                 let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                 attackInfo.RW.forEach((unitSlot, i) => {
-                    let attacker = i & 1 ? 
-                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) : 
+                    let attacker = i & 1 ?
+                        (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops) :
                         (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops)
 
                     maxTroops -= assignUnit(unitSlot, attacker,
                         Math.floor(maxTroops / 2) - 1)
-                    })
+                })
 
                 await sendXT("cra", JSON.stringify(attackInfo))
-                
+
                 let [obj, result] = await waitForResult("cra", 1000 * 10, (obj, result) => {
                     if (result != 0)
                         return true
@@ -428,9 +428,9 @@ events.on("eventStart", async ({EID, EDID}) => {
             switch (e) {
                 case "NO_MORE_TROOPS":
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
-                        if(movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.areaInfo.id)
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.areaInfo.id)
                             return
-                        
+
                         movementEvents.off("return", self)
                         resolve()
                     }))
@@ -440,6 +440,7 @@ events.on("eventStart", async ({EID, EDID}) => {
                 case "ATTACK_TOO_MANY_UNITS":
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "CANT_START_NEW_ARMIES":
                     break
                 default:

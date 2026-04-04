@@ -100,9 +100,9 @@ movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTyp
     if (movement.targetOwner?.ownerID != playerInfo.playerID)
         return
 
-    if(movement.sourceAttack.type != type)
+    if (movement.sourceAttack.type != type)
         return
-    
+
     skipTarget(movement.sourceAttack)
 })
 
@@ -148,7 +148,7 @@ events.on("eventStart", async eventInfo => {
         eventInfo.EDID = eventDifficultyID
     }
     let classic = false
-    if([-1, 0].includes(eventInfo.EDID))
+    if ([-1, 0].includes(eventInfo.EDID))
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
@@ -156,15 +156,15 @@ events.on("eventStart", async eventInfo => {
     do {
         try {
             var gaa = await ClientCommands.getAreaInfo(kingdomID,
-                            castle.areaInfo.x - 50, castle.areaInfo.y - 50,
-                            castle.areaInfo.x + 50, castle.areaInfo.y + 50)
+                castle.areaInfo.x - 50, castle.areaInfo.y - 50,
+                castle.areaInfo.x + 50, castle.areaInfo.y + 50)
         } catch (e) {
             console.error(e)
         }
     } while (!gaa);
 
     let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-        .sort((a, b) => 
+        .sort((a, b) =>
             (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
             (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
         .sort((a, b) => a.extraData[6] - b.extraData[6])
@@ -197,7 +197,7 @@ events.on("eventStart", async eventInfo => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount <= 0)
+                    if (unit.amount <= 0)
                         continue
 
                     if (unit.unitInfo.wodID == 277)
@@ -331,7 +331,7 @@ events.on("eventStart", async eventInfo => {
                                     if (tools.length == 0 || !tools[0]?.[0]?.khanTabletBooster)
                                         tools = attackerShieldNomadTools
                                 }
-                                if(!tools[0]?.[0]?.khanTabletBooster)
+                                if (!tools[0]?.[0]?.khanTabletBooster)
                                     tools = []
                             }
 
@@ -411,6 +411,7 @@ events.on("eventStart", async eventInfo => {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "CANT_START_NEW_ARMIES":
                     break
                 default:

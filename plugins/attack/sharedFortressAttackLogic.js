@@ -20,7 +20,7 @@ async function fortressHit(kingdomID, level, options) {
     options.useFeather = true
 
     const areas = []
-    
+
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
 
     const sendHit = async () => {
@@ -37,8 +37,8 @@ async function fortressHit(kingdomID, level, options) {
                     const areaInfo = areas[i]
 
                     if (movements.find(movement =>
-                    movement.kingdomID == kingdomID &&
-                    movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
+                        movement.kingdomID == kingdomID &&
+                        movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
                     let time = (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch
@@ -64,7 +64,7 @@ async function fortressHit(kingdomID, level, options) {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount <= 0)
+                    if (unit.amount <= 0)
                         continue
 
                     if (unit.unitInfo.fightType == 0 &&
@@ -121,7 +121,7 @@ async function fortressHit(kingdomID, level, options) {
 
                 if (result != 0)
                     throw err[result]
-                
+
                 return obj
             })
 
@@ -129,7 +129,7 @@ async function fortressHit(kingdomID, level, options) {
                 freeCommander(commander.lordID)
                 return false
             }
-            
+
             console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
@@ -148,6 +148,7 @@ async function fortressHit(kingdomID, level, options) {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "CANT_START_NEW_ARMIES":
                     return true
                 default:
@@ -174,9 +175,9 @@ async function fortressHit(kingdomID, level, options) {
             }
             if (j > Math.pow(13 * 13, 2))
                 break done
-        } while ((castle.areaInfo.x + rX) <= -50 || 
-            (castle.areaInfo.y + rY) <= -50 || (castle.areaInfo.x + rX) >= (1286 + 50) || (castle.areaInfo.y + rY) >= (1286 + 50))
-        
+        } while ((castle.areaInfo.x + rX) <= -50 ||
+        (castle.areaInfo.y + rY) <= -50 || (castle.areaInfo.x + rX) >= (1286 + 50) || (castle.areaInfo.y + rY) >= (1286 + 50))
+
         rect.x = rect.x < 0 ? 0 : rect.x
         rect.y = rect.y < 0 ? 0 : rect.y
         rect.w = rect.w < 0 ? 0 : rect.w
@@ -185,7 +186,7 @@ async function fortressHit(kingdomID, level, options) {
         rect.y = rect.y > 1286 ? 1286 : rect.y
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
-        
+
         areas.push(...(await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)).areaInfo.filter(e => e.type == type))
 
         areas.sort((a, b) =>
@@ -198,8 +199,8 @@ async function fortressHit(kingdomID, level, options) {
         let minimumTimeTillHit = Infinity
         areas.forEach(areaInfo => {
             if (movements.find(movement =>
-                    movement.kingdomID == kingdomID &&
-                    movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
+                movement.kingdomID == kingdomID &&
+                movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                 return
             minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
         })

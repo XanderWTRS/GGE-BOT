@@ -6,8 +6,8 @@ if (require('node:worker_threads').isMainThread) {
             { type: "Checkbox", key: "allowLvl60Easy", default: true },
             { type: "Checkbox", key: "allowLvl70Easy", default: true },
             { type: "Checkbox", key: "allowLvl80Easy", default: true },
-            { type: "", md: 3},
-            
+            { type: "", md: 3 },
+
             { type: "Label", key: "hardForts", md: 2 },
             { type: "Checkbox", key: "allowLvl40Hard", default: false },
             { type: "Checkbox", key: "allowLvl50Hard", default: false },
@@ -36,7 +36,7 @@ if (require('node:worker_threads').isMainThread) {
             key: "upgradeStormForts"
         })
     }
-    catch(e) {
+    catch (e) {
         console.debug(e)
     }
     return module.exports.pluginOptions.push({
@@ -129,22 +129,22 @@ events.once("load", async () => {
     castle.on("resourceUpdate", onResourceUpdate)
 
     let allowedLevels = []
-    
-    if(pluginOptions["allowLvl40Hard"])
+
+    if (pluginOptions["allowLvl40Hard"])
         allowedLevels.push(10)
-    if(pluginOptions["allowLvl50Hard"])
+    if (pluginOptions["allowLvl50Hard"])
         allowedLevels.push(11)
-    if(pluginOptions["allowLvl60Hard"])
+    if (pluginOptions["allowLvl60Hard"])
         allowedLevels.push(12)
-    if(pluginOptions["allowLvl70Hard"])
+    if (pluginOptions["allowLvl70Hard"])
         allowedLevels.push(13)
-    if(pluginOptions["allowLvl80Hard"])
+    if (pluginOptions["allowLvl80Hard"])
         allowedLevels.push(14)
-    if(pluginOptions["allowLvl60Easy"])
+    if (pluginOptions["allowLvl60Easy"])
         allowedLevels.push(7)
-    if(pluginOptions["allowLvl70Easy"])
+    if (pluginOptions["allowLvl70Easy"])
         allowedLevels.push(8)
-    if(pluginOptions["allowLvl80Easy"])
+    if (pluginOptions["allowLvl80Easy"])
         allowedLevels.push(9)
 
     if (allowedLevels.length === 0)
@@ -153,7 +153,7 @@ events.once("load", async () => {
     let sortedAreaInfo = []
 
     const sendHit = async () => {
-        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined, 
+        const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined,
             (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
 
         try {
@@ -173,7 +173,7 @@ events.once("load", async () => {
 
                     await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)
 
-                    if(!allowedLevels.includes(areaInfo.extraData[2]))
+                    if (!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
 
                     if (timeSinceEpoch - (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) < 0)
@@ -204,7 +204,7 @@ events.once("load", async () => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount <= 0)
+                    if (unit.amount <= 0)
                         continue
 
                     if (
@@ -271,7 +271,7 @@ events.once("load", async () => {
                     throw err[result]
                 return obj
             })
-            
+
             if (!attackInfo) {
                 freeCommander(commander.lordID)
                 return false
@@ -295,6 +295,7 @@ events.once("load", async () => {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "CANT_START_NEW_ARMIES":
                     return true
                 default:
@@ -334,32 +335,32 @@ events.once("load", async () => {
             try {
                 var gaa = await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)
             }
-            catch(e) {
-                console.debug(e) 
-                attemptsLeft-- 
+            catch (e) {
+                console.debug(e)
+                attemptsLeft--
             }
             if (attemptsLeft <= 0)
                 continue done
         } while (!gaa)
-        
-        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) => 
+
+        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) =>
             (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
             (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
 
         sortedAreaInfo.push(...areaInfo)
 
-        if(sortedAreaInfo.every(ai => ![7,8,9].includes(ai.extraData[2]))) //Find and hit a good one before continuing scanning
+        if (sortedAreaInfo.every(ai => ![7, 8, 9].includes(ai.extraData[2]))) //Find and hit a good one before continuing scanning
             continue
 
         sortedAreaInfo.sort((a, b) => {
-            if ((a.extraData[2] % 10) > (b.extraData[2] % 10)) 
+            if ((a.extraData[2] % 10) > (b.extraData[2] % 10))
                 return -1
-            if ((a.extraData[2] % 10) < (b.extraData[2] % 10)) 
+            if ((a.extraData[2] % 10) < (b.extraData[2] % 10))
                 return 1
             //hits left
-            if (a.extraData[4] < b.extraData[4]) 
+            if (a.extraData[4] < b.extraData[4])
                 return -1
-            if (a.extraData[4] > b.extraData[4]) 
+            if (a.extraData[4] > b.extraData[4])
                 return 1
 
             return 0
@@ -374,21 +375,21 @@ events.once("load", async () => {
             const areaInfo = sortedAreaInfo[i]
 
             if (!allowedLevels.includes(areaInfo.extraData[2]))
-                if(((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now()) <= 0)
+                if (((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now()) <= 0)
                     continue
-            
+
             if (movements.find(movement =>
-                    movement.kingdomID == kingdomID &&
-                    movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
+                movement.kingdomID == kingdomID &&
+                movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                 continue
-            
+
             minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000))
         }
 
         let time = (Math.max(0, minimumTimeTillHit - Date.now()))
         console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
-        
+
         while (await sendHit());
     }
 })
