@@ -4,7 +4,8 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Channel",
                 key: "channelID"
-            }, {
+            }, 
+            {
                 type: "Channel",
                 key: "StormChannelID"
             }
@@ -35,7 +36,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if([movement.sourceOwner?.ownerID, movement.owner?.ownerID].includes(playerInfo.playerID))
         return
 
-    if (![0, 25, 31, 24, 29].includes(movement.M.T))
+    if (![0, 25, 31, 24, 29].includes(movement.type))
         return
     
     if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
