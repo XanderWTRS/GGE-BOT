@@ -71,12 +71,13 @@ if (require('node:worker_threads').isMainThread)
 
 const err = require("../../err.json")
 const { spendSkip } = require("../skips.js")
-const { movementEvents, ClassTypes, castles, AreaType, KingdomID, ClientCommands } = require("../../protocols.js")
+const { movementEvents, castles, AreaType, KingdomID, ClientCommands } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
 const { getCommanderStats } = require("../../getEquipment.js")
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
+const nomadCampsClassic = require("../../items/nomadCamps.json")
 const ggeConfig = require("../../ggeConfig.json")
 
 const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
@@ -200,8 +201,12 @@ events.on("eventStart", async ({EID, EDID}) => {
         try {
             const attackInfo = await waitToAttack(async () => {
                 await skipTarget(areaInfo)
+                
 
-                const level = Number(eventAutoScalingCamps.find(obj => areaInfo.extraData[6] == obj.eventAutoScalingCampID).camplevel)
+                const campInfo = classic ? nomadCampsClassic.find(obj => AI.extraData[1] == obj.id) :
+                    eventAutoScalingCamps.find(obj => AI.extraData[6] == obj.eventAutoScalingCampID)
+                    
+                const level = Number(classic ? (80 + campInfo.countVictory) : campInfo.camplevel)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
