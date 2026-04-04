@@ -3,7 +3,6 @@ const PImage = require("pureimage")
 const fs = require('fs')
 
 const { getAsset } = require("./units.js")
-const units = require("./items/units.json")
 const ggeConfig = require("./ggeConfig.json")
 
 let wavePattern = {
@@ -11,19 +10,19 @@ let wavePattern = {
     startX: 30,
     startY: 43 + 1,
     maxWidth: 5,
-    maxHeight: 20,
+    maxHeight: 20
   },
   front: {
     startX: 194,
     startY: 43 + 1,
     maxWidth: 5,
-    maxHeight: 20,
+    maxHeight: 20
   },
   rightFlank: {
     startX: 359,
     startY: 43 + 1,
     maxWidth: 5,
-    maxHeight: 20,
+    maxHeight: 20
   },
   courtyard: {
     startX: 113,
