@@ -22,7 +22,7 @@ events.once("load", async () => {
     const areas = []
 
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
-        const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaType.type))
+        const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
         done:
         for (let i = 0, j = 0; i < 13 * 13; i++) {
             let rX, rY

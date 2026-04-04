@@ -433,7 +433,7 @@ let getHonourRanking = async (interaction) => {
             let highScoreData = await ClientCommands.getHighScore(HighscoreType.honour, 6, j)()
             for (let i = 0; i < highScoreData.list.length; i++) {
                 const e = highScoreData.list[i]
-                if (e.playerData.isRuin && !e.playerData.castlePositionList.every(e => e.areaType == AreaType.outpost))
+                if (e.playerData.isRuin && !e.playerData.castlePositionList.every(e => e.areaInfo == AreaType.outpost))
                     continue
                 if (e.playerData.remainingNoobTime)
                     continue

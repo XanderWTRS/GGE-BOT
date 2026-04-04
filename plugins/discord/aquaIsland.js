@@ -22,7 +22,7 @@ events.once("load", async () => {
     if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
     
-    const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaType.type))
+    const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
 
     /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
     const areas = []
