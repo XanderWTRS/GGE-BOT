@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, spiralCoordinates, castles, AreaType } = require("../../protocols")
+const { ClientCommands: { preSpyInfo, getAreaInfo }, spiralCoordinates, castles, AreaType } = require("../../protocols")
 
 const { client } = require("./discord.js")
 
@@ -52,7 +52,7 @@ events.once("load", async () => {
             let attemptsLeft = 5
             do {
                 try {
-                    areas.push(...(await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)).filter(e => e.type == type))
+                    areas.push(...(await getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)).filter(e => e.type == type))
                     break
                 }
                 catch { attemptsLeft-- }
