@@ -88,7 +88,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     let result
     const checkForLordIssues = () => {
         
-        if (["LORD_IS_USED", "ATTACK_TOO_MANY_UNITS", "ATTACK_TOO_MANY_UNITS"].includes(err[result]))
+        if (["LORD_IS_USED", "ATTACK_TOO_MANY_UNITS", "ATTACK_TOO_MANY_UNITS", "MISSING_UNITS"].includes(err[result]))
             importantErrors++
         if (importantErrors == 5) {
             console.error("closedReason", "tooManyImportantErrors")
