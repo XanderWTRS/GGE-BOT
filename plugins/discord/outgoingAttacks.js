@@ -60,8 +60,11 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     const data = {}
     data.content = "```ansi\n" +
-        `${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.targetOwner.allianceName}`
-            `${i18n.__("incomingIsAttacking")}${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
+        `${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})` +
+        `${i18n.__("incomingFrom")}${movement.targetOwner.allianceName}` +
+        `${i18n.__("incomingIsAttacking")}${movement.sourceOwner.name}` +
+        ` (${movement.sourceAttack.extraData[7]})${i18n.__("incomingIn")}` +
+        `${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
         "```" +
         `<t:${Math.round(Date.now() / 1000 + timeLeft)}:R>`
     data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
