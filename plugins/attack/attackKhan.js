@@ -321,7 +321,7 @@ events.on("eventStart", async eventInfo => {
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
-                const desiredToolCount = attackerNomadtools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus) ? 20 : 10
+                const desiredToolCount = attackerNomadTools.length == 0 || (!tools[0]?.[0]?.khanTabletBooster && !tools[0]?.[0]?.ragePointBonus) ? 20 : 10
 
                 attackInfo.A.forEach((wave, index) => {
                     let maxTools = maxToolsFlank
