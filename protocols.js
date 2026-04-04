@@ -668,12 +668,14 @@ xtHandler.on("fjf", (obj, result) => {
         return
     Object.assign(kingdomInfoList, KingdomInfo(obj.kpi))
 })
+const decapitalizeFirstLetter = val => 
+    String(val).charAt(0).toLowerCase() + String(val).slice(1)
+
+const capitalizeFirstLetter = val => 
+    String(val).charAt(0).toUpperCase() + String(val).slice(1)
 
 const ResourceList = obj => {
     let resource = {}
-    function decapitalizeFirstLetter(val) {
-        return String(val).charAt(0).toLocaleLowerCase() + String(val).slice(1)
-    }
     obj.forEach(([type, ammount]) => {
         const nameOverrides = {
             component1: "screws",
@@ -1113,7 +1115,7 @@ class Movement {
         this.courtyard ??= Array.from(movement.FA?.RW ?? []).map(Unit)
 
         this.station = Array.from(movement.A ?? []).map(Unit)
-        this.resources = new Resources(Object.fromEntries(movement?.G ?? []))
+        this.resources = new Resources(Object.fromEntries(movement.G ?? []))
         newMovement(this)
     }
 }
@@ -1131,7 +1133,9 @@ movementEvents.on("return", async (/** @type {Movement} */ movement) => {
             return unitInInventory.amount += unit.amount
         castle.unitInventory.push(unit)
     })
-    Object.entries(movement.resources).forEach((([key,value]) => castle[key] += value))
+    Object.entries(movement.resources).forEach((([key,value]) => {
+        castle[key] = Math.min(castle[key] + value, castle.getProductionData[`maxAmmount${capitalizeFirstLetter(key)}`])
+    }))
     castle.emit("resourceUpdate", movement.resources)
 })
 xtHandler.on("cra", (o, r) => r == 0 ? 
