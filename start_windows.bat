@@ -13,38 +13,29 @@ if not exist ".git"\ (
   
   git submodule deinit -f website >NUL 2>&1
   git submodule init website >NUL 2>&1
-  git submodule deinit -f plugins-extra >NUL 2>&1
-  git submodule init plugins-extra >NUL 2>&1
-  cd website
-  call npm i
-  call npm run build
-  cd ..
-  call npm i
 )
 
 git config --local core.hooksPath .githooks/
-
-git pull origin main --no-recurse-submodules
-
-git submodule init website
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
-git submodule update -f website
+git pull origin main
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
-  git submodule update --init -f plugins-extra
+  if not exist "plugins-extra" mkdir plugins-extra
+  cd "plugins-extra"
+  git pull https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git
+  cd ..
 )
+
 echo "Last commit message:"
 git show --format=%s -s
 
 if not exist "website\build\index.html" goto rebuild
 if exist "website\needsRebuild" goto rebuild
-
 :start
-call npm i
-@REM if NOT exist "node_modules\" goto update
-@REM if exist "update" goto update
+if NOT exist "node_modules\" goto update
+if exist "update" goto update
 
 start http://127.0.0.1:3001
 node --optimize-for-size --no-warnings main.js
