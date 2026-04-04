@@ -87,7 +87,6 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     let timer
     let result
     const checkForLordIssues = () => {
-        
         if (["LORD_IS_USED", "ATTACK_TOO_MANY_UNITS", "ATTACK_TOO_MANY_UNITS", "MISSING_UNITS"].includes(err[result]))
             importantErrors++
         if (importantErrors == 8) {
@@ -121,8 +120,8 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             result = _result
 
         const msg = (_result == undefined || _result == 0) ? "TIMED_OUT" : !err[_result] ? _result : err[_result]
-        
-        checkForLordIssues()
+        if(result != 0)
+            checkForLordIssues()
         if (!func(Object(data), Number(_result)))
             return
         if(_result != 0)
