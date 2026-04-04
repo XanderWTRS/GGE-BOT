@@ -4,10 +4,6 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Channel",
                 key: "channelID"
-            }, 
-            {
-                type: "Channel",
-                key: "StormChannelID"
             }
         ]
     }
@@ -52,17 +48,10 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     catch (e) {
         console.warn(e)
     }
-    try {
-        if (pluginOptions.channelAquaAlert)
-            var channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
-    }
-    catch (e) {
-        console.warn(e)
-    }
 
     const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
 
-    const channel = movement.kingdomID != 4 ? channelAlert : channelAquaAlert
+    const channel = channelAlert
     
     if (channel == undefined)
         return

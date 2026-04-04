@@ -7,7 +7,7 @@ if (require('node:worker_threads').isMainThread)
             }, 
             {
                 type: "Channel",
-                key: "StormChannelID"
+                key: "stormChannelID"
             }
         ]
     }
