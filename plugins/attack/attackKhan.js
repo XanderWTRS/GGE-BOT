@@ -187,7 +187,7 @@ events.on("eventStart", async ({EID, EDID}) => {
         EDID = eventDifficultyID
     }
     let classic = false
-    
+
     if([-1, 0].includes(EDID))
         classic = true
 
@@ -204,8 +204,8 @@ events.on("eventStart", async ({EID, EDID}) => {
                 await skipTarget(areaInfo)
                 
 
-                const campInfo = classic ? nomadCampsClassic.find(obj => AI.extraData[1] == obj.id) :
-                    eventAutoScalingCamps.find(obj => AI.extraData[6] == obj.eventAutoScalingCampID)
+                const campInfo = classic ? nomadCampsClassic.find(obj => areaInfo.extraData[1] == obj.id) :
+                    eventAutoScalingCamps.find(obj => areaInfo.extraData[6] == obj.eventAutoScalingCampID)
                     
                 const level = Number(classic ? (80 + campInfo.countVictory) : campInfo.camplevel)
 
