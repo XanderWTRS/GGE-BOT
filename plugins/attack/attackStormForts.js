@@ -204,7 +204,7 @@ events.once("load", async () => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount > 0)
+                    if(unit.amount <= 0)
                         continue
 
                     if (

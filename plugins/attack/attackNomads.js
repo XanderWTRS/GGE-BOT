@@ -64,7 +64,7 @@ if (require('node:worker_threads').isMainThread)
 
 const err = require("../../err.json")
 const { spendSkip } = require("../skips.js")
-const { movementEvents, ClassTypes, AreaType, KingdomID, castles } = require("../../protocols.js")
+const { movementEvents, ClassTypes, AreaType, KingdomID, castles, ClientCommands } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
@@ -73,7 +73,6 @@ const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.jso
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const nomadCampsClassic = require("../../items/nomadCamps.json")
 const pretty = require('pretty-time')
-const getAreaCached = require('../../getMap')
 const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 const kingdomID = KingdomID.greatEmpire
@@ -82,21 +81,21 @@ const minTroopCount = 100
 const eventID = 72
 let nomadsPoints = 0
 
-const skipTarget = async (AI) => {
-    while (AI.extraData[2] > 0) {
-        let skip = spendSkip(AI.extraData[2])
+const skipTarget = async areaInfo => {
+    while (areaInfo.extraData[2] > 0) {
+        let skip = spendSkip(areaInfo.extraData[2])
 
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
+        sendXT("msd", JSON.stringify({ X: areaInfo.x, Y: areaInfo.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
         let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
             new ClassTypes.GAAAreaInfo(obj.AI).type == type)
 
         if (Number(result) != 0)
             break
 
-        Object.assign(AI, new ClassTypes.GAAAreaInfo(obj.AI))
+        Object.assign(areaInfo, new ClassTypes.GAAAreaInfo(obj.AI))
     }
 }
 
@@ -201,7 +200,7 @@ events.on("eventStart", async eventInfo => {
 
                 for (let i = 0; i < castle.unitInventory.length; i++) {
                     const unit = castle.unitInventory[i]
-                    if(unit.amount > 0)
+                    if(unit.amount <= 0)
                         continue
 
                     if (unit.unitInfo.wodID == 277)
