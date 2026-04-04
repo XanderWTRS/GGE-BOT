@@ -21,7 +21,7 @@ events.once("load", async () => {
     if (!(await getKingdomInfoList()).unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
     
-    const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
+    const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
 
     /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
     const areas = []
@@ -96,7 +96,7 @@ events.once("load", async () => {
                 return false
 
             if (deltaTime <= 0)
-                preSpyInfo(area.x, area.y, kingdomID)().then(({ areaInfo: area }) =>
+                preSpyInfo(area.x, area.y, kingdomID).then(({ areaInfo: area }) =>
                     area.extraData[3] > 0 && sortData())
 
             msg += `${area.x}\:${area.y} lv ${toLevel[type]} (${[7, 8, 9].includes(type) ? "Easy" : "Hard"}) ${hitsLeft}\n`

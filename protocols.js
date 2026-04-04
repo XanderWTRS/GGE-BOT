@@ -213,7 +213,7 @@ async function clientPreSpyInfo(x, y, kingdomID) {
     const cachedMapData = map[`${kingdomID}_${x}_${y}`]?.deref()
     if((Date.now() - cachedMapData?.timeSinceRequest) <= 1000 * 10) {
         console.debug("Using cached results")
-        return async () => ({areaInfo: cachedMapData, result: 0})
+        return {areaInfo: cachedMapData, result: 0}
     }
 
     await sendXT("ssi", JSON.stringify({ TX: x, TY: y, KID: kingdomID }))
@@ -301,7 +301,6 @@ async function clientGetStormIslandInfo() {
     const [obj, result] = await waitForResult("ssi", 1000 * 10)
 
     return StormInfo({ ...obj, result: result })
-
 }
 
 const GetProductionData = e => ({
@@ -921,17 +920,13 @@ const clientJoinArea = (x, y, kingdomID) => {
     }
 }
 
-const clientJoinCastle = (areaID, kingdomID) => {
-    const limiter = sendXT("jca", JSON.stringify({CID:areaID,KID:kingdomID}))
- 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("jaa", 1000 * 10, o => 
-        o.grc.KID == kingdomID && o.grc.AID == areaID)
+async function clientJoinCastle(areaID, kingdomID) {
+    await sendXT("jca", JSON.stringify({ CID: areaID, KID: kingdomID }))
 
+    const [obj, result] = await waitForResult("jaa", 1000 * 10, (o, r) =>
+        r != 0 || o.grc.KID == kingdomID && o.grc.AID == areaID)
 
-        return new JoinArea({ ...obj, result: result })
-    }
+    return result == 0 ? new JoinArea(obj) : { result }
 }
 
 async function clientSearchPlayerName(playerName) {
@@ -940,7 +935,7 @@ async function clientSearchPlayerName(playerName) {
     const [obj, result] = await waitForResult("wsp", 1000 * 10, (o, r) =>
         r != 0 || o.gaa?.OI.find(e => e.N == playerName))
 
-    return new ServerGetAreaInfo({ ...obj.gaa, result: result })
+    return result == 0 ? new ServerGetAreaInfo({ ...obj.gaa, result: result }) : { result }
 }
 const AllianceQuestPlayerScore = e => ({
     playerID: Number(e.PID),
@@ -957,7 +952,7 @@ async function clientAllianceQuestPointCount() {
     await sendXT("aqpc", JSON.stringify({}))
     const [obj, result] = await waitForResult("aqpc", 1000 * 10)
 
-    return AllianceQuestPointCount({ ...obj, result: result })
+    return result == 0 ? AllianceQuestPointCount(obj) : result
 }
 
 let kingdomLockCallbacks = []
@@ -984,7 +979,6 @@ let kingdomLock = callback => new Promise(async (resolve, reject) => {
         await (kingdomLockCallbacks.shift())()
     }
     
-
     kingdomLockInUse = false
 })
 
@@ -1130,37 +1124,32 @@ xtHandler.on("dms", ({MID}) => MID.forEach(movementID => () => {
     movementEvents.emit("return", movement)
 }))
 
-const clientGetAllianceByID = AID => {
-    const limiter = sendXT("ain", JSON.stringify({ AID }))
+async function clientGetAllianceByID(allianceID) {
+    await sendXT("ain", JSON.stringify({ AID: allianceID }))
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("ain", 1000 * 10, obj =>
-            obj?.A.AID == AID)
+    const [obj, result] = await waitForResult("ain", 1000 * 10, obj =>
+        result != 0 || obj?.A.AID == allianceID)
 
-        return Alliance({ ...obj.A, result: result })
-    }
+    return result == 0 ? Alliance(obj.A) : { result }
 }
-const clientGetAllianceByName = name => {
-    const limiter = sendXT("hgh", JSON.stringify({ "LT": 11, "SV": name }))
+async function clientGetAllianceByName(name) {
+    await sendXT("hgh", JSON.stringify({ LT: 11, SV: name }))
 
-    return async () => {
-        await limiter
-        const [obj] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
-            if (result != 0)
-                return false
-
-            if (obj.LT != 11 || obj.SV.toLowerCase() != name.toLowerCase())
-                return false
+    const [obj, result] = await waitForResult("hgh", 1000 * 60 * 5, (obj, result) => {
+        if (result != 0)
             return true
-        })
 
-        let item = obj?.L?.find(e => e[2][1].toLowerCase() == name.toLowerCase())
-        if (item == undefined)
-            throw Error("ALLIANCE_NOT_FOUND")
+        if (obj.LT != 11 || obj.SV.toLowerCase() != name.toLowerCase())
+            return false
+        return true
+    })
 
-        return clientGetAllianceByID(item[2][0])()
-    }
+    let item = obj?.L?.find(e => e[2][1].toLowerCase() == name.toLowerCase())
+    
+    if (item == undefined)
+        throw Error("ALLIANCE_NOT_FOUND")
+
+    return clientGetAllianceByID(item[2][0])()
 }
 
 const getKingdomID = areaInfo => {

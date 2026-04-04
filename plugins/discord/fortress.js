@@ -23,7 +23,7 @@ events.once("load", async () => {
 
 
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
-        const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
+        const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaType.type))
         done:
         for (let i = 0, j = 0; i < 13 * 13; i++) {
             let rX, rY
@@ -93,7 +93,7 @@ events.once("load", async () => {
                 return true
 
             if (deltaTime <= 0)
-                preSpyInfo(area.x, area.y, kingdomID)().then(({ areaInfo: area }) =>
+                preSpyInfo(area.x, area.y, kingdomID).then(({ areaInfo: area }) =>
                     area.extraData[2] > 0 && sortData())
 
             msg += `${KIDNames[kingdomID]} ${area.x}\:${area.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
