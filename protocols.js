@@ -225,7 +225,38 @@ async function clientPreSpyInfo(x, y, kingdomID) {
     if (result != 0)
         return { result }
 
-    return { areaInfo: new ServerGetAreaInfo(obj.gaa, result).areaInfo[0], result }
+    return { areaInfo: new ServerGetAreaInfo(obj.gaa, result).areaInfo[0], result: 0 }
+}
+async function clientSkipTarget(type, x, y, kingdomID, skip) {
+    await sendXT("msd", JSON.stringify({ X: x, Y: y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
+    let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || 
+        obj.AI[0] == type || obj.AI[1] == x || obj.AI[2] == y)
+
+    if (result != 0)
+        return { result }
+    
+    return { areaInfo: new ServerGetAreaInfo(obj.gaa, result).areaInfo[0], result: 0 }
+}
+async function clientGetNextMapObject(type, kingdomID) {
+    await sendXT("fnm", JSON.stringify({ T: type, KID: kingdomID, LMIN: -1, LMAX: -1, NID: -801 }))
+    
+    const [obj, result] = (await waitForResult("fnm", 8500, (obj, result) => {
+        if (result != 0)
+            return true
+
+        if (obj.gaa.KID != kingdomID)
+            return false
+
+        if (obj.gaa.AI[0][0] != type)
+            return false
+
+        return true
+    }))
+
+    if (result != 0)
+        return { result }
+    
+    return { areaInfo: new ServerGetAreaInfo(obj.gaa, result).areaInfo[0], result: 0 }
 }
 
 const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" })
@@ -1200,6 +1231,8 @@ module.exports = {
     resources,
     ClientCommands: {
         preSpyInfo : clientPreSpyInfo,
+        getNextMapObject : clientGetNextMapObject,
+        skipTarget : clientSkipTarget,
         getHighScore: clientGetHighscore,
         getAreaInfo: getAreaInfo,
         startFeast: clientStartFeast,
@@ -1222,6 +1255,7 @@ module.exports = {
         Lord,
         GAAAreaInfo,
         Movement,
+        Unit,
         KingdomSkipType,
         HighscoreType,
         KingdomInfo

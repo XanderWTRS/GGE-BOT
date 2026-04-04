@@ -54,19 +54,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
             if (skip == undefined)
                 throw new Error("couldntFindSkip")
 
-            await sendXT("msd", JSON.stringify({ 
-                X: areaInfo.x, Y: areaInfo.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
-            const [, result] = (await waitForResult("msd", 7000, (obj, result) => {
-                if (result != 0)
-                    return true
-
-                if (obj.AI[0] != areaInfo.type ||
-                    obj.AI[6] != kingdomID ||
-                    obj.AI[1] != areaInfo.x ||
-                    obj.AI[2] != areaInfo.y)
-                    return false
-                return true
-            }))
+            const [, result] = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
             if (result != 0)
                 break

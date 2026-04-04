@@ -88,14 +88,10 @@ const skipTarget = async areaInfo => {
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        sendXT("msd", JSON.stringify({ X: areaInfo.x, Y: areaInfo.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
-        let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
-            new ClassTypes.GAAAreaInfo(obj.AI).type == type)
+        const [, result] = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
-        if (Number(result) != 0)
+        if (result != 0)
             break
-
-        Object.assign(areaInfo, new ClassTypes.GAAAreaInfo(obj.AI))
     }
 }
 

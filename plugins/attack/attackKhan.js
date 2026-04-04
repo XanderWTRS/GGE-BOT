@@ -71,7 +71,7 @@ if (require('node:worker_threads').isMainThread)
 
 const err = require("../../err.json")
 const { spendSkip } = require("../skips.js")
-const { movementEvents, ClassTypes, castles, AreaType, KingdomID } = require("../../protocols.js")
+const { movementEvents, ClassTypes, castles, AreaType, KingdomID, ClientCommands } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
@@ -91,19 +91,16 @@ const troopBlackList = [277, 34, 35]
 let campRageNeeded = NaN
 
 const skipTarget = async areaInfo => {
-    while (areaInfo[5] > 0) {
+    while (areaInfo.extraData[2] > 0) {
         let skip = spendSkip(areaInfo[5])
 
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        await sendXT("msd", JSON.stringify({ X: areaInfo[1], Y: areaInfo[2], MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
-        let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 || obj.AI[0] == type)
+        const [, result] = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
-        if (Number(result) != 0)
+        if (result != 0)
             break
-
-        Object.assign(areaInfo, obj.AI)
     }
 }
 
@@ -195,28 +192,15 @@ events.on("eventStart", async ({EID, EDID}) => {
 
     quit = false
 
+    const { areaInfo } = await ClientCommands.getNextMapObject(type, kingdomID)
+
     while (!quit) {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList)
         try {
             const attackInfo = await waitToAttack(async () => {
-                await sendXT("fnm", JSON.stringify({ T: type, KID: kingdomID, LMIN: -1, LMAX: -1, NID: -801 }))
+                await skipTarget(areaInfo)
 
-                const AI = (await waitForResult("fnm", 8500, (obj, result) => {
-                    if (result != 0)
-                        return false
-
-                    if (obj.gaa.KID != kingdomID)
-                        return false
-
-                    if (obj.gaa.AI[0][0] != type)
-                        return false
-
-                    return true
-                }))[0].gaa.AI[0]
-
-                await skipTarget(AI)
-
-                const level = Number(eventAutoScalingCamps.find(obj => AI[9] == obj.eventAutoScalingCampID).camplevel)
+                const level = Number(eventAutoScalingCamps.find(obj => areaInfo.extraData[6] == obj.eventAutoScalingCampID).camplevel)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -309,7 +293,7 @@ events.on("eventStart", async ({EID, EDID}) => {
                 attackerShieldNomadTools.push(...attackerShieldTools)
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, castle, new ClassTypes.GAAAreaInfo(AI), commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, new ClassTypes.GAAAreaInfo(areaInfo), commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
@@ -419,7 +403,7 @@ events.on("eventStart", async ({EID, EDID}) => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI[1] || obj.AAM.M.TA[2] != AI[2])
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo[1] || obj.AAM.M.TA[2] != areaInfo[2])
                         return false
                     return true
                 })

@@ -57,21 +57,17 @@ const type = AreaType.beriCamp
 const minTroopCount = 100
 const eventID = 85
 
-const skipTarget = async AI => {
-    while (AI.extraData[2] > 0) {
-        let skip = spendSkip(AI.extraData[2])
+const skipTarget = async areaInfo => {
+    while (areaInfo.extraData[2] > 0) {
+        let skip = spendSkip(areaInfo.extraData[2])
 
         if (skip == undefined)
             throw new Error("couldntFindSkip")
 
-        await sendXT("msd", JSON.stringify({ X: AI.x, Y: AI.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
-        let [obj, result] = await waitForResult("msd", 7000, (obj, result) => result != 0 ||
-            new ClassTypes.GAAAreaInfo(obj.AI).type == type)
+        const [, result] = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
-        if (Number(result) != 0)
+        if (result != 0)
             break
-
-        Object.assign(AI, new ClassTypes.GAAAreaInfo(obj.AI))
     }
 }
 
