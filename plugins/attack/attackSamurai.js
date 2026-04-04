@@ -142,16 +142,10 @@ events.on("eventStart", async eventInfo => {
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
-    do {
-        try {
-            var gaa = await ClientCommands.getAreaInfo(kingdomID,
+
+    const areas = (await ClientCommands.getAreaInfo(kingdomID,
                 castle.areaInfo.x - 50, castle.areaInfo.y - 50,
-                castle.areaInfo.x + 50, castle.areaInfo.y + 50)
-        } catch (e) {
-            console.error(e)
-        }
-    } while (!gaa)
-    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
+                castle.areaInfo.x + 50, castle.areaInfo.y + 50)).areaInfo.filter(ai => ai.type == type)
         .sort((a, b) =>
             (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
             (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
@@ -163,14 +157,14 @@ events.on("eventStart", async eventInfo => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const AI = areaInfo.shift()
+                const areaInfo = areas.shift()
 
-                areaInfo.push(AI)
+                areas.push(areaInfo)
 
-                await skipTarget(AI)
+                await skipTarget(areaInfo)
 
-                const campInfo = classic ? samuraiCampsClassic.find(obj => (AI.extraData[1] + 1) == Number(obj.countVictory)) :
-                    eventAutoScalingCamps.find(obj => AI.extraData[5] == obj.eventAutoScalingCampID)
+                const campInfo = classic ? samuraiCampsClassic.find(obj => (areaInfo.extraData[1] + 1) == Number(obj.countVictory)) :
+                    eventAutoScalingCamps.find(obj => areaInfo.extraData[5] == obj.eventAutoScalingCampID)
 
                 const level = Number(classic ? (80 + Number(campInfo.countVictory)) : campInfo.camplevel)
 
@@ -255,7 +249,7 @@ events.on("eventStart", async eventInfo => {
                 attackerShieldSamuraiTools.push(...attackerShieldTools)
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
@@ -365,7 +359,7 @@ events.on("eventStart", async eventInfo => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo.x || obj.AAM.M.TA[2] != areaInfo.y)
                         return false
                     return true
                 })

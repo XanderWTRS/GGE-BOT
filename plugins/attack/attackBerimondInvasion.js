@@ -101,30 +101,20 @@ events.on("eventStart", async eventInfo => {
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
 
-    do {
-        try {
-            var gaa = await ClientCommands.getAreaInfo(kingdomID,
-                castle.areaInfo.x - 50, castle.areaInfo.y - 50,
-                castle.areaInfo.x + 50, castle.areaInfo.y + 50)
-            error = false
-        } catch (e) {
-            console.error(e)
-        }
-    } while (!gaa)
-
-    let areaInfo = gaa.areaInfo.filter(ai => ai.type == type)
-    const sourceCastle = castles.find(a => a.kingdomID == kingdomID && a.id == castle.id)
+    const areas = (await ClientCommands.getAreaInfo(kingdomID,
+        castle.areaInfo.x - 50, castle.areaInfo.y - 50,
+        castle.areaInfo.x + 50, castle.areaInfo.y + 50)).areaInfo.filter(ai => ai.type == type)
 
     while (!quit) {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const AI = areaInfo.shift()
+                const areaInfo = areas.shift()
 
-                areaInfo.push(AI)
+                areas.push(areaInfo)
 
-                await skipTarget(AI)
-                const level = AI.extraData[1] + AI.extraData[6] == 100 ? 70 : 56
+                await skipTarget(areaInfo)
+                const level = areaInfo.extraData[1] + areaInfo.extraData[6] == 100 ? 70 : 56
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
@@ -135,8 +125,8 @@ events.on("eventStart", async eventInfo => {
                 const attackerWallTools = []
                 const attackerShieldTools = []
 
-                for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i]
+                for (let i = 0; i < castle.unitInventory.length; i++) {
+                    const unit = castle.unitInventory[i]
 
 
                     if (unitInfo.wodID == 277)
@@ -214,7 +204,7 @@ events.on("eventStart", async eventInfo => {
                 attackerShieldBerimondTools.push(...attackerShieldTools)
 
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, castle, AI, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
 
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)
@@ -323,7 +313,7 @@ events.on("eventStart", async eventInfo => {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo.x || obj.AAM.M.TA[2] != areaInfo.y)
                         return false
                     return true
                 })

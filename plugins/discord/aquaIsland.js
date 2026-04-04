@@ -10,7 +10,7 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, castles, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
+const { ClientCommands: { preSpyInfo }, castles, spiralCoordinates, KingdomID, AreaType, kingdomInfoList, ClientCommands } = require("../../protocols.js")
 
 const { client } = require("./discord.js")
 
@@ -19,7 +19,7 @@ const type = AreaType.stormIsland
 const kingdomID = KingdomID.stormIslands
 
 events.once("load", async () => {
-    if (!(await getKingdomInfoList()).unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+    if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
     
     const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaType.type))
@@ -53,18 +53,21 @@ events.once("load", async () => {
         rect.y = rect.y > 1286 ? 1286 : rect.y
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
-        let gaa
         let attemptsLeft = 5
-        do {
+        while(true) {
             try {
-                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+                areas.push(...(await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)).areaInfo
+                    .filter(ai => ai.type == type)
+                    .filter(ai => [3, 6].includes(ai.extraData[5])))
+                    break
             }
-            catch { attemptsLeft-- }
+            catch { 
+                attemptsLeft-- 
+            }
             if (attemptsLeft <= 0)
                 continue done
-        } while (!gaa)
-        areas.push(...gaa.areaInfo.filter(ai => ai.type == type)
-            .filter(ai => [3, 6].includes(ai.extraData[5])))
+        } 
+        
     }
     const sortData = () => { //6 is small
         areas.sort((a, b) => b.extraData[5] - a.extraData[5])
@@ -78,23 +81,23 @@ events.once("load", async () => {
         const date = Date.now()
         let msg = "```Coords  Time\n"
 
-        areas.every(area => {
-            const deltaTime = area.extraData[6] - (date - area.timeSinceRequest) / 1000
-            const playerId = area.extraData[1]
-            const isSmallIsland = area.extraData[5] == 6
+        areas.every(areaInfo => {
+            const deltaTime = areaInfo.extraData[6] - (date - areaInfo.timeSinceRequest) / 1000
+            const playerId = areaInfo.extraData[1]
+            const isSmallIsland = areaInfo.extraData[5] == 6
             
             if(playerId > 0)
                 return false
 
             if (deltaTime <= 0)
-                preSpyInfo(area.x, area.y, kingdomID).then(({ areaInfo: area }) =>
+                preSpyInfo(areaInfo.x, areaInfo.y, kingdomID).then(({ areaInfo: area }) =>
                     area.extraData[6] > 0 && sortData())
 
             let hour12 = new Date((deltaTime + 3600) * 1000 + date).toLocaleTimeString()
             if (hour12.length <= 10)
                 hour12 += ' '
 
-            msg += `${area.x}\:${area.y}   ${isSmallIsland ? "(Small)" : "(Big)  "} ${hour12} ${pretty(Math.round(Math.max(0, Math.round(1000000000 * deltaTime))), 's')}\n`
+            msg += `${areaInfo.x}\:${areaInfo.y}   ${isSmallIsland ? "(Small)" : "(Big)  "} ${hour12} ${pretty(Math.round(Math.max(0, Math.round(1000000000 * deltaTime))), 's')}\n`
 
             if (msg.length >= 2000 - 3)
                 return (msg = msg.replace(/\n.*\n$/, ''), false)

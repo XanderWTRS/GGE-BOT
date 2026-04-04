@@ -9,7 +9,7 @@ if (require('node:worker_threads').isMainThread)
     }
 
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, castles, spiralCoordinates, KingdomID, AreaType, getKingdomInfoList } = require("../../protocols.js")
+const { ClientCommands: { preSpyInfo }, castles, spiralCoordinates, KingdomID, AreaType, kingdomInfoList, ClientCommands } = require("../../protocols.js")
 
 const { client } = require("./discord.js")
 
@@ -18,7 +18,7 @@ const type = AreaType.stormTower
 const kingdomID = KingdomID.stormIslands
 
 events.once("load", async () => {
-    if (!(await getKingdomInfoList()).unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+    if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
     
     const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
@@ -52,17 +52,17 @@ events.once("load", async () => {
         rect.y = rect.y > 1286 ? 1286 : rect.y
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
-        let gaa
         let attemptsLeft = 5
-        do {
+        while (true) {
             try {
-                gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+                areas.push(...(await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h))
+                    .areaInfo.filter(ai => ai.type == type))
+                break
             }
             catch { attemptsLeft-- }
             if (attemptsLeft <= 0)
                 continue done
-        } while (!gaa)
-        areas.push(...gaa.areaInfo.filter(ai => ai.type == type))
+        }
     }
     const sortData = () => {
         areas.sort((a, b) => a.extraData[4] - b.extraData[4])
@@ -87,19 +87,19 @@ events.once("load", async () => {
         const date = Date.now()
         let msg = "```Location           Coords  Time\n"
 
-        areas.every(area => {
-            const deltaTime = area.extraData[3] - (date - area.timeSinceRequest) / 1000
-            const type = area.extraData[2]
-            const hitsLeft = 10 - area.extraData[4]
+        areas.every(areaInfo => {
+            const deltaTime = areaInfo.extraData[3] - (date - areaInfo.timeSinceRequest) / 1000
+            const type = areaInfo.extraData[2]
+            const hitsLeft = 10 - areaInfo.extraData[4]
             
             if(deltaTime > 0)
                 return false
 
             if (deltaTime <= 0)
-                preSpyInfo(area.x, area.y, kingdomID).then(({ areaInfo: area }) =>
+                preSpyInfo(areaInfo.x, areaInfo.y, kingdomID).then(({ areaInfo: area }) =>
                     area.extraData[3] > 0 && sortData())
 
-            msg += `${area.x}\:${area.y} lv ${toLevel[type]} (${[7, 8, 9].includes(type) ? "Easy" : "Hard"}) ${hitsLeft}\n`
+            msg += `${areaInfo.x}\:${areaInfo.y} lv ${toLevel[type]} (${[7, 8, 9].includes(type) ? "Easy" : "Hard"}) ${hitsLeft}\n`
 
             if (msg.length >= 2000 - 3)
                 return (msg = msg.replace(/\n.*\n$/, ''), false)

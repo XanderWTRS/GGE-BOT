@@ -150,7 +150,7 @@ events.once("load", async () => {
     if (allowedLevels.length === 0)
         allowedLevels.push(7, 8, 9, 13, 14)
 
-    let sortedAreaInfo = []
+    let areas = []
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined,
@@ -160,8 +160,8 @@ events.once("load", async () => {
             const attackInfo = await waitToAttack(async () => {
                 let index = -1
                 const timeSinceEpoch = Date.now()
-                for (let i = 0; i < sortedAreaInfo.length; i++) {
-                    const areaInfo = sortedAreaInfo[i]
+                for (let i = 0; i < areas.length; i++) {
+                    const areaInfo = areas[i]
 
                     if (movements.find(movement =>
                         movement.kingdomID == kingdomID &&
@@ -185,7 +185,7 @@ events.once("load", async () => {
                 if (index == -1)
                     return
 
-                const areaInfo = sortedAreaInfo[index]
+                const areaInfo = areas[index]
 
                 const level = {
                     7: 60,
@@ -330,29 +330,16 @@ events.once("load", async () => {
         rect.y = rect.y > 1286 ? 1286 : rect.y
         rect.w = rect.w > 1286 ? 1286 : rect.w
         rect.h = rect.h > 1286 ? 1286 : rect.h
-        let attemptsLeft = 5
-        do {
-            try {
-                var gaa = await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)
-            }
-            catch (e) {
-                console.debug(e)
-                attemptsLeft--
-            }
-            if (attemptsLeft <= 0)
-                continue done
-        } while (!gaa)
-
-        let areaInfo = gaa.areaInfo.filter(ai => ai.type == type).sort((a, b) =>
+        
+        areas.push(...(await ClientCommands.getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h))
+            .areaInfo.filter(ai => ai.type == type).sort((a, b) =>
             (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
-            (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
+            (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2))))
 
-        sortedAreaInfo.push(...areaInfo)
-
-        if (sortedAreaInfo.every(ai => ![7, 8, 9].includes(ai.extraData[2]))) //Find and hit a good one before continuing scanning
+        if (areas.every(ai => ![7, 8, 9].includes(ai.extraData[2]))) //Find and hit a good one before continuing scanning
             continue
 
-        sortedAreaInfo.sort((a, b) => {
+        areas.sort((a, b) => {
             if ((a.extraData[2] % 10) > (b.extraData[2] % 10))
                 return -1
             if ((a.extraData[2] % 10) < (b.extraData[2] % 10))
@@ -371,8 +358,8 @@ events.once("load", async () => {
     while (true) {
         let minimumTimeTillHit = Infinity
 
-        for (let i = 0; i < sortedAreaInfo.length; i++) {
-            const areaInfo = sortedAreaInfo[i]
+        for (let i = 0; i < areas.length; i++) {
+            const areaInfo = areas[i]
 
             if (!allowedLevels.includes(areaInfo.extraData[2]))
                 if (((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - Date.now()) <= 0)
