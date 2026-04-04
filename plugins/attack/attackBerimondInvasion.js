@@ -231,15 +231,15 @@ events.on("eventStart", async eventInfo => {
 
                         let maxTroops = maxTroopFlank
 
-                        wave.L.U.forEach((unitSlot, i) =>
+                        wave.L.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFlank
-                        wave.R.U.forEach((unitSlot, i) =>
+                        wave.R.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         maxTroops = maxTroopFront
-                        wave.M.U.forEach((unitSlot, i) =>
+                        wave.M.U.forEach(unitSlot =>
                             maxTroops -= assignUnit(unitSlot, attackerRangeTroops.length <= 0 ?
                                 attackerMeleeTroops : attackerRangeTroops, maxTroops))
                         attackerMeleeTroops.sort((a, b) => Number(a.unitInfo.meleeAttack) - Number(b.unitInfo.meleeAttack))

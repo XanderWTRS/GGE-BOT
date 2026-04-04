@@ -266,24 +266,24 @@ events.on("eventStart", async eventInfo => {
                 const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
-                const desiredToolCount = attackerNomadTools.length == 0 ? 20 : 10
+                const desiredToolCount = attackerNomadTools.length == 0 ? 40 : 10
 
                 attackInfo.A.forEach((wave, index) => {
                     let maxTools = maxToolsFlank
                     if (index == 0) {
                         wave.L.T.forEach((unitSlot, i) =>
                             maxTools -= assignUnit(unitSlot, i == 0 ?
-                                attackerWallNomadTools : attackerShieldNomadTools, Math.min(maxTools, desiredToolCount)))
+                                attackerWallNomadTools : attackerShieldNomadTools, Math.min(maxTools / 2, desiredToolCount)))
 
                         maxTools = maxToolsFlank
                         wave.R.T.forEach((unitSlot, i) =>
                             maxTools -= assignUnit(unitSlot, i == 0 ?
-                                attackerWallNomadTools : attackerShieldNomadTools, Math.min(maxTools, desiredToolCount)))
+                                attackerWallNomadTools : attackerShieldNomadTools, Math.min(maxTools / 2, desiredToolCount)))
 
                         maxTools = maxToolsFront
                         wave.M.T.forEach((unitSlot, i) =>
                             maxTools -= assignUnit(unitSlot, i == 0 ? attackerWallNomadTools :
-                                i == 1 ? attackerGateNomadTools : attackerShieldNomadTools, Math.min(maxTools, desiredToolCount)))
+                                i == 1 ? attackerGateNomadTools : attackerShieldNomadTools, Math.min(maxTools / 3, desiredToolCount)))
 
                         let maxTroops = maxTroopFlank
 
