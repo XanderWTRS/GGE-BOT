@@ -35,37 +35,40 @@ let wavePattern = {
 
 
 let createLayout = (left, middle, right, courtyard) => {
-  let passThroughStream = new Stream.PassThrough()
-    ; (async () => {
-      if(!ggeConfig.fontPath)
-        ggeConfig.fontPath = "C:\\Windows\\Fonts\\segoeui.ttf"
-      await PImage.registerFont(ggeConfig.fontPath, "arial").load()
+  const passThroughStream = new Stream.PassThrough()
+  process.nextTick(async () => {
+    if (!ggeConfig.fontPath)
+      ggeConfig.fontPath = process.platform == "linux" ?
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" :
+        'C:\\Windows\\Fonts\\segoeui.ttf'
 
-      let img = await PImage.decodePNGFromStream(fs.createReadStream("./assets/asset.png"))
-      let ctx = img.getContext("2d")
+    await PImage.registerFont(ggeConfig.fontPath, "arial").load()
 
-      let displayAttack = (attack, attackSection) => 
-        attack.map((wave, index) => addUnit(
-          wave.unitInfo,
-          ctx,
-          attackSection.startX,
-          attackSection.startY,
-          wave.amount,
-          attackSection.maxWidth,
-          attackSection.maxHeight,
-          index
-        ))
+    const img = await PImage.decodePNGFromStream(fs.createReadStream("./assets/asset.png"))
+    const ctx = img.getContext("2d")
 
-      let resolves = []
+    const displayAttack = (attack, attackSection) =>
+      attack.map((wave, index) => addUnit(
+        wave.unitInfo,
+        ctx,
+        attackSection.startX,
+        attackSection.startY,
+        wave.amount,
+        attackSection.maxWidth,
+        attackSection.maxHeight,
+        index
+      ))
 
-      resolves.push(...displayAttack(left, wavePattern.leftFlank))
-      resolves.push(...displayAttack(middle, wavePattern.front))
-      resolves.push(...displayAttack(right, wavePattern.rightFlank))
-      resolves.push(...displayAttack(courtyard, wavePattern.courtyard))
+    let resolves = []
 
-      await Promise.allSettled(resolves)
-      await PImage.encodePNGToStream(img, passThroughStream, { deflateStrategy: 3, deflateLevel: 9 })
-    })()
+    resolves.push(...displayAttack(left, wavePattern.leftFlank))
+    resolves.push(...displayAttack(middle, wavePattern.front))
+    resolves.push(...displayAttack(right, wavePattern.rightFlank))
+    resolves.push(...displayAttack(courtyard, wavePattern.courtyard))
+
+    await Promise.allSettled(resolves)
+    await PImage.encodePNGToStream(img, passThroughStream, { deflateStrategy: 3, deflateLevel: 9 })
+  })
 
   return passThroughStream
 }
@@ -73,10 +76,10 @@ let createLayout = (left, middle, right, courtyard) => {
 let addUnit = (unit, /**@type {PImage.Context}*/ctx, x, y, count, maxWidth, maxHeight, index) => 
   new Promise(async (resolve, reject) => {
   try {
-    let asset = await getAsset(`${unit?.name}_${unit?.group}_${unit?.type}`)
+    const asset = await getAsset(`${unit?.name}_${unit?.group}_${unit?.type}`)
 
     asset.on("error", reject)
-    let unitImage = await PImage.decodePNGFromStream(asset)
+    const unitImage = await PImage.decodePNGFromStream(asset)
 
     x += 29 * (index % maxWidth)
     y += 42 * (Math.floor(index / maxWidth))
