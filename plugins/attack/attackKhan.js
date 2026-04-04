@@ -187,7 +187,8 @@ events.on("eventStart", async ({EID, EDID}) => {
         EDID = eventDifficultyID
     }
     let classic = false
-    if([-1, 0].includes(eventInfo.EDID))
+    
+    if([-1, 0].includes(EDID))
         classic = true
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.mainCastle)
