@@ -51,16 +51,16 @@ events.once("load", async () => {
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
 
         setTimeout(async () => {
-            let ammount = Math.floor((stormAreaInfo.getProductionData.maxAmountMead - stormAreaInfo.mead))
+            let amount = Math.floor((stormAreaInfo.getProductionData.maxAmountMead - stormAreaInfo.mead))
 
             let info = await ClientCommands.getKingdomInfo(
                 mainCastleAreaID,
                 KingdomID.greatEmpire,
                 targetKingdomID,
-                [["MEAD", ammount]]
+                [["MEAD", amount]]
             )()
             if (info.result == 0)
-                console.log("sentMeadReplace", ammount, "meadToMeadReplace")
+                console.log("sentMeadReplace", amount, "meadToMeadReplace")
             else
                 console.log("failedToSendMead")
             

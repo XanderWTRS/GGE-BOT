@@ -676,7 +676,7 @@ const capitalizeFirstLetter = val =>
 
 const ResourceList = obj => {
     let resource = {}
-    obj.forEach(([type, ammount]) => {
+    obj.forEach(([type, amount]) => {
         const nameOverrides = {
             component1: "screws",
             component2: "blackPowder",
@@ -689,7 +689,7 @@ const ResourceList = obj => {
         }
         let name = decapitalizeFirstLetter(currencies.find(e => e.JSONKey == type).Name)
         let realName = nameOverrides[name] ?? name
-        resource[realName] = ammount
+        resource[realName] = amount
     })
     return resource
 }
