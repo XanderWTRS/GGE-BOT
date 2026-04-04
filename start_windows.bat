@@ -22,9 +22,12 @@ cd ..
 git pull
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
-  if not exist "plugins-extra" mkdir plugins-extra
   cd "plugins-extra"
-  git pull https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git
+  if not exist "plugins-extra" (
+    mkdir plugins-extra
+    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git .
+  )
+  git pull
   cd ..
 )
 
