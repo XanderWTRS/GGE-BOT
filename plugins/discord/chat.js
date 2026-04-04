@@ -55,24 +55,21 @@ function unparseMessage(e) {
         .replaceAll(/(\[|\])/g, " ")
 }
 clientReady.then(async client => {
-    let channel = await client.channels.fetch(pluginOptions.channelID)
-    xtHandler.on("acm", (obj) => {
+    const channel = await client.channels.fetch(pluginOptions.channelID)
+    xtHandler.on("acm", obj => {
         if (obj.CM.PN.toLowerCase() == botConfig.name.toLowerCase())
             return
 
-        var msg = parseMessage(obj.CM.MT)
-
-        channel.send(obj.CM.PN + ": " + msg)
+        channel.send(obj.CM.PN + ": " + parseMessage(obj.CM.MT))
     })
-    client.on("messageCreate", async (message) => {
-        if (message.author.bot) return
+    client.on("messageCreate", async message => {
+        if (message.author.bot)
+            return
 
-        if(message.channel.id != pluginOptions.channelID) return
+        if(message.channel.id != pluginOptions.channelID)
+            return
 
-        var name = "<color=" + message.member.displayHexColor + ">" + ((message.member.nickname != null) ? message.member.nickname : message.author.displayName) + "<color>"
-
-        let msg = message.content
-        msg = msg.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>')
+        let msg = message.content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>')
         msg.match(/\p{Emoji_Presentation}/gu)?.forEach(element => {
             if (emoji.getName(element) == "slightly_smiling_face")
                 msg = msg.replace(element, ":)")
@@ -90,22 +87,23 @@ clientReady.then(async client => {
                 msg = msg.replace(element, ":" + emoji.getName(element) + ":")
         })
 
-        if (msg != "" && message.attachments.size > 0)
-            msg += "<br>"
-        if (message.attachments.size > 0)
+        if (message.attachments.size > 0) {
+            if (msg != "")
+                msg += "<br>"
             msg += "attached: "
+        }
         let i = 0
         for await (const [, attachment] of message.attachments.entries()) {
-            const url = await turl.shorten(attachment.proxyURL)
-            msg += `<a href="${url}">${i++}</a> `
+            msg += `<a href="${await turl.shorten(attachment.proxyURL)}">${i++}</a> `
         }
-        msg = unparseMessage(msg)
 
         if (msg == "")
             return
         
+        const name = "<color=" + message.member.displayHexColor + ">" + ((message.member.nickname != null) ? message.member.nickname : message.author.displayName) + "<color>"
+
         sendXT("acm", JSON.stringify({ 
-            M:`${!pluginOptions.hideDiscordName ? unparseMessage(name) + ": " : ""} ${msg}`
+            M: unparseMessage(`${!pluginOptions.hideDiscordName ? unparseMessage(name) + ": " : ""} ${msg}`)
         }))
     })
 })
