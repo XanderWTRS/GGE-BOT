@@ -34,7 +34,7 @@ let wavePattern = {
 }
 
 
-let createLayout = GA => {
+let createLayout = (left, middle, right, courtyard) => {
   let passThroughStream = new Stream.PassThrough()
     ; (async () => {
       if(!ggeConfig.fontPath)
@@ -46,11 +46,11 @@ let createLayout = GA => {
 
       let displayAttack = (attack, attackSection) => 
         attack.map((wave, index) => addUnit(
-          units.find(e => e?.wodID == wave[0]),
+          wave.unitInfo,
           ctx,
           attackSection.startX,
           attackSection.startY,
-          wave[1],
+          wave.amount,
           attackSection.maxWidth,
           attackSection.maxHeight,
           index
@@ -58,10 +58,10 @@ let createLayout = GA => {
 
       let resolves = []
 
-      resolves.push(...displayAttack(GA.L, wavePattern.leftFlank))
-      resolves.push(...displayAttack(GA.M, wavePattern.front))
-      resolves.push(...displayAttack(GA.R, wavePattern.rightFlank))
-      resolves.push(...displayAttack(GA.RW, wavePattern.courtyard))
+      resolves.push(...displayAttack(left, wavePattern.leftFlank))
+      resolves.push(...displayAttack(middle, wavePattern.front))
+      resolves.push(...displayAttack(right, wavePattern.rightFlank))
+      resolves.push(...displayAttack(courtyard, wavePattern.courtyard))
 
       await Promise.allSettled(resolves)
       await PImage.encodePNGToStream(img, passThroughStream, { deflateStrategy: 3, deflateLevel: 9 })

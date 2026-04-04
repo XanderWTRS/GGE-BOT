@@ -33,7 +33,7 @@ const storedMessages = new WeakMap()
 
 movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
     await clientReady
-    
+
     if (![0, 25, 31, 24, 29].includes(movement.type))
         return
     if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
@@ -47,7 +47,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if (movement.canSeeArmy) {
         const message = await storedMessages.get(movement)
         if (message?.attachments.size == 0) {
-            const stream = await createLayout(movement.GA)
+            const stream = await createLayout(movement.left, movement.middle, movement.right,movement.courtyard)
             stream.on("error", console.warn)
             message.edit({
                 content: message.content, 
