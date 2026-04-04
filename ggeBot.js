@@ -90,7 +90,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
         
         if (["LORD_IS_USED", "ATTACK_TOO_MANY_UNITS", "ATTACK_TOO_MANY_UNITS", "MISSING_UNITS"].includes(err[result]))
             importantErrors++
-        if (importantErrors == 5) {
+        if (importantErrors == 8) {
             console.error("closedReason", "tooManyImportantErrors")
             return webSocket.pause()
         }
