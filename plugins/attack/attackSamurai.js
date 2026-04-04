@@ -64,7 +64,7 @@ const ggeConfig = require("../../ggeConfig.json")
 const samuraiCampsClassic = require("../../items/samuraiCamps.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const err = require('../../err.json')
 const kingdomID = KingdomID.greatEmpire
 const type = AreaType.samCamp

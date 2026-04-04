@@ -11,7 +11,7 @@ if (require('node:worker_threads').isMainThread)
 
 const { xtHandler, sendXT, botConfig } = require("../ggeBot.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 const randomIntFromInterval = (min, max) => 
     Math.floor(Math.random() * (max - min + 1) + min)

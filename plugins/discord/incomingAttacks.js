@@ -15,11 +15,11 @@ if (require('node:worker_threads').isMainThread)
 const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
 
 const { botConfig, playerInfo, i18n } = require("../../ggeBot.js")
-const { movementEvents, KingdomID } = require('../../protocols.js')
+const { movementEvents, KingdomID } = require("../../protocols.js")
 const { createLayout } = require("../../imageGen.js")
-const { clientReady, client } = require('./discord.js')
+const { clientReady, client } = require("./discord.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 const kingdomName = [
     `\u001b[2;32m${i18n.__(KingdomID[0])}\u001b[0m`,
@@ -39,6 +39,8 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
         return
     if (movement.targetOwner.allianceID != playerInfo.alliance.id)
+        return
+    if (movement.targetOwner == undefined)
         return
 
     if (kingdomName[movement.kingdomID] == undefined)

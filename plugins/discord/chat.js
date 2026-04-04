@@ -19,7 +19,7 @@ const emoji = require("emoji-dictionary")
 const { xtHandler, sendXT, botConfig } = require("../../ggeBot.js")
 const { clientReady } = require('./discord')
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 function parseMessage(e) {
     if (!e)

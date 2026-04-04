@@ -227,7 +227,7 @@ function boxMullerRandom(min, max, skew) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const attacks = []
 let alreadyRunning = false
 let attackCount = undefined

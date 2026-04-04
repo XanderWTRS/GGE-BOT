@@ -13,7 +13,7 @@ const { ClientCommands: { preSpyInfo }, castles, spiralCoordinates, KingdomID, A
 
 const { client } = require("./discord.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const type = AreaType.stormTower
 const kingdomID = KingdomID.stormIslands
 
@@ -23,7 +23,7 @@ events.once("load", async () => {
     
     const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
 
-    /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
+    /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
     const areas = []
     done:
     for (let i = 0, j = 1; i < 13 * 13; i++) {

@@ -47,7 +47,7 @@ if (require('node:worker_threads').isMainThread) {
 }
 
 const { getCommanderStats } = require("../../getEquipment.js")
-const { movementEvents, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates, castles } = require('../../protocols.js')
+const { movementEvents, ClientCommands, AreaType, KingdomID, movements, ClassTypes, spiralCoordinates, castles } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, botConfig, events } = require("../../ggeBot.js")
@@ -58,7 +58,7 @@ const pretty = require('pretty-time')
 const minTroopCount = 100
 
 const pluginOptions =
-    botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+    botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 if (pluginOptions.upgradeStormForts) {
     try {

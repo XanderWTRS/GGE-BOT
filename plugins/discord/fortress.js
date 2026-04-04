@@ -14,11 +14,11 @@ const { ClientCommands: { preSpyInfo }, spiralCoordinates, castles, AreaType } =
 
 const { client } = require("./discord.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const type = 11
 
 events.once("load", async () => {
-    /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
+    /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
     const areas = []
 
 

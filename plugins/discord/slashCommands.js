@@ -2,9 +2,9 @@ if (require('node:worker_threads').isMainThread)
     return module.exports = {}
 
 const { SlashCommandBuilder, Interaction } = require('discord.js')
-const { commands } = require('./discord.js')
+const { commands } = require("./discord.js")
 const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggeBot.js")
-const { ClientCommands, HighscoreType, AreaType } = require('../../protocols.js')
+const { ClientCommands, HighscoreType, AreaType } = require("../../protocols.js")
 const ggeConfig = require("../../ggeConfig.json")
 
 let playerids = []

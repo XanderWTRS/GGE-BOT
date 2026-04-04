@@ -56,7 +56,7 @@ function scheduleBot(user, startTimer, endTimer) {
         stopBot(user), endTime)]
 }
 getUser().forEach(user => {
-    const pluginPath = require('path').basename(__filename).slice(0, -3)
+    const pluginPath = require("path").basename(__filename).slice(0, -3)
     const pluginOptions = user.plugins[pluginPath] ?? {}
     let startTimer, endTimer
     if (pluginOptions.state && pluginOptions.startTimer && pluginOptions.stopTimer) {
