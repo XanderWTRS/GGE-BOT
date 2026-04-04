@@ -19,7 +19,7 @@ git config --local core.hooksPath .githooks/
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
-git pull origin main
+git pull
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   if not exist "plugins-extra" mkdir plugins-extra
