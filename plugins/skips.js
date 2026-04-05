@@ -63,13 +63,13 @@ const pluginOptions = botConfig.plugins[require("path").basename(__filename).sli
 
 function haveEnoughSkips(time) {
     const skips = {
-        MS1: pluginOptions["1Minute"] ? resources['1MinSkip'] : 0,
-        MS2: pluginOptions["5Minute"] ? resources['5MinSkip'] : 0,
-        MS3: pluginOptions["10Minute"] ? resources['10MinSkip'] : 0,
-        MS4: pluginOptions["30Minute"] ? resources['30MinSkip'] : 0,
-        MS5: pluginOptions["1Hour"] ? resources['60MinSkip'] : 0,
-        MS6: pluginOptions["5Hour"] ? resources['5HourSkip'] : 0,
-        MS7: pluginOptions["24Hour"] ? resources['24HourSkip'] : 0
+        MS1: pluginOptions["1Minute"] ? structuredClone(resources['1MinSkip']) : 0,
+        MS2: pluginOptions["5Minute"] ? structuredClone(resources['5MinSkip']) : 0,
+        MS3: pluginOptions["10Minute"] ? structuredClone(resources['10MinSkip']) : 0,
+        MS4: pluginOptions["30Minute"] ? structuredClone(resources['30MinSkip']) : 0,
+        MS5: pluginOptions["1Hour"] ? structuredClone(resources['60MinSkip']) : 0,
+        MS6: pluginOptions["5Hour"] ? structuredClone(resources['5HourSkip']) : 0,
+        MS7: pluginOptions["24Hour"] ? structuredClone(resources['24HourSkip']) : 0
     }
     time = Math.ceil(time / 60)
     

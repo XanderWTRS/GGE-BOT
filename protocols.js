@@ -529,8 +529,9 @@ class CastleAreaInfo extends EventEmitter {
         this.kingdomID = kingdomID
     }
 }
-class CastleResourceInfo {
+class CastleResourceInfo extends EventEmitter {
     constructor(e, kingdomID) {
+        super()
         this.kingdomID = Number(kingdomID)
         this.id = Number(e.AID)
         this.wood = Number(e.W)
@@ -557,8 +558,9 @@ class CastleResourceInfo {
         this.openGateTime = Number(e.OGT)
     }
 }
-class PermanentCastleData {
+class PermanentCastleData extends EventEmitter {
     constructor(e) {
+        super()
         this.unlockedHorses = Array.from(e.UH).map(Number)
         this.id = Number(e.AID)
         this.kingdomID = Number(e.KID)
@@ -566,6 +568,7 @@ class PermanentCastleData {
 }
 class CastleInfo extends EventEmitter { //JSDOC: HACK
     constructor() {
+        super()
         const e = undefined, kingdomID = undefined
         this.areaInfo = MapObject(new GAAAreaInfo(e.AI), kingdomID)
         this.id = Number(this.areaInfo.extraData[0]) ?? Number(e.AID)
@@ -613,6 +616,7 @@ xtHandler.on("dcl", (obj, result) => {
             castle.emit("resourceUpdate")
             return
         }
+        
         castles.push(castleChanges)
     })
 })
@@ -627,6 +631,7 @@ xtHandler.on("gcl", (obj, result) => {
         const castle = castles.find(e => e.id == castleChanges.id)
         if(castle)
             return Object.assign(castle, castleChanges)
+
         castles.push(castleChanges)
     })
 })
@@ -639,6 +644,7 @@ xtHandler.on("fjf", (obj, result) => {
         const castle = castles.find(e => e.id == castleChanges.id)
         if(castle)
             return Object.assign(castle, castleChanges)
+
         castles.push(castleChanges)
     })
 })
@@ -652,6 +658,8 @@ xtHandler.on("gpc", (obj, result) => {
         const castle = castles.find(e => e.id == castleChanges.id)
         if(castle)
             return Object.assign(castle, castleChanges)
+
+        Object.assign(castleChanges, new EventEmitter())
         castles.push(castleChanges)
     })
 })
@@ -926,7 +934,7 @@ class JoinArea {
         this.type = Number(e.type)
         this.getCastleArea = CastleArea(e.gca, e.KID)
         this.userAttackProtection = ServerUserAttackProtection(e.uap)
-        this.areaInfo = new CastleResourceInfo((e.grc.gpa ??= e.gpa, e.grc))
+        this.getProductionData = new CastleResourceInfo((e.grc.gpa ??= e.gpa, e.grc))
         //??? : Number(e.scl.SSC)
         ///??? : csl : {///??? : Number(e.SL)}
     }
@@ -955,8 +963,9 @@ const clientJoinArea = (x, y, kingdomID) => {
 async function clientJoinCastle(areaID, kingdomID) {
     await sendXT("jca", JSON.stringify({ CID: areaID, KID: kingdomID }))
 
-    const [obj, result] = await waitForResult("jaa", 1000 * 10, (o, r) =>
-        r != 0 || o.grc.KID == kingdomID && o.grc.AID == areaID)
+    const [obj, result] = await waitForResult("jaa", 1000 * 10, (o, r) => {
+        return r != 0 || o.grc.KID == kingdomID && o.grc.AID == areaID
+    })
 
     return result == 0 ? new JoinArea(obj) : { result }
 }

@@ -25,7 +25,7 @@ async function trySendRes() {
 
         const castle = castles[i]
 
-        if (castle.kingdomID.includes(KingdomID.berimond, KingdomID.stormIslands))
+        if ([KingdomID.berimond, KingdomID.stormIslands].includes(castle.kingdomID))
             continue
         if (!allowedAIDS.includes(castle.areaID))
             continue
