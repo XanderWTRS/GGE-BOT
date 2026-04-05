@@ -283,6 +283,7 @@ events.once("load", async () => {
             freeCommander(commander.lordID)
             switch (e) {
                 case "NO_MORE_TROOPS":
+                    console.log("Waiting for more troops.")
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").Types.Movement} */ movement) {
                         if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.id)
                             return
