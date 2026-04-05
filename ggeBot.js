@@ -14,7 +14,7 @@ const ggeConfig = require("./ggeConfig.json")
 const ActionType = require("./actions.json")
 const err = require("./err.json")
 
-const limiter = new RateLimiter({ tokensPerInterval: 2.5, interval: "sec" })
+const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "sec" })
 const events = new EventEmitter()
 const xtHandler = new EventEmitter()
 const i18n = new I18n({

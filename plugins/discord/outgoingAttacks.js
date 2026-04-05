@@ -8,7 +8,7 @@ if (require('node:worker_threads').isMainThread)
         ]
     }
 
-const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
+const { AttachmentBuilder } = require("discord.js")
 
 const { botConfig, playerInfo, i18n } = require("../../ggeBot.js")
 const { movementEvents, KingdomID } = require("../../protocols.js")

@@ -3,12 +3,12 @@ const crypto = require('crypto')
 const undici = require('undici')
 const fs = require('fs/promises')
 const http = require('node:http')
-const {createProxyMiddleware} = require("http-proxy-middleware")
+const { createProxyMiddleware } = require("http-proxy-middleware")
 const express = require('express')
 const https = require('node:https')
 const bodyParser = require('body-parser')
 const { WebSocketServer } = require("ws")
-const {parseStringPromise} = require('xml2js')
+const { parseStringPromise } = require('xml2js')
 const { DatabaseSync } = require('node:sqlite')
 const { Worker } = require('node:worker_threads')
 const { Client, Events, GatewayIntentBits, PermissionFlagsBits } = require('discord.js')
@@ -17,7 +17,7 @@ const ActionType = require('./actions.json')
 const { I18n } = require('i18n')
 const { EventEmitter } = require('node:stream')
 // if(process.platform === "win32")
-  // require("node-prevent-sleep").enable()
+// require("node-prevent-sleep").enable()
 const events = new EventEmitter()
 
 
@@ -27,7 +27,7 @@ const i18n = new I18n({
   updateFiles: false
 })
 
-const clientOptions = { 
+const clientOptions = {
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
@@ -60,7 +60,7 @@ const ggeConfigExample = `{
 const loggedInUsers = {}
 const botMap = new Map()
 
-const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60})
+const userDatabase = new DatabaseSync('./user.db', { timeout: 1000 * 60 })
 userDatabase.exec(
   `CREATE TABLE IF NOT EXISTS "Users" (
 	"username"	TEXT NOT NULL UNIQUE,
@@ -141,7 +141,7 @@ const removeUser = (uuid, user) => {
     return
 
   userDatabase.prepare('DELETE FROM SubUsers WHERE uuid = ? AND id = ?')
-  .run(uuid, user.id)
+    .run(uuid, user.id)
 }
 const getUser = uuid => {
   let str = uuid === undefined ? '' : 'Where uuid=?'
@@ -219,7 +219,7 @@ async function start() {
     try {
       str2 = (await fs.readFile('./ItemsVersion.properties')).toString()
     }
-    catch {}
+    catch { }
 
     let needItems = needLang = str != str2
     try {
@@ -285,8 +285,8 @@ async function start() {
 
   const instances = []
   const json = await parseStringPromise((await fs.readFile('./1.xml')).toString())
-  
-  json.network.instances[0].instance.forEach(e => 
+
+  json.network.instances[0].instance.forEach(e =>
     instances.push({
       gameURL: e.server[0],
       gameServer: e.zone[0],
@@ -297,34 +297,36 @@ async function start() {
 
   try {
     pluginData.push(...require('./plugins-extra'))
-  } catch(e) {
+  } catch (e) {
     console.debug(e)
   }
   try {
     pluginData.push(...require('./plugins-personal'))
-  } catch {}
+  } catch { }
 
   const plugins = pluginData
     .map(e => new Object({ key: path.basename(e[0]), filename: e[0], description: e[1].description, force: e[1].force, pluginOptions: e[1]?.pluginOptions, hidden: e[1].hidden }))
     .sort((a, b) => (a.force ?? 0) - (b.force ?? 0))
 
-  const loginCheck = uuid => 
+  pluginData = undefined
+
+  const loginCheck = uuid =>
     !!userDatabase.prepare('SELECT * FROM Users WHERE uuid = ?').get(uuid ?? "")
 
   const app = express()
-  
+
   app.use("/ggeProxyEmpire5", createProxyMiddleware({
     target: 'https://empire-html5.goodgamestudios.com',
     changeOrigin: true,
     followRedirects: true,
   }))
-  
+
   app.use(bodyParser.urlencoded({ extended: true }))
   app.get('/', (_, res) => res.redirect('/index.html'))
-  app.get('/1.xml', (_, res) => { 
+  app.get('/1.xml', (_, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Content-Type', 'application/xml')
-    res.sendFile('1.xml', { root: "." }) 
+    res.sendFile('1.xml', { root: "." })
   })
   app.get('/assets.json', (_, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -339,11 +341,11 @@ async function start() {
         .get(json.email_name)
       if (!row)
         return res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.' }))
-      
+
       if (crypto.pbkdf2Sync(json.password, row.passwordSalt, 600000, 64, 'sha256').compare(row.passwordHash) == 0)
         res.send(JSON.stringify({ id: 0, r: 0, uuid: row.uuid }))
       else
-        res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.'})) //TODO: sort this out server side
+        res.send(JSON.stringify({ id: 0, r: 1, error: 'Invalid login details.' })) //TODO: sort this out server side
     }
     else if (json.id == 1) {
       if (json.token != (ggeConfig.signupToken ?? ""))
@@ -353,13 +355,13 @@ async function start() {
       const passwordHash = crypto.pbkdf2Sync(json.password, salt, 600000, 64, 'sha256')
       const uuid = crypto.randomUUID()
       try {
-      userDatabase.prepare('INSERT INTO Users (username, passwordHash, passwordSalt, uuid) VALUES(?,?,?,?)')
-         .run(json.username, passwordHash, salt, uuid)
-          res.send(JSON.stringify({ r: 0, uuid: uuid }))
+        userDatabase.prepare('INSERT INTO Users (username, passwordHash, passwordSalt, uuid) VALUES(?,?,?,?)')
+          .run(json.username, passwordHash, salt, uuid)
+        res.send(JSON.stringify({ r: 0, uuid: uuid }))
       }
-      catch(e) {
-          res.send(JSON.stringify({ r: 1 }))
-          console.error(e)
+      catch (e) {
+        res.send(JSON.stringify({ r: 1 }))
+        console.error(e)
       }
     }
   })
@@ -413,8 +415,8 @@ async function start() {
             return response.send(i18n.__("uuidInvalid"))
 
           userDatabase.prepare('UPDATE Users SET discordUserId = ?, discordGuildId = ? WHERE uuid = ?')
-              .run(discordIdentifier.id, guildId, uuid)
-          
+            .run(discordIdentifier.id, guildId, uuid)
+
           loggedInUsers[uuid].forEach(o =>
             o.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]])))
           return response.send('<html><script language="JavaScript" type="text/javascript">window.close()</script><body>Successful</body></html>')
@@ -493,7 +495,7 @@ async function start() {
 
         if (data3.ths.tsid == 24)
           user.gameURL = 'EmpireEx_42'
-        
+
         user.gameServer = 'ep-live-temp1-game.goodgamestudios.com'
         user.tempServerData = data3
       }
@@ -511,7 +513,7 @@ async function start() {
               let objectValue = data.plugins[plugin.key][option.key]
               if (option.key == undefined || ![, ""].includes(objectValue))
                 return
-              
+
               data2.plugins[plugin.key][option.key] = option.default
             })
           }
@@ -583,13 +585,13 @@ async function start() {
         if (getSpecificUser(uuid, user).state == true) {
           console.debug(`[${user.name}] ${i18n.__("restartDelay")}`)
           setTimeout(() => {
-             // Re-fetch user state to ensure they didn't turn it off during the 10s wait
-             user = getSpecificUser(uuid, user)
-             if (user && user.state == true) {
-                 createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
-             } else {
-                 console.debug(`[${user.name}] ${i18n.__("restartCanceledReasonBotStoppedByUser")}`)
-             }
+            // Re-fetch user state to ensure they didn't turn it off during the 10s wait
+            user = getSpecificUser(uuid, user)
+            if (user && user.state == true) {
+              createBot(uuid, user, worker.messageBuffer, worker.messageBufferCount)
+            } else {
+              console.debug(`[${user.name}] ${i18n.__("restartCanceledReasonBotStoppedByUser")}`)
+            }
           }, 1000 * (ggeConfig.secondsTillRestartBot ?? 10))
         }
       }
@@ -600,20 +602,20 @@ async function start() {
         case ActionType.KillBot:
           userDatabase.prepare('UPDATE SubUsers SET state = ? WHERE id = ?').run(0, user.id)
           removeBot(user.id)
-          
-          loggedInUsers[uuid]?.forEach(({ws}) => 
-              ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
+
+          loggedInUsers[uuid]?.forEach(({ ws }) =>
+            ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
           break
         case ActionType.GetLogs:
-            // console.log("logged something")
-          worker.messageBuffer[worker.messageBufferCount] = [obj[1],obj[2]]
+          // console.log("logged something")
+          worker.messageBuffer[worker.messageBufferCount] = [obj[1], obj[2]]
           worker.messageBufferCount = (worker.messageBufferCount + 1) % 25
-          loggedInUsers[uuid]?.forEach(o => 
-              o.viewedUser == user.id ? o.ws.send(JSON.stringify([
-                ErrorType.Success, 
-                ActionType.GetLogs,
-                [worker.messageBuffer, worker.messageBufferCount]
-              ])) : undefined)
+          loggedInUsers[uuid]?.forEach(o =>
+            o.viewedUser == user.id ? o.ws.send(JSON.stringify([
+              ErrorType.Success,
+              ActionType.GetLogs,
+              [worker.messageBuffer, worker.messageBufferCount]
+            ])) : undefined)
           break
         case ActionType.StatusUser:
           obj[1].id = user.id
@@ -667,13 +669,13 @@ async function start() {
     let keyRemoved = false
     for (const key of Object.keys(user.plugins)) {
       const pluginFile = plugins.find(e => e?.key == key)
-      if(pluginFile != undefined)
+      if (pluginFile != undefined)
         continue
       keyRemoved = true
       delete user.plugins[key]
     }
 
-    if(keyRemoved) {
+    if (keyRemoved) {
       user = changeUser(user.uuid, user)
     }
 
@@ -740,8 +742,8 @@ async function start() {
         ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, [ggeConfig.discordClientId, channelData]]))
       }
       catch (e) {
-        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels, 
-          [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
+        ws.send(JSON.stringify([ErrorType.Success, ActionType.GetChannels,
+        [ggeConfig.discordClientId, ggeConfig.discordPort, undefined]]))
         console.error(e)
       }
     }
@@ -827,7 +829,7 @@ async function start() {
               }
             }
           }
-          loggedInUsers[uuid]?.forEach(({ ws }) => 
+          loggedInUsers[uuid]?.forEach(({ ws }) =>
             ws.send(JSON.stringify([ErrorType.Success, ActionType.GetUsers, [getUser(uuid), plugins.filter(e => !e.hidden)]])))
           break
         }
@@ -841,11 +843,11 @@ async function start() {
 
           if (worker == undefined)
             return ws.send(JSON.stringify([ErrorType.Generic, ActionType.GetLogs, {}]))
-          
+
           let loggedInUser = loggedInUsers[uuid].find(obj => obj.ws == ws)
           loggedInUser.viewedUser = user.id
-          loggedInUser.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs, 
-            [worker.messageBuffer, worker.messageBufferCount]]))
+          loggedInUser.ws.send(JSON.stringify([ErrorType.Success, ActionType.GetLogs,
+          [worker.messageBuffer, worker.messageBufferCount]]))
           break
         }
         default:
