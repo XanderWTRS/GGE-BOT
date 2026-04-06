@@ -1268,6 +1268,7 @@ module.exports = {
         Lord,
         GAAAreaInfo,
         Movement,
+        BuildingInfo,
         Unit,
         KingdomSkipType,
         HighscoreType,
