@@ -32,6 +32,11 @@ if (require('node:worker_threads').isMainThread)
                 key: "useShields",
                 default: false
             },
+            {
+                type: "Checkbox",
+                key: "useDogs",
+                default: false
+            },
             { type: "Label", key: "attackSettings" },
             {
                 type: "Checkbox",
