@@ -519,6 +519,21 @@ function setEvent(obj, result) {
 xtHandler.on("fjf", (obj, result) => setEvent(obj.sei, result))
 xtHandler.on("sei", setEvent)
 
+const BuildingInfo = o => ({
+    wodID: Number(o[0]),
+    ownerID: Number(o[1]),
+    x: Number(o[2]),
+    y: Number(o[3]),
+    rotation : Number(o[4]),
+    buildTime : Number(o[5]),
+    buildingState: Number(o[6]),
+    hitPoints : Number(o[7]),
+    constructionBoost : Number(o[8]) / 100,
+    efficiency: Number(o[9]),
+    damageType: Number(o[10]),
+    extraData : Array.from(o).toSpliced(0, 11)
+})
+
 class CastleAreaInfo extends EventEmitter {
     constructor(e, kingdomID) {
         super()
@@ -545,7 +560,7 @@ class CastleResourceInfo extends EventEmitter {
         this.mead = Number(e.MEAD)
         this.aqua = Number(e.A)
         this.defence = Number(e.D)
-        this.getProductionData = GetProductionData(e.gpa)
+        this.getProductionData = GetProductionData(e.gpa ?? {})
         this.unitInventory = Array.from(e.AC ?? []).map(Unit)
         this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
         this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
@@ -556,6 +571,19 @@ class CastleResourceInfo extends EventEmitter {
         this.hasDefenseWorkshop = Boolean(e.DW)
         this.hasHospital = Boolean(e.H)
         this.openGateTime = Number(e.OGT)
+        this.buildings = Array.from(e.gca?.BD ?? []).map(BuildingInfo)
+        this.buildingSlots = Array.from(e.scl?.OIDL ?? []).map(Number)
+        // this.ownerInfo: new OwnerInfo(o.O)
+        //??? : Number(e.RAF)
+        //??? : Number(e.RAW)
+        //??? : Number(e.RAS)
+        //??? : Number(e.RAB)
+        //??? : Array.from(e.BG).map()
+        //??? : Array.from(e.T).map()
+        //??? : Array.from(e.G).map()
+        //??? : Array.from(e.D).map()
+        //??? : Array.from(e.CI).map()
+        // this.areaInfo = MapObject(new GAAAreaInfo(o.A), KID)
     }
 }
 class PermanentCastleData extends EventEmitter {
@@ -598,6 +626,8 @@ class CastleInfo extends EventEmitter { //JSDOC: HACK
         this.hasHospital = Boolean(e.H)
         this.openGateTime = Number(e.OGT)
         this.unlockedHorses = Array.from(e.UH).map(Number)
+        this.buildings = Array.from(e.gca?.BD ?? []).map(BuildingInfo)
+        this.buildingSlots = Array.from(o.scl?.OIDL ?? []).map(Number)
     }
 }
 /** @type {Array<CastleInfo>} */
@@ -899,75 +929,46 @@ const Alliance = e => ({
 
 })
 
-const BuildingInfo = o => ({
-    wodID: Number(o[0]),
-    ownerID: Number(o[1]),
-    x: Number(o[2]),
-    y: Number(o[3]),
-    rotation : Number(o[4]),
-    buildTime : Number(o[5]),
-    buildingState: Number(o[6]),
-    hitPoints : Number(o[7]),
-    constructionBoost : Number(o[8]) / 100,
-    efficiency: Number(o[9]),
-    damageType: Number(o[10]),
-    extraData : Array.from(o).toSpliced(0, 11)
-})
-const CastleArea = (o, KID) => ({
-    ownerInfo: new OwnerInfo(o.O),
-    //??? : Number(e.RAF),
-    //??? : Number(e.RAW),
-    //??? : Number(e.RAS),
-    //??? : Number(e.RAB),
-    //??? : Array.from(e.BG).map(),
-    buildings : Array.from(o.BD).map(BuildingInfo),
-    //??? : Array.from(e.T).map(),
-    //??? : Array.from(e.G).map(),
-    //??? : Array.from(e.D).map(),
-    //??? : Array.from(e.CI).map(),
-    areaInfo: MapObject(new GAAAreaInfo(o.A), KID),
-    buildingSlots: Array.from(o.scl.OIDL).map(Number)
-})
-class JoinArea {
-    constructor(e) {
-        this.kingdomID = Number(e.KID)
-        this.type = Number(e.type)
-        this.getCastleArea = CastleArea(e.gca, e.KID)
-        this.userAttackProtection = ServerUserAttackProtection(e.uap)
-        this.getProductionData = new CastleResourceInfo((e.grc.gpa ??= e.gpa, e.grc))
-        //??? : Number(e.scl.SSC)
-        ///??? : csl : {///??? : Number(e.SL)}
-    }
-}
 
-const clientJoinArea = (x, y, kingdomID) => {
-    const limiter = sendXT("joa", JSON.stringify({ PX: x, PY: y, KID: kingdomID }))
+async function clientJoinArea(x, y, kingdomID) {
+    await sendXT("joa", JSON.stringify({ PX: x, PY: y, KID: kingdomID }))
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("jaa", 1000 * 10, obj => {
-            if (obj.KID != kingdomID)
-                return false
-            if (obj.gca.A[1] != x)
-                return false
-            if (obj.gca.A[2] != y)
-                return false
+    const [obj, result] = await waitForResult("jaa", 1000 * 10, obj => {
+        if (obj.KID != kingdomID)
+            return false
+        if (obj.gca.A[1] != x)
+            return false
+        if (obj.gca.A[2] != y)
+            return false
 
-            return true
-        })
+        return true
+    })
 
-        return new JoinArea({ ...obj, result: result })
-    }
+    const castleChanges = new CastleResourceInfo(obj.grc.gpa ?? obj.gpa, obj.KID)
+
+    const castle = castles.find(e => e.kingdomID == castleChanges.kingdomID && e.id == castleChanges.id)
+
+    if (!castle)
+        debugger
+
+    Object.assign(castle, castleChanges)
 }
 
 async function clientJoinCastle(areaID, kingdomID) {
     await sendXT("jca", JSON.stringify({ CID: areaID, KID: kingdomID }))
 
-    const [obj, result] = await waitForResult("jaa", 1000 * 10, (o, r) => {
+    const [obj] = await waitForResult("jaa", 1000 * 10, (o, r) => {
         return r != 0 || o.grc.KID == kingdomID && o.grc.AID == areaID
     })
+    obj.grc.gpa ??= obj.gpa
+    const castleChanges = new CastleResourceInfo(obj.grc, obj.KID)
 
-    return result == 0 ? new JoinArea(obj) : { result }
+    const castle = castles.find(e => e.kingdomID == castleChanges.kingdomID && e.id == castleChanges.id)
+
+    if (!castle)
+        debugger
+
+    Object.assign(castle, castleChanges)
 }
 
 async function clientSearchPlayerName(playerName) {
@@ -1262,7 +1263,6 @@ module.exports = {
     },
     ClassTypes: {
         UnitInventory,
-        JoinArea,
         OwnerInfo,
         ServerGetAreaInfo,
         Lord,
