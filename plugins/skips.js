@@ -104,7 +104,7 @@ function spendSkip(time) {
         .filter(e => e[1] > 0)
         .filter(e => pluginOptions.bypassSkipTypeFilter || MinuteSkipType[e[0]] <= time * 2)
         .sort((a, b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
-        .sort((a, b) => Math.max(b[1], 950) - Math.max(a[1], 950))
+        .sort((a, b) => Math.min(Math.max(b[1], 950), 951) - Math.min(Math.max(a[1], 950), 951))
 
     if (skip[0] == undefined)
         return console.warn("noMoreSkips")
