@@ -42,7 +42,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if (kingdomName[movement.kingdomID] == undefined)
         return
 
-    const timeLeft = movement.totalTime - (movement.deltaTime - Date.now())
+    const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
 
     try {
         var channelAlert = await client.channels.fetch(pluginOptions.channelID)

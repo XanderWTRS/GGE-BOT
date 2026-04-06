@@ -63,7 +63,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
         return
     }
 
-    const timeLeft = movement.totalTime - (movement.deltaTime - Date.now())
+    const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
 
     try {
         var channelAlert = await client.channels.fetch(pluginOptions.channelID)
@@ -86,11 +86,14 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if (channel == undefined)
         return
 
+    const member = channelAlert.members.find(e => e.displayName == (botConfig.externalEvent ? movement.targetOwner.name.replace(/_[^_]+$/, '') : movement.targetOwner.name))
+
+    const mention = member?.displayName ? `<@${member.id}> ` : ``
     const data = {
         content : `${mention}` +
         "```ansi\n" +
-        `${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.sourceOwner.allianceName}`
-            `${i18n.__("incomingIsAttacking")}${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
+        `${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.sourceOwner.allianceName}` +
+        `${i18n.__("incomingIsAttacking")}${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
         "```" +
         `<t:${Math.round(Date.now() / 1000 + timeLeft)}:R>`
     }
@@ -102,8 +105,6 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (!channelAlert)
         return
-
-    const member = channelAlert.members.find(e => e.displayName == (botConfig.externalEvent ? movement.targetOwner.name.replace(/_[^_]+$/, '') : movement.targetOwner.name))
 
     if (member != undefined) {
         if (movement.kingdomID != KingdomID.stormIslands && shouldAlertMember()) {
