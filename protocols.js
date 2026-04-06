@@ -422,40 +422,38 @@ class UnitInventory {
     this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
     }
 }
-const UnlockInfo = e => ({
-    kingdomID: Number(e.KID),
-    isUnlocked: Boolean(e.U),
-    hasContor: Boolean(e.C),
-    slumLevel: Number(e.SL),
-    kingdomResource: Number(e.KRS), //Probs relating to storm
-    eventRewardsEndID: Number(e.CRS), //Probs relating to storm rewards
-})
+class UnlockInfo {
+    constructor(e) {
+        this.kingdomID = Number(e.KID)
+        this.isUnlocked = Boolean(e.U)
+        this.hasContor = Boolean(e.C)
+        this.slumLevel = Number(e.SL)
+        this.kingdomResource = Number(e.KRS) //Probs relating to storm
+        this.eventRewardsEndID = Number(e.CRS) //Probs relating to storm rewards
+    }
+}
 const ResourceTransfer = e => ({
-    kingdomID: Number(e.KID),
     remainingTime: Number(e.RS),
-    resources: Array.from(e.G).map(Unit)
+    resources : new Resources(Object.fromEntries(e.G))
 })
 const TroopTransfer = e => ({
-    kingdomID: Number(e.KID),
     remainingTime: Number(e.RS),
     units: Array.from(e.I).map(Unit)
 })
 const KingdomInfo = e => ({ //KPI
-    unlockInfo: Array.from(e.UL ?? []).map(UnlockInfo),
+    unlockInfo: Array.from(e.UL ?? []).map(e => new UnlockInfo(e)),
     resourceTransferList: Array.from(e.RT ?? []).map(ResourceTransfer),
     troopTransferList: Array.from(e.UT ?? []).map(TroopTransfer),
     result: Number(0)
 })
+
 //TODO: May Conflict with other clientGetKingdomInfo
-const clientGetKingdomInfo = (sourceAreaID, sourceKingdomID, targetKingdomID, resources) => {
-    const limiter = sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
+async function clientGetKingdomInfo(sourceAreaID, sourceKingdomID, targetKingdomID, resources) {
+    await sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
 
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("kgt", 1000 * 10)
+    const [obj, result] = await waitForResult("kgt", 1000 * 10)
 
-        return KingdomInfo({ ...obj.kpi, result: result })
-    }
+    return KingdomInfo({ ...obj.kpi, result: result })
 }
 const SubActiveQuests = e => ({
     playerID: Number(e.PID),
@@ -559,20 +557,20 @@ class CastleResourceInfo extends EventEmitter {
         this.honey = Number(e.HONEY)
         this.mead = Number(e.MEAD)
         this.aqua = Number(e.A)
-        this.defence = Number(e.D)
-        this.getProductionData = GetProductionData(e.gpa ?? {})
-        this.unitInventory = Array.from(e.AC ?? []).map(Unit)
-        this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
-        this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
-        this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
-        this.marketCarriagesCount = Number(e.MC ?? [])
+        e.D ? this.defence = Number(e.D) : undefined
+        e.gpa ? this.getProductionData = GetProductionData(e.gpa) : undefined
+        e.AC ? this.unitInventory = Array.from(e.AC).map(Unit) : undefined
+        e.SHI ? this.strongHoldInventory = Array.from(e.SHI).map(Unit) : undefined
+        e.HI ? this.hospitalInventory = Array.from(e.HI).map(Unit) : undefined
+        e.TU ? this.travelingUnits = Array.from(e.TU).map(Unit) : undefined
+        e.MC ? this.marketCarriagesCount = Number(e.MC) : undefined
         this.hasBarracks = Boolean(e.B)
         this.hasSiegeWorkshop = Boolean(e.WS)
         this.hasDefenseWorkshop = Boolean(e.DW)
         this.hasHospital = Boolean(e.H)
-        this.openGateTime = Number(e.OGT)
-        this.buildings = Array.from(e.gca?.BD ?? []).map(BuildingInfo)
-        this.buildingSlots = Array.from(e.scl?.OIDL ?? []).map(Number)
+        e.OGT ? this.openGateTime = Number(e.OGT) : undefined
+        e.gca?.BD ? this.buildings = Array.from(e.gca?.BD).map(BuildingInfo) : undefined
+        e.scl?.OIDL ? this.buildingSlots = Array.from(e.scl.OIDL).map(Number) : undefined
         // this.ownerInfo: new OwnerInfo(o.O)
         //??? : Number(e.RAF)
         //??? : Number(e.RAW)
@@ -628,6 +626,8 @@ class CastleInfo extends EventEmitter { //JSDOC: HACK
         this.unlockedHorses = Array.from(e.UH).map(Number)
         this.buildings = Array.from(e.gca?.BD ?? []).map(BuildingInfo)
         this.buildingSlots = Array.from(o.scl?.OIDL ?? []).map(Number)
+        this.resourceTransfer = ResourceTransfer(e)
+        this.troopTransfer = TroopTransfer(e)
     }
 }
 /** @type {Array<CastleInfo>} */
@@ -693,19 +693,33 @@ xtHandler.on("gpc", (obj, result) => {
         castles.push(castleChanges)
     })
 })
+/** @type {Array<UnlockInfo>} */
+let unlockInfoList = []
 
-let kingdomInfoList = {}
-
-xtHandler.on("kpi", (obj, result) => {
+function getKingdomInfoList(obj, result)  {
     if(result != 0)
         return
-    Object.assign(kingdomInfoList, KingdomInfo(obj))
-})
-xtHandler.on("fjf", (obj, result) => {
-    if(result != 0)
-        return
-    Object.assign(kingdomInfoList, KingdomInfo(obj.kpi))
-})
+    if (obj.UL) {
+        Array.from(obj.UL).map(e => new UnlockInfo(e)).forEach(unlockInfoChanges => {
+            const unlockInfo = unlockInfoList.find(e => e.kingdomID == unlockInfoChanges.kingdomID)
+            if(unlockInfo) {
+                return Object.assign(unlockInfo, unlockInfoChanges)
+            }
+            unlockInfoList.push(unlockInfoChanges)
+        })
+    }
+    if (obj.RT)
+        Array.from(obj.RT).map(a =>
+            castles.find(e => e.kingdomID == a.KID &&
+                [AreaType.mainCastle, AreaType.externalKingdom].includes(e.areaInfo.type)).resourceTransfer = ResourceTransfer(a))
+    if (obj.UT)
+        Array.from(obj.UT).map(a =>
+            castles.find(e => e.kingdomID == a.KID &&
+                [AreaType.mainCastle, AreaType.externalKingdom].includes(e.areaInfo.type)).troopTransfer = TroopTransfer(a))
+}
+xtHandler.on("kpi", getKingdomInfoList)
+xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))
+
 const decapitalizeFirstLetter = val => 
     String(val).charAt(0).toLowerCase() + String(val).slice(1)
 
@@ -960,7 +974,10 @@ async function clientJoinCastle(areaID, kingdomID) {
     const [obj] = await waitForResult("jaa", 1000 * 10, (o, r) => {
         return r != 0 || o.grc.KID == kingdomID && o.grc.AID == areaID
     })
+    obj.grc.gca ??= obj.gca
     obj.grc.gpa ??= obj.gpa
+    obj.grc.scl ??= obj.gca.scl
+    
     const castleChanges = new CastleResourceInfo(obj.grc, obj.KID)
 
     const castle = castles.find(e => e.kingdomID == castleChanges.kingdomID && e.id == castleChanges.id)
@@ -1241,8 +1258,8 @@ module.exports = {
     movementEvents,
     movements,
     castles,
-    kingdomInfoList,
     resources,
+    unlockInfoList,
     ClientCommands: {
         preSpyInfo : clientPreSpyInfo,
         getNextMapObject : clientGetNextMapObject,

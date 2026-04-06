@@ -8,19 +8,19 @@ const {
     KingdomID,
     AreaType,
     castles,
-    kingdomInfoList
+    unlockInfoList
 } = require("../protocols.js")
 
 async function trySendRes() {
-    let stormAreaInfo = castles.find(e => e.kingdomID == KingdomID.stormIslands)
+    if (!unlockInfoList.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+        return console.warn("wontRunWithoutStormUnlocked")
+
+    let stormCastle = castles.find(e => e.kingdomID == KingdomID.stormIslands)
     let allowedAIDS = castles.filter(e => e.kingdomID != KingdomID.stormIslands
         && [AreaType.mainCastle, AreaType.externalKingdom].includes(e.areaInfo.type)).map(e => e.id)
 
-    if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-        return console.warn("wontRunWithoutStormUnlocked")
-
     for (let i = 0; i < castles.length; i++) {
-        if (stormAreaInfo.wood <= 0 && stormAreaInfo.stone <= 0)
+        if (stormCastle.wood <= 0 && stormCastle.stone <= 0)
             break
 
         const castle = castles[i]
@@ -29,11 +29,11 @@ async function trySendRes() {
             continue
         if (!allowedAIDS.includes(castle.areaID))
             continue
-        if (kingdomInfoList.resourceTransferList.find(e => e.kingdomID == castle.kingdomID)?.remainingTime > 0)
+        if (stormCastle.resourceTransfer?.remainingTime > 0)
             continue
 
-        let maxWoodToSend = Math.min(castle.getProductionData.maxAmountWood - castle.wood, stormAreaInfo.wood)
-        let maxStoneToSend = Math.min(castle.getProductionData.maxAmountStone - castle.stone, stormAreaInfo.stone)
+        let maxWoodToSend = Math.min(castle.getProductionData.maxAmountWood - castle.wood, stormCastle.wood)
+        let maxStoneToSend = Math.min(castle.getProductionData.maxAmountStone - castle.stone, stormCastle.stone)
 
         const G = [
             ["W", maxWoodToSend],
@@ -43,13 +43,13 @@ async function trySendRes() {
         if (G.length == 0)
             continue
 
-        let kingdomInfo = await ClientCommands.getKingdomInfo(stormAreaInfo.areaID, KingdomID.stormIslands, castle.kingdomID, G)()
+        let kingdomInfo = await ClientCommands.getKingdomInfo(stormCastle.areaID, KingdomID.stormIslands, castle.kingdomID, G)
 
         if (kingdomInfo.result != 0)
             continue
 
-        stormAreaInfo.wood -= maxWoodToSend
-        stormAreaInfo.stone -= maxStoneToSend
+        stormCastle.wood -= maxWoodToSend
+        stormCastle.stone -= maxStoneToSend
         console.log("sentResSend", JSON.stringify(G), "toResSend", KingdomID[castle.kingdomID])
 
     }
