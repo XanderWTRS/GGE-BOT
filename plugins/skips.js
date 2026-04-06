@@ -9,37 +9,37 @@ if (require('node:worker_threads').isMainThread)
             { type: "Label", key: "skipTypes" },
             {
                 type: "Checkbox",
-                key: "1minute",
+                key: "1Minute",
                 default: true
             },
             {
                 type: "Checkbox",
-                key: "5minute",
+                key: "5Minute",
                 default: true
             },
             {
                 type: "Checkbox",
-                key: "10minute",
+                key: "10Minute",
                 default: true
             },
             {
                 type: "Checkbox",
-                key: "30minute",
+                key: "30Minute",
                 default: true
             },
             {
                 type: "Checkbox",
-                key: "1hour",
+                key: "1Hour",
                 default: true
             },
             {
                 type: "Checkbox",
-                key: "5hour",
+                key: "5Hour",
                 default: true
             },
             {
                 type: "Checkbox",
-                key: "24hour",
+                key: "24Hour",
                 default: true
             },
         ],
