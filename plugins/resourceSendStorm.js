@@ -43,13 +43,14 @@ async function trySendRes() {
         if (G.length == 0)
             continue
 
-        let kingdomInfo = await ClientCommands.getKingdomInfo(stormCastle.areaID, KingdomID.stormIslands, castle.kingdomID, G)
+        let result = await ClientCommands.skipUnitTransfer(stormCastle.areaID, KingdomID.stormIslands, castle.kingdomID, G)
 
-        if (kingdomInfo.result != 0)
+        if (result != 0)
             continue
 
         stormCastle.wood -= maxWoodToSend
         stormCastle.stone -= maxStoneToSend
+        stormCastle.emit("resourceUpdate")
         console.log("sentResSend", JSON.stringify(G), "toResSend", KingdomID[castle.kingdomID])
 
     }

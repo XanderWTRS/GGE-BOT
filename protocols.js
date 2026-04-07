@@ -447,11 +447,19 @@ const KingdomInfo = e => ({ //KPI
     result: Number(0)
 })
 
-//TODO: May Conflict with other clientGetKingdomInfo
-async function clientGetKingdomInfo(sourceAreaID, sourceKingdomID, targetKingdomID, resources) {
-    await sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
+//TODO: May conflict with other clientskipResourceTransfer
+const clientSkipUnitTransfer = async (skipType, kingdomID, kingdomSkipType) => {
+    await sendXT("msk", JSON.stringify({ MST: skipType, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
+    const [, result] = await waitForResult("msk", 1000 * 10)
+    return result
+}
 
-    return waitForResult("kgt", 1000 * 10)
+//TODO: May Conflict with other clientskipUnitTransfer
+async function clientskipResourceTransfer(sourceAreaID, sourceKingdomID, targetKingdomID, resources) {
+    await sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
+    
+    const [, result] = await waitForResult("msk", 1000 * 10)
+    return result
 }
 const SubActiveQuests = e => ({
     playerID: Number(e.PID),
@@ -473,13 +481,6 @@ const clientActiveQuestList = async () => {
     const [obj, result] = await waitForResult("aqs", 1000 * 10)
 
     return ActiveQuests({ ...obj, result: result })
-}
-
-//TODO: May conflict with other clientGetMinuteSkipKingdom
-const clientGetMinuteSkipKingdom = async (skipType, kingdomID, kingdomSkipType) => {
-    await sendXT("msk", JSON.stringify({ MST: skipType, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
-    const [, result] = await waitForResult("msk", 1000 * 10)
-    return result
 }
 
 let _activeEventList = {}
@@ -693,7 +694,7 @@ xtHandler.on("gpc", (obj, result) => {
 /** @type {Array<UnlockInfo>} */
 let unlockInfoList = []
 
-function getKingdomInfoList(obj, result)  {
+function skipUnitTransferList(obj, result)  {
     if(result != 0)
         return
     if(!obj)
@@ -728,14 +729,14 @@ function getKingdomInfoList(obj, result)  {
     } else 
         castles.forEach(e => e.troopTransfer = undefined)
 }
-xtHandler.on("kpi", getKingdomInfoList)
-xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))
-xtHandler.on("kgt", (obj, result) => getKingdomInfoList(obj?.kpi, result))
+xtHandler.on("kpi", skipUnitTransferList)
+xtHandler.on("fjf", (obj, result) => skipUnitTransferList(obj?.kpi, result))
+xtHandler.on("kgt", (obj, result) => skipUnitTransferList(obj?.kpi, result))
 xtHandler.on("msk", (obj, result) => {
-    getKingdomInfoList(obj?.kpi, result)
+    skipUnitTransferList(obj?.kpi, result)
 })
 xtHandler.on("kut", (obj, result) => {
-    getKingdomInfoList(obj.kpi, result)
+    skipUnitTransferList(obj.kpi, result)
 })
 
 const decapitalizeFirstLetter = val => 
@@ -1286,8 +1287,8 @@ module.exports = {
         getAreaInfo: getAreaInfo,
         startFeast: clientStartFeast,
         getStormIslandInfo: clientGetStormIslandInfo,
-        getKingdomInfo: clientGetKingdomInfo,
-        getMinuteSkipKingdom: clientGetMinuteSkipKingdom,
+        skipUnitTransfer: clientSkipUnitTransfer,
+        skipResourceTransfer: clientskipResourceTransfer,
         activeQuestList: clientActiveQuestList,
         joinArea: clientJoinArea,
         searchPlayerName: clientSearchPlayerName,

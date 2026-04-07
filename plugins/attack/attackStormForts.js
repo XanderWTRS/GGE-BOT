@@ -50,7 +50,7 @@ const { getCommanderStats } = require("../../getEquipment.js")
 const { movementEvents, ClientCommands, AreaType, KingdomID, movements, spiralCoordinates, castles } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
-const { sendXT, waitForResult, botConfig, events } = require("../../ggeBot.js")
+const { sendXT, waitForResult, botConfig, events, xtHandler } = require("../../ggeBot.js")
 
 const err = require("../../err.json")
 const pretty = require('pretty-time')
@@ -91,6 +91,7 @@ const type = AreaType.stormTower
 events.once("load", async () => {
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
     async function onResourceUpdate() {
+        let resUpdate = false
         if (pluginOptions["buyCoins"] && castle.getProductionData.maxAmountAqua <=
             Math.min(castle.getProductionData.maxAmountAqua, castle.aqua + 100000)) {
             for (let i = 0; i < Math.floor(castle.aqua / 75000); i++) {
@@ -101,6 +102,7 @@ events.once("load", async () => {
                 }))
                 console.info("broughtCoins")
             }
+            resUpdate = true
         }
         if (pluginOptions["buyDecoration"] && castle.getProductionData.maxAmountAqua <=
             Math.min(castle.getProductionData.maxAmountAqua, castle.aqua + 100000)) {
@@ -112,6 +114,7 @@ events.once("load", async () => {
                 }))
                 console.info("broughtDeco")
             }
+            resUpdate = true
         }
         if (pluginOptions["buyXP"] && castle.getProductionData.maxAmountAqua <=
             Math.min(castle.getProductionData.maxAmountAqua, castle.aqua + 100000)) {
@@ -123,7 +126,10 @@ events.once("load", async () => {
                 }))
                 console.info("broughtXP")
             }
+            resUpdate = true
         }
+        if(resUpdate)
+            stormCastle.emit("resourceUpdate")
     }
     await onResourceUpdate()
     castle.on("resourceUpdate", onResourceUpdate)

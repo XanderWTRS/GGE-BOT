@@ -17,6 +17,19 @@ const hoursLeftTillRefilWarning = 3.1
 const sendResTimeout = 29 * 30 * 1000
 const kingdomID = KingdomID.stormIslands
 
+const skipResource = async castle => {
+    while (castle.troopTransfer?.remainingTime > 0) {
+        let skip = spendSkip(castle.troopTransfer.remainingTime)
+
+        if (skip == undefined)
+            throw new Error("couldntFindSkip")
+
+        
+        if(await ClientCommands.skipResourceTransfer(skip, kingdomID, KingdomSkipType.sendResource) != 0)
+            return
+    }
+}
+
 events.once("load", async () => {
     if(!unlockInfoList.find(e => e.kingdomID == kingdomID)?.isUnlocked)
         return console.warn("wontRunWithoutStormUnlocked")
@@ -41,9 +54,7 @@ events.once("load", async () => {
 
         if (stormCastle.resourceTransfer?.remainingTime >= 
                 (stormCastle.mead - stormCastle.resourceTransfer.resources.mead) / stormCastle.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
-            for (let i = 0; i < resource.remainingTime / 60 / 30; i++) {
-                await ClientCommands.getMinuteSkipKingdom("MS3", kingdomID, KingdomSkipType.sendResource)()
-            }
+            await skipResource(stormCastle)
             stormCastle.resourceTransfer.remainingTime = 0
         }
         else
@@ -52,13 +63,12 @@ events.once("load", async () => {
         setTimeout(async () => {
             let amount = Math.floor((stormCastle.getProductionData.maxAmountMead - stormCastle.mead))
 
-            let info = await ClientCommands.getKingdomInfo(
+            let result = await ClientCommands.skipUnitTransfer(
                 mainCastle.id,
                 KingdomID.greatEmpire,
                 kingdomID,
-                [["MEAD", amount]]
-            )()
-            if (info.result == 0)
+                [["MEAD", amount]])
+            if (result == 0)
                 console.log("sentMeadReplace", amount, "meadToMeadReplace")
             else
                 console.log("failedToSendMead")
