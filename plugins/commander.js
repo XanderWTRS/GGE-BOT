@@ -1,15 +1,13 @@
 if (require('node:worker_threads').isMainThread)
     return module.exports = { hidden: true }
 
-const { xtHandler, playerInfo } = require('../ggeBot.js')
+const { xtHandler, playerInfo, waitForResult } = require('../ggeBot.js')
 const { ClassTypes, movementEvents } = require('../protocols.js')
 
 const event = new EventTarget()
 let usedCommanders = []
 let commanders = []
 
-xtHandler.on("aci", (obj, r) => !r ? commanders = obj.gli.C : undefined)
-xtHandler.on("adi", (obj, r) => !r ? commanders = obj.gli.C : undefined)
 xtHandler.on("gli", (obj, r) => !r ? commanders = obj.C : undefined)
 
 function freeCommander(lordID) {
@@ -30,7 +28,7 @@ function useCommander(lordID) {
 movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if(movement.owner?.ownerID != playerInfo.playerID)
         return
-    
+
     useCommander(movement.lord.lordID)
 })
 

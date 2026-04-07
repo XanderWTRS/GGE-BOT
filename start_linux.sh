@@ -9,8 +9,6 @@ if [ ! -d ".git" ]; then
   git reset --hard 
   git clean -f -d
   git pull origin main
-  git submodule deinit -f plugins-extra
-  git submodule init plugins-extra
   git submodule deinit -f website
   git submodule init website
   git submodule update --init -f website
@@ -21,14 +19,17 @@ cd website
 git config --local core.hooksPath .githooks/
 cd ..
 
-git pull origin main --no-recurse-submodules
-
-git submodule init website
-git submodule update -f website
+git pull 
 
 if gh auth status >/dev/null 2>&1; then
-  git submodule update --init -f plugins-extra
+  if [ ! -f "plugins-extra" ]; then
+    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
+  fi
+  cd plugins-extra
+  git pull
+  cd ..
 fi
+
 echo "Last commit message:"
 git show --format=%s -s
 

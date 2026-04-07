@@ -1,59 +1,51 @@
-if (require('node:worker_threads').isMainThread)
-    return module.exports = {
-        hidden: true
-    }
+if (require("node:worker_threads").isMainThread)
+    return module.exports = { hidden: true }
 
-const pretty = require('pretty-time')
+const pretty = require("pretty-time")
 const { getCommanderStats } = require("../../getEquipment")
 const { spendSkip, haveEnoughSkips } = require("../skips.js")
-const { getResourceCastleList, ClientCommands, AreaType, KingdomID, movements, movementEvents, resources } = require('../../protocols')
-const { 
-    waitToAttack, 
-    getAttackInfo, 
-    assignUnit, 
-    getAmountSoldiersFlank, 
-    getAmountSoldiersFront, 
-    getMaxUnitsInReinforcementWave, 
+const { castles, ClientCommands, AreaType, KingdomID, movements, movementEvents, resources } = require("../../protocols")
+const {
+    waitToAttack,
+    getAttackInfo,
+    assignUnit,
+    getAmountSoldiersFlank,
+    getAmountSoldiersFront,
+    getMaxUnitsInReinforcementWave,
     getTotalAmountToolsFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, botConfig, playerInfo } = require("../../ggeBot.js")
-const getAreaCached = require('../../getMap.js')
 const err = require("../../err.json")
-const units = require("../../items/units.json")
-
 const minTroopCount = 80
 const troopBlackList = [277]
 
 try {
     var { recruitTroops } = require("../../plugins-extra/externalEventHelper.js")
 }
-catch(e) {
+catch (e) {
     console.debug(e)
 }
 
 async function barronHit(type, kingdomID, options, maxLevel) {
-    const getLevel = victorys => 
-        Math.floor(1.9 * Math.pow(victorys, .555)) + ([1,35,20,45][kingdomID] ?? 0)
+    const getLevel = victorys =>
+        Math.floor(1.9 * Math.pow(victorys, .555)) + ([1, 35, 20, 45][kingdomID] ?? 0)
 
-    const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-        .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type));
+    const castle = castles.find(e => e.kingdomID == kingdomID &&
+        [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
 
-    /** @type {Array<import("../../protocols.js").ClassTypes.GAAAreaInfo>} */
-    const areas = []
     do {
         try {
-            areas.push(...((await getAreaCached(kingdomID,
-                sourceCastleArea.x - 50, sourceCastleArea.y - 50,
-                sourceCastleArea.x + 50, sourceCastleArea.y + 50))
+            var areas = (await ClientCommands.getAreaInfo(kingdomID,
+                castle.areaInfo.x - 50, castle.areaInfo.y - 50,
+                castle.areaInfo.x + 50, castle.areaInfo.y + 50))
                 .areaInfo.filter(ai => ai.type == type).sort((a, b) =>
-                    (Math.pow(sourceCastleArea.x - a.x, 2) + Math.pow(sourceCastleArea.y - a.y, 2)) -
-                    (Math.pow(sourceCastleArea.x - b.x, 2) + Math.pow(sourceCastleArea.y - b.y, 2)))))
+                    (Math.pow(castle.areaInfo.x - a.x, 2) + Math.pow(castle.areaInfo.y - a.y, 2)) -
+                    (Math.pow(castle.areaInfo.x - b.x, 2) + Math.pow(castle.areaInfo.y - b.y, 2)))
             break
         } catch (e) {
             console.warn(e)
         }
-    } while (true);
-
+    } while (true)
 
     async function skipTarget(areaInfo) {
         while (areaInfo.extraData[2] > 0) {
@@ -62,50 +54,34 @@ async function barronHit(type, kingdomID, options, maxLevel) {
             if (skip == undefined)
                 throw new Error("couldntFindSkip")
 
-            await sendXT("msd", JSON.stringify({ 
-                X: areaInfo.x, Y: areaInfo.y, MID: -1, NID: -1, MST: skip, KID: `${kingdomID}` }))
-            let result = (await waitForResult("msd", 7000, (obj, result) => {
-                if (result != 0)
-                    return true
-
-                if (obj.AI[0] != areaInfo.type ||
-                    obj.AI[6] != kingdomID ||
-                    obj.AI[1] != areaInfo.x ||
-                    obj.AI[2] != areaInfo.y)
-                    return false
-                return true
-            }))[1]
+            const { result } = await ClientCommands.skipTarget(type, areaInfo.x, areaInfo.y, kingdomID, skip)
 
             if (result != 0)
                 break
         }
     }
-    
+
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList)
         const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
         try {
             const attackInfo = await waitToAttack(async () => {
-                const sourceCastle = (await ClientCommands.getDetailedCastleList())
-                    .castles.find(a => a.kingdomID == kingdomID)
-                    .areaInfo.find(a => a.areaID == sourceCastleArea.extraData[0])
-
                 let index = -1
                 const timeSinceEpoch = Date.now()
                 for (let i = 0; i < areas.length; i++) {
                     const areaInfo = areas[i]
                     const shouldUpgradeTower = options.upgradeTowers && getLevel(areaInfo.extraData[1], kingdomID) != maxLevel
                     const skipsPerTower = 7200
-                    
+
                     const coinSkips = recruitTroops ? Math.floor(resources.coins / (1000 / (20 * 5))) : 0
-                    const enoughSkips = haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) => 
-                            (movement.targetAttack.type == type ? count++ : count, count), 0) - coinSkips) || (recruitTroops && resources.coins > 25000)
-                    
+                    const enoughSkips = haveEnoughSkips(skipsPerTower * movements.reduce((count, movement) =>
+                        (movement.targetAttack.type == type ? count++ : count, count), 0) - coinSkips) || (recruitTroops && resources.coins > 25000)
+
                     if (enoughSkips && (options.useTimeSkips || shouldUpgradeTower)) {
                         try {
                             await skipTarget(areaInfo)
                         }
-                        catch(e) {
+                        catch (e) {
                             console.warn(e)
                             continue
                         }
@@ -123,59 +99,59 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 if (index == -1)
                     return
 
-                const AI = areas[index]
-                const level = getLevel(AI.extraData[1], kingdomID)
+                const areaInfo = areas[index]
+                const level = getLevel(areaInfo.extraData[1], kingdomID)
 
                 const attackerMeleeTroops = []
                 const attackerRangeTroops = []
-                const attackerWallTools = []
                 const attackerShieldTools = []
+                const attackerWallTools = []
 
-                for (let i = 0; i < sourceCastle.unitInventory.length; i++) {
-                    const unit = sourceCastle.unitInventory[i]
-                    const unitInfo = units.find(obj => unit.unitID == obj.wodID)
-                    if (unitInfo == undefined)
+                for (let i = 0; i < castle.unitInventory.length; i++) {
+                    const unit = castle.unitInventory[i]
+                    if (unit.amount <= 0)
                         continue
 
-                    if (
-                        unitInfo.toolCategory &&
-                        unitInfo.usageEventID == undefined &&
-                        unitInfo.allowedToAttack == undefined &&
-                        unitInfo.typ == 'Attack' &&
-                        unitInfo.amountPerWave == undefined
-                    ) {
-                        if (unitInfo.wallBonus)
-                            attackerWallTools.push([unitInfo, unit.ammount])
-                        else if (unitInfo.defRangeBonus)
-                            attackerShieldTools.push([unitInfo, unit.ammount])
+                    if (unit.unitInfo.toolCategory &&
+                        unit.unitInfo.usageEventID == undefined &&
+                        unit.unitInfo.allowedToAttack == undefined &&
+                        unit.unitInfo.typ == 'Attack' &&
+                        unit.unitInfo.amountPerWave == undefined) {
+                        if (unit.unitInfo.wallBonus)
+                            attackerWallTools.push(unit)
+                        else if (unit.unitInfo.defRangeBonus)
+                            attackerShieldTools.push(unit)
                     }
-                    else if (unitInfo.fightType == 0) {
-                        if (troopBlackList.includes(unitInfo.wodID))
+                    else if (unit.unitInfo.fightType == 0 &&
+                        unit.unitInfo.beefSupply == undefined) {
+                        if (options.useDogs && !unit.unitInfo.wodID == 277)
                             continue
-                        if (unitInfo.role == "melee")
-                            attackerMeleeTroops.push([unitInfo, unit.ammount])
-                        else if (unitInfo.role == "ranged")
-                            attackerRangeTroops.push([unitInfo, unit.ammount])
+                        if (!options.useDogs && unit.unitInfo.wodID == 277)
+                            continue
+                        if (unit.unitInfo.role == "melee")
+                            attackerMeleeTroops.push(unit)
+                        else if (unit.unitInfo.role == "ranged")
+                            attackerRangeTroops.push(unit)
                     }
                 }
 
                 let allTroopCount = 0
 
-                attackerRangeTroops.forEach(e => allTroopCount += e[1])
-                attackerMeleeTroops.forEach(e => allTroopCount += e[1])
+                attackerRangeTroops.forEach(e => allTroopCount += e.amount)
+                attackerMeleeTroops.forEach(e => allTroopCount += e.amount)
 
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
 
                 attackerWallTools.sort((a, b) =>
-                    Number(a[0].wallBonus) - Number(b[0].wallBonus))
+                    Number(a.unitInfo.wallBonus) - Number(b.unitInfo.wallBonus))
 
                 attackerShieldTools.sort((a, b) =>
-                    Number(a[0].defRangeBonus) - Number(b[0].defRangeBonus))
+                    Number(a.unitInfo.defRangeBonus) - Number(b.unitInfo.defRangeBonus))
 
                 const autoConfigure = !(options.attackLeft || options.attackRight || options.attackMiddle)
                 const commanderStats = getCommanderStats(commander)
-                const attackInfo = getAttackInfo(kingdomID, sourceCastleArea, AI, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
+                const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
                 const maxToolsFlank = options.useShields ? getTotalAmountToolsFlank(level, 0) : 10
@@ -183,7 +159,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 attackInfo.A.forEach((wave, index) => {
                     let maxTroops = maxTroopFlank
 
-                    if(index == 0 && options.useWallTools) {
+                    if (index == 0 && options.useWallTools) {
                         const desiredToolCount = 10
                         let maxTools = maxToolsFlank
                         if (autoConfigure ? true : options.attackLeft) {
@@ -243,7 +219,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     let maxTroops = getMaxUnitsInReinforcementWave(playerInfo.level, level) + Number(0 | commanderStats.attackUnitAmountReinforcementBonus)
                     attackInfo.RW.forEach((unitSlot, i) => {
                         let attacker = i & 1 ?
-                            (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops) : 
+                            (attackerRangeTroops.length > 0 ? attackerRangeTroops : attackerMeleeTroops) :
                             (attackerMeleeTroops.length > 0 ? attackerMeleeTroops : attackerRangeTroops)
 
                         maxTroops -= assignUnit(unitSlot, attacker,
@@ -257,22 +233,17 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     if (result != 0)
                         return true
 
-                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != AI.x || obj.AAM.M.TA[2] != AI.y)
+                    if (obj.AAM.M.KID != kingdomID || obj.AAM.M.TA[1] != areaInfo.x || obj.AAM.M.TA[2] != areaInfo.y)
                         return false
                     return true
                 })
 
-                return { ...obj, result }
+                if (result != 0)
+                    throw err[result]
+
+                return obj
             })
 
-            if (!attackInfo) {
-                freeCommander(commander.lordID)
-                return false
-            }
-            if (attackInfo.result != 0) {
-                console.debug(`${JSON.stringify(attackInfo)}`)
-                throw err[attackInfo.result]
-            }
             console.info("hittingTargetAttack", KingdomID[kingdomID], ' ', 'C', attackInfo.AAM.UM.L.VIS + 1, ' ', attackInfo.AAM.M.TA[1], ':', attackInfo.AAM.M.TA[2], " ", pretty(Math.round(1000000000 * Math.abs(Math.max(0, attackInfo.AAM.M.TT - attackInfo.AAM.M.PT))), 's'), "tillImpactAttack")
             return true
         } catch (e) {
@@ -290,7 +261,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     }
                     console.log(`[${KingdomID[kingdomID]}] Waiting for more troops`)
                     await new Promise(resolve => movementEvents.on("return", function self(/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) {
-                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != sourceCastleArea.extraData[0])
+                        if (movement.kingdomID != kingdomID || movement.targetAttack.extraData[0] != castle.id)
                             return
 
                         movementEvents.off("return", self)
@@ -301,6 +272,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     useCommander(commander.lordID)
                 case "COOLING_DOWN":
                 case "TIMED_OUT":
+                case "MISSING_UNITS":
                 case "ATTACK_TOO_MANY_UNITS":
                     return true
                 case "CANT_START_NEW_ARMIES":
@@ -322,7 +294,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
 
                 minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
             })
-            
+
             const time = (Math.max(0, minimumTimeTillHit - Date.now()))
             if (time > 0)
                 console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")

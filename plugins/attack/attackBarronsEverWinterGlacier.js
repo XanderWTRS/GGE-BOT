@@ -32,6 +32,11 @@ if (require('node:worker_threads').isMainThread)
                 key: "useShields",
                 default: false
             },
+            {
+                type: "Checkbox",
+                key: "useDogs",
+                default: false
+            },
             { type: "Label", key: "attackSettings" },
             {
                 type: "Checkbox",
@@ -65,9 +70,9 @@ if (require('node:worker_threads').isMainThread)
         ]
     }
 
-const { KingdomID, AreaType } = require('../../protocols.js')
+const { KingdomID, AreaType } = require("../../protocols.js")
 const { botConfig, events } = require("../../ggeBot.js")
 const commonAttack = require('./sharedBarronAttackLogic.js')
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 events.on("load", () => commonAttack(AreaType.barron, KingdomID.everWinterGlacier, pluginOptions, 51))

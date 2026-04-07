@@ -1,5 +1,5 @@
-if(require('node:worker_threads').isMainThread)
-    return module.exports = { hidden : true}
+if (require('node:worker_threads').isMainThread)
+    return module.exports = { hidden: true }
 
 const { events } = require("../ggeBot.js")
 
@@ -7,63 +7,56 @@ const {
     ClientCommands,
     KingdomID,
     AreaType,
-    getResourceCastleList,
-    getKingdomInfoList
+    castles,
+    unlockInfoList
 } = require("../protocols.js")
 
-events.once("load", async () => {
-    let trySendRes = async () => {
-        let dcl = await ClientCommands.getDetailedCastleList()
-        let stormAreaInfo = dcl.castles.find(e => e.kingdomID == KingdomID.stormIslands).areaInfo[0]
-        let gcl = await getResourceCastleList()
-        let allowedAIDS = gcl.castles.filter(e => e.kingdomID != KingdomID.stormIslands).map(e => e.areaInfo.filter(e => [AreaType.mainCastle, AreaType.externalKingdom].includes(e.type)).map(e => Number(e.extraData[0]))).flat()
+async function trySendRes() {
+    if (!unlockInfoList.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
+        return console.warn("wontRunWithoutStormUnlocked")
 
-        let kingdomInfoList = await getKingdomInfoList()
-        if (!kingdomInfoList.unlockInfo.find(e => e.kingdomID == KingdomID.stormIslands)?.isUnlocked)
-            return console.warn("wontRunWithoutStormUnlocked")
+    let stormCastle = castles.find(e => e.kingdomID == KingdomID.stormIslands)
+    let allowedAIDS = castles.filter(e => e.kingdomID != KingdomID.stormIslands
+        && [AreaType.mainCastle, AreaType.externalKingdom].includes(e.areaInfo.type)).map(e => e.id)
 
-        kingdoms:
-        for (let i = 0; i < dcl.castles.length; i++) {
-            const kingdom = dcl.castles[i];
-            
-            if(kingdom.kingdomID == KingdomID.berimond)
-                continue
-            if(kingdom.kingdomID == KingdomID.stormIslands)
-                continue
-            for (let j = 0; j < kingdom.areaInfo.length; j++) {
-                const areaInfo = kingdom.areaInfo[j];
+    for (let i = 0; i < castles.length; i++) {
+        if (stormCastle.wood <= 0 && stormCastle.stone <= 0)
+            break
 
-                if (stormAreaInfo.wood <= 0 && stormAreaInfo.stone <= 0)
-                    break kingdoms
-                
-                if(!allowedAIDS.includes(areaInfo.areaID))
-                    continue
+        const castle = castles[i]
 
-                if(kingdomInfoList.resourceTransferList.find(e => e.kingdomID == kingdom.kingdomID)?.remainingTime > 0)
-                    continue
+        if ([KingdomID.berimond, KingdomID.stormIslands].includes(castle.kingdomID))
+            continue
+        if (!allowedAIDS.includes(castle.areaID))
+            continue
+        if (castle.resourceTransfer?.remainingTime > 0)
+            continue
 
-                let maxWoodToSend = Math.min(areaInfo.getProductionData.maxAmmountWood - areaInfo.wood, stormAreaInfo.wood)
-                let maxStoneToSend = Math.min(areaInfo.getProductionData.maxAmmountStone  - areaInfo.stone, stormAreaInfo.stone)
+        let maxWoodToSend = Math.min(castle.getProductionData.maxAmountWood - castle.wood, stormCastle.wood)
+        let maxStoneToSend = Math.min(castle.getProductionData.maxAmountStone - castle.stone, stormCastle.stone)
 
-                const G = [
-                    ["W", maxWoodToSend],
-                    ["S", maxStoneToSend] 
-                ].filter(e => e[1] > 0)
+        const G = [
+            ["W", maxWoodToSend],
+            ["S", maxStoneToSend]
+        ].filter(e => e[1] > 0)
 
-                if(G.length == 0)
-                    continue
+        if (G.length == 0)
+            continue
 
-                let kingdomInfo = await ClientCommands.getKingdomInfo(stormAreaInfo.areaID, KingdomID.stormIslands, kingdom.kingdomID, G)()
+        let result = await ClientCommands.kingdomUnitTransfer(stormCastle.areaID, KingdomID.stormIslands, castle.kingdomID, G)
+        
+        if (result != 0)
+            continue
 
-                if (kingdomInfo.result != 0)
-                    continue
+        stormCastle.wood -= maxWoodToSend
+        stormCastle.stone -= maxStoneToSend
+        stormCastle.emit("resourceUpdate")
+        console.log("sentResSend", JSON.stringify(G), "toResSend", KingdomID[castle.kingdomID])
 
-                stormAreaInfo.wood -= maxWoodToSend
-                stormAreaInfo.stone -= maxStoneToSend
-                console.log("sentResSend", JSON.stringify(G), "toResSend", KingdomID[kingdom.kingdomID])
-            }            
-        }
     }
+}
+
+events.once("load", async () => {
     trySendRes()
     setInterval(trySendRes, 1000 * 60 * 30)
 })

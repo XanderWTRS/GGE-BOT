@@ -21,39 +21,34 @@ if (require('node:worker_threads').isMainThread) {
     return
 }
 
-const { ClientCommands, getResourceCastleList, KingdomID, AreaType } = require("../protocols.js")
+const { ClientCommands, KingdomID, AreaType, castles } = require("../protocols.js")
 const { events, botConfig } = require("../ggeBot.js")
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const feastFoodReduction = pluginOptions.feastFoodReduction ? Number(pluginOptions.feastFoodReduction): 150000
 const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood): 150000
 const minimumFoodRate = pluginOptions.minimumFoodRate ? Number(pluginOptions.minimumFoodRate) : 0
 
 const tryToFeast = async () => {
-    let dcl = await ClientCommands.getDetailedCastleList()
-    let resourceCastleList = await getResourceCastleList()
-    let mainCastleAreaID = Number(resourceCastleList.castles.find(e => e.kingdomID == KingdomID.greatEmpire)
-        .areaInfo.find(e => e.type == AreaType.mainCastle)
-        .extraData[0])
     let feasts = 0
 
-    dcl.castles.forEach(castle => {
+    castles.forEach(castle => {
         if(castle.kingdomID == KingdomID.stormIslands)
             return
-        if(castle.kingdomID == KingdomID.berimond)
+        if (castle.kingdomID == KingdomID.berimond)
+            return
+        let foodRate = castle.getProductionData.deltaFood - castle.getProductionData.FoodConsumptionRate * 
+            castle.getProductionData.foodConsumptionReductionPercentage
+        if (foodRate < Math.max(0, minimumFoodRate))
             return
         
-        castle.areaInfo.forEach(areaInfo => {
-            let foodRate = areaInfo.getProductionData.deltaFood - areaInfo.getProductionData.FoodConsumptionRate * areaInfo.getProductionData.foodConsumptionReductionPercentage
-            if (foodRate < Math.max(0, minimumFoodRate))
-                return
-            if (areaInfo.areaID == mainCastleAreaID && areaInfo.getProductionData.maxAmmountFood < areaInfo.food)
-                return
-            while (minimumFood < (areaInfo.food - feastFoodReduction) && feastFoodReduction <= areaInfo.food) {
-                ClientCommands.startFeast(8, areaInfo.areaID, castle.kingdomID)()
-                feasts++
-                areaInfo.food -= feastFoodReduction
-            }
-        })
+        if(e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle && castle.getProductionData.maxAmountFood < castle.food)
+            return
+
+        while (minimumFood < (castle.food - feastFoodReduction) && feastFoodReduction <= castle.food) {
+            ClientCommands.startFeast(8, castle.id, castle.kingdomID)
+            feasts++
+            castle.food -= feastFoodReduction
+        }
     })
 
     if (feasts > 0)

@@ -31,3 +31,22 @@ events.on("eventStart", eventInfo => {
     console.log("grabbedFortuneTellerFortune")
     sendXT("ftl", JSON.stringify({}))
 })
+
+// xtHandler.on("gcs", obj => {
+//     obj.CHR.forEach(offering => {
+//         for (let i = 0; i < offering.FOA; i++) {
+//             if (offering.CID == 1) {
+//                 console.log("GrabbedOffering", "grabbedLudwig")
+//                 sendXT("sct", JSON.stringify({ CID: 1, OID: 6001, IF: 1, AMT: 1 }))
+//             }
+//             if (offering.CID == 2) {
+//                 console.log("GrabbedOffering", "grabbedKnight")
+//                 sendXT("sct", JSON.stringify({ CID: 2, OID: 6002, IF: 1, AMT: 1 }))
+//             }
+//             if (offering.CID == 3) {
+//                 console.log("GrabbedOffering", "grabbedBeatrice")
+//                 sendXT("sct", JSON.stringify({ CID: 3, OID: 6003, IF: 1, AMT: 1 }))
+//             }
+//         }
+//     })
+// })

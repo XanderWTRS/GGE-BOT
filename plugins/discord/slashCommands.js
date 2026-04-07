@@ -2,9 +2,9 @@ if (require('node:worker_threads').isMainThread)
     return module.exports = {}
 
 const { SlashCommandBuilder, Interaction } = require('discord.js')
-const { commands } = require('./discord.js')
+const { commands } = require("./discord.js")
 const { xtHandler, sendXT, waitForResult, events, botConfig, playerInfo } = require("../../ggeBot.js")
-const { ClientCommands, HighscoreType, AreaType } = require('../../protocols.js')
+const { ClientCommands, HighscoreType, AreaType } = require("../../protocols.js")
 const ggeConfig = require("../../ggeConfig.json")
 
 let playerids = []
@@ -217,7 +217,7 @@ async function getAllianceEventRank(interaction, LT) {
     let lootTable = []
     if (LT == 30) {
         for (let i = 0; i < members.length; i++) {
-            const member = members[i];
+            const member = members[i]
 
             if (member.R) {
                 if (!lootTable.every(a => a[0] != member.N))
@@ -433,13 +433,13 @@ let getHonourRanking = async (interaction) => {
             let highScoreData = await ClientCommands.getHighScore(HighscoreType.honour, 6, j)()
             for (let i = 0; i < highScoreData.list.length; i++) {
                 const e = highScoreData.list[i]
-                if (e.playerData.isRuin && !e.playerData.castlePositionList.every(e => e.areaType == AreaType.outpost))
+                if (e.playerData.isRuin && !e.playerData.castlePositionList.every(e => e.areaInfo == AreaType.outpost))
                     continue
                 if (e.playerData.remainingNoobTime)
                     continue
                 if (e.playerData.remainingPeaceTime)
                     continue
-                if (e.ammount == 0)
+                if (e.amount == 0)
                     break fullout
                 if(ggeConfig.blackListedAlliances?.includes(e.playerData.allianceName))
                     continue
@@ -469,7 +469,7 @@ let getHonourRanking = async (interaction) => {
 
 let getAllianceQuestPointCount = async (interaction) => {
     await interaction.deferReply()
-    let allianceQuestsScore = await ClientCommands.allianceQuestPointCount()()
+    let allianceQuestsScore = await ClientCommands.allianceQuestPointCount()
     allianceQuestsScore.list.sort((a,b) => a.points - b.points)
     let msg = "```"
     

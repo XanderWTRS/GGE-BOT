@@ -7,14 +7,23 @@ const { Client, Events, GatewayIntentBits, Collection, REST, Routes } = require(
 const ggeConfig = require("../../ggeConfig.json")
 const { events, botConfig } = require('../../ggeBot')
 
-let clientOptions = { intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildModeration, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences] }
-let client = new Client(clientOptions)
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.GuildIntegrations,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildPresences]
+})
 
-client.on(Events.ClientReady, () => client.user.setActivity(ggeConfig.discordBanner ? ggeConfig.discordBanner : 'https://github.com/darrenthebozz/GGE-BOT'))
+client.on(Events.ClientReady, () => 
+    client.user.setActivity(ggeConfig.discordBanner ? ggeConfig.discordBanner : 'https://github.com/darrenthebozz/GGE-BOT'))
 client.login(ggeConfig.discordToken)
 
 /** @type {Promise<Client>} */
-let clientPromise =  new Promise((resolve, reject) => {
+const clientPromise = new Promise((resolve, reject) => {
     client.once(Events.Error, reject)
     client.once(Events.ClientReady, () => {
         client.off(Events.Error, reject)

@@ -5,12 +5,12 @@ const { events, xtHandler, sendXT } = require('../ggeBot')
 const gems = require("../items/gems.json")
 const sellGems = e => {
     let gemsSold = 0
-    Array.from(e.GEM).forEach(([id, ammount]) => {
+    Array.from(e.GEM).forEach(([id, amount]) => {
         const gem = gems.find(e => e.gemID == id)
         if(gem.setID != undefined)
             return
 
-        for (let i = 0; i < ammount; i++) {
+        for (let i = 0; i < amount; i++) {
             sendXT("sge", JSON.stringify({GID:gem.gemID,RGEM:0,LFID:-1}))
             gemsSold++
         }

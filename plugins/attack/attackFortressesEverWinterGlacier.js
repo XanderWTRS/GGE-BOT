@@ -9,11 +9,11 @@ if (require('node:worker_threads').isMainThread)
         ]
     }
 
-const { KingdomID } = require('../../protocols.js')
+const { KingdomID } = require("../../protocols.js")
 const { botConfig, events } = require('../../ggeBot.js')
 const fortressHit = require('./sharedFortressAttackLogic.js')
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const kid = KingdomID.everWinterGlacier
 const level = 20
 

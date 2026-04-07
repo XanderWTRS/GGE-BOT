@@ -20,10 +20,10 @@ if (require('node:worker_threads').isMainThread) {
     }
 }
 
-const { getPermanentCastle, resources } = require('../../protocols')
+const { RateLimiter } = require('limiter')
+const { resources } = require('../../protocols')
 const { botConfig, playerInfo, xtHandler } = require('../../ggeBot')
 const stables = require('../../items/horses.json')
-const { RateLimiter } = require('limiter')
 
 const getTotalAmountTools = (e, t, n) =>
     1 === e ? t < 11 ? 10 :
@@ -60,29 +60,28 @@ function getMaxWaveCount(e) {
 }
 
 function assignUnit(unitSlot, units, maxUnits) {
-    let unit = units[0]
+    let unit = units.find(e => e.amount > 0)
     if (!unit)
         return 0
 
-    let unitType = unit[0].wodID
-    let unitAmmount = Math.floor(Math.max(Math.min(unit[1], maxUnits),0))
+    const unitAmount = Math.floor(Math.max(Math.min(unit.amount, maxUnits), 0))
 
-    unit[1] -= unitAmmount
+    unit.amount -= unitAmount
 
-    if (unit[1] <= 0)
+    if (unit.amount <= 0)
         units.shift()
 
-    if (unitAmmount > 0) {
-        unitSlot[0] = unitType
-        unitSlot[1] = unitAmmount
+    if (unitAmount > 0) {
+        unitSlot[0] = unit.unitInfo.wodID
+        unitSlot[1] = unitAmount
     }
 
-    return unitAmmount
+    return unitAmount
 }
-function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, additionalWaves) {
+function getAttackInfo(kid, castle, AI, commander, level, waves, options, additionalWaves) {
     const attackTarget = {
-        SX: sourceCastle.x,
-        SY: sourceCastle.y,
+        SX: castle.areaInfo.x,
+        SY: castle.areaInfo.y,
         TX: AI.x,
         TY: AI.y,
         KID: kid,
@@ -142,7 +141,6 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
         ASCT: 0
     }
 
-    
     if (isNaN(waves) || waves <= 0)
         waves = Infinity
 
@@ -175,9 +173,7 @@ function getAttackInfo(kid, sourceCastle, AI, commander, level, waves, options, 
         setupWave([0, 13], wave.R.U)
         attackTarget.A.push(wave)
     }
-    const castleData = getPermanentCastle().find(e => e.kingdomID == kid &&
-        (kid == 10 || e.areaID == sourceCastle.extraData[0]))
-    const unlockedHorses = castleData?.unlockedHorses
+    const unlockedHorses = castle.unlockedHorses
 
     if (options.useCoin && !options.useFeather) {
         let bestHorse = -1
@@ -231,7 +227,7 @@ function boxMullerRandom(min, max, skew) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms).unref())
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const attacks = []
 let alreadyRunning = false
 let attackCount = undefined
@@ -248,7 +244,7 @@ let announced = false
 
 const limiter = new RateLimiter({ tokensPerInterval : 60 / (8 / 60) - 8, interval: "hour"})
 
-const waitToAttack = callback => new Promise((resolve, reject) => {
+const waitToAttack = callback => new Promise(async (resolve, reject) => {
     if(!botConfig.externalEvent && attackCount >= Number(pluginOptions.attackLimit ?? attackThreshold)) {
         if(!announced) {
             announced = true
@@ -271,31 +267,27 @@ const waitToAttack = callback => new Promise((resolve, reject) => {
     
     if (!alreadyRunning) {
         alreadyRunning = true
-        setImmediate(async () => {
-            do {
-                try {
-                    const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
-                    const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
-                    const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
+        while (attacks?.length > 0) {
+            try {
+                const baseDelay = parseInt(pluginOptions.attackDelaySeconds)
+                const variance = parseInt(pluginOptions.attackDelayRandomizationSeconds)
+                const naturalDelay = boxMullerRandom(baseDelay * 1000, (baseDelay + variance) * 1000, 1)
 
-                    console.debug("attackDelayAttack", naturalDelay)
-                    
-                    if (!await (attacks.shift()()))
-                        continue
+                console.debug("attackDelayAttack", naturalDelay)
 
-                    await limiter.removeTokens(1)
+                if (!await(attacks.shift()()))
+                    continue
 
-                    await sleep(naturalDelay)
-                } catch (innerError) {
-                    if (innerError !== "NO_MORE_TROOPS") {
-                        console.warn("failedToHandleAttack", innerError)
-                        console.error(innerError)
-                    }
+                await limiter.removeTokens(1)
+                await sleep(naturalDelay)
+            } catch (innerError) {
+                if (innerError !== "NO_MORE_TROOPS") {
+                    console.warn("failedToHandleAttack", innerError)
+                    console.error(innerError)
                 }
             }
-            while (attacks?.length > 0);
-            alreadyRunning = false
-        })
+        }
+        alreadyRunning = false
     }
 })
 

@@ -5,7 +5,43 @@ if (require('node:worker_threads').isMainThread)
                 type: "Checkbox",
                 key: "bypassSkipTypeFilter",
                 default: false
-            }
+            },
+            { type: "Label", key: "skipTypes" },
+            {
+                type: "Checkbox",
+                key: "1Minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "5Minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "10Minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "30Minute",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "1Hour",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "5Hour",
+                default: true
+            },
+            {
+                type: "Checkbox",
+                key: "24Hour",
+                default: true
+            },
         ],
         force: true
     }
@@ -23,17 +59,17 @@ const MinuteSkipType = Object.freeze({
     MS7: 60 * 24
 })
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 function haveEnoughSkips(time) {
     const skips = {
-        MS1: resources['1MinSkip'],
-        MS2: resources['5MinSkip'],
-        MS3: resources['10MinSkip'],
-        MS4: resources['30MinSkip'],
-        MS5: resources['60MinSkip'],
-        MS6: resources['5HourSkip'],
-        MS7: resources['24HourSkip']
+        MS1: pluginOptions["1Minute"] ? structuredClone(resources['1MinSkip']) : 0,
+        MS2: pluginOptions["5Minute"] ? structuredClone(resources['5MinSkip']) : 0,
+        MS3: pluginOptions["10Minute"] ? structuredClone(resources['10MinSkip']) : 0,
+        MS4: pluginOptions["30Minute"] ? structuredClone(resources['30MinSkip']) : 0,
+        MS5: pluginOptions["1Hour"] ? structuredClone(resources['60MinSkip']) : 0,
+        MS6: pluginOptions["5Hour"] ? structuredClone(resources['5HourSkip']) : 0,
+        MS7: pluginOptions["24Hour"] ? structuredClone(resources['24HourSkip']) : 0
     }
     time = Math.ceil(time / 60)
     
@@ -42,7 +78,7 @@ function haveEnoughSkips(time) {
             .filter(e => e[1] > 0)
             .filter(e => pluginOptions.bypassSkipTypeFilter || MinuteSkipType[e[0]] <= time * 2)
             .sort((a, b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
-            .sort((a, b) => Math.max(b[1], 950) - Math.max(a[1], 950))
+            .sort((a, b) => Math.min(Math.max(b[1], 950), 951) - Math.min(Math.max(a[1], 950), 951))
 
         if (skip[0] == undefined)
             return false
@@ -55,20 +91,20 @@ function haveEnoughSkips(time) {
 
 function spendSkip(time) {
     const skips = {
-        MS1: resources['1MinSkip'],
-        MS2: resources['5MinSkip'],
-        MS3: resources['10MinSkip'],
-        MS4: resources['30MinSkip'],
-        MS5: resources['60MinSkip'],
-        MS6: resources['5HourSkip'],
-        MS7: resources['24HourSkip']
+        MS1: pluginOptions["1Minute"] ? resources['1MinSkip'] : 0,
+        MS2: pluginOptions["5Minute"] ? resources['5MinSkip'] : 0,
+        MS3: pluginOptions["10Minute"] ? resources['10MinSkip'] : 0,
+        MS4: pluginOptions["30Minute"] ? resources['30MinSkip'] : 0,
+        MS5: pluginOptions["1Hour"] ? resources['60MinSkip'] : 0,
+        MS6: pluginOptions["5Hour"] ? resources['5HourSkip'] : 0,
+        MS7: pluginOptions["24Hour"] ? resources['24HourSkip'] : 0
     }
     time = Math.ceil(time / 60)
     const skip = Object.entries(skips)
         .filter(e => e[1] > 0)
         .filter(e => pluginOptions.bypassSkipTypeFilter || MinuteSkipType[e[0]] <= time * 2)
         .sort((a, b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
-        .sort((a, b) => Math.max(b[1], 950) - Math.max(a[1], 950))
+        .sort((a, b) => Math.min(Math.max(b[1], 950), 951) - Math.min(Math.max(a[1], 950), 951))
 
     if (skip[0] == undefined)
         return console.warn("noMoreSkips")

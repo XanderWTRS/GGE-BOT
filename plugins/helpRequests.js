@@ -1,5 +1,5 @@
-if (require('node:worker_threads').isMainThread) {
-    module.exports = {
+if (require('node:worker_threads').isMainThread)
+    return module.exports = {
         pluginOptions: [
             {
                 type: "Checkbox",
@@ -8,12 +8,10 @@ if (require('node:worker_threads').isMainThread) {
             }
         ]
     }
-    return
-}
 
-const { xtHandler, sendXT, events, botConfig } = require("../ggeBot.js")
+const { xtHandler, sendXT, botConfig } = require("../ggeBot.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
 const randomIntFromInterval = (min, max) => 
     Math.floor(Math.random() * (max - min + 1) + min)

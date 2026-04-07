@@ -10,21 +10,19 @@ if (require('node:worker_threads').isMainThread)
 
 const pretty = require('pretty-time')
 const { events, botConfig } = require("../../ggeBot.js")
-const { ClientCommands: { preSpyInfo }, spiralCoordinates, ClientCommands, getResourceCastleList, AreaType } = require("../../protocols")
-const getAreaCached = require('../../getMap.js')
+const { ClientCommands: { preSpyInfo, getAreaInfo }, spiralCoordinates, castles, AreaType } = require("../../protocols")
+
 const { client } = require("./discord.js")
 
-const pluginOptions = botConfig.plugins[require('path').basename(__filename).slice(0, -3)] ?? {}
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const type = 11
 
 events.once("load", async () => {
-    /** @type {Array<import('../../protocols.js').Types.GAAAreaInfo>} */
+    /** @type {Array<import("../../protocols.js").Types.GAAAreaInfo>} */
     const areas = []
 
-
     for (let kingdomID = 1; kingdomID < 4; kingdomID++) {
-        const sourceCastleArea = (await getResourceCastleList()).castles.find(e => e.kingdomID == kingdomID)
-            .areaInfo.find(e => [AreaType.externalKingdom, AreaType.mainCastle].includes(e.type))
+        const castle = castles.find(e => e.kingdomID == kingdomID && [AreaType.externalKingdom, AreaType.mainCastle].includes(e.areaInfo.type))
         done:
         for (let i = 0, j = 0; i < 13 * 13; i++) {
             let rX, rY
@@ -35,14 +33,14 @@ events.once("load", async () => {
                 rY *= 100
 
                 rect = {
-                    x: sourceCastleArea.x + rX - 50,
-                    y: sourceCastleArea.y + rY - 50,
-                    w: sourceCastleArea.x + rX + 50,
-                    h: sourceCastleArea.y + rY + 50
+                    x: castle.areaInfo.x + rX - 50,
+                    y: castle.areaInfo.y + rY - 50,
+                    w: castle.areaInfo.x + rX + 50,
+                    h: castle.areaInfo.y + rY + 50
                 }
                 if (j > Math.pow(13 * 13, 2))
                     break done
-            } while ((sourceCastleArea.x + rX) <= -50 || (sourceCastleArea.y + rY) <= -50 || (sourceCastleArea.x + rX) >= (1286 + 50) || (sourceCastleArea.y + rY) >= (1286 + 50))
+            } while ((castle.areaInfo.x + rX) <= -50 || (castle.areaInfo.y + rY) <= -50 || (castle.areaInfo.x + rX) >= (1286 + 50) || (castle.areaInfo.y + rY) >= (1286 + 50))
             rect.x = rect.x < 0 ? 0 : rect.x
             rect.y = rect.y < 0 ? 0 : rect.y
             rect.w = rect.w < 0 ? 0 : rect.w
@@ -51,18 +49,16 @@ events.once("load", async () => {
             rect.y = rect.y > 1286 ? 1286 : rect.y
             rect.w = rect.w > 1286 ? 1286 : rect.w
             rect.h = rect.h > 1286 ? 1286 : rect.h
-            let gaa
             let attemptsLeft = 5
             do {
                 try {
-                    gaa = await getAreaCached(kingdomID, rect.x, rect.y, rect.w, rect.h)
+                    areas.push(...(await getAreaInfo(kingdomID, rect.x, rect.y, rect.w, rect.h)).filter(e => e.type == type))
+                    break
                 }
                 catch { attemptsLeft-- }
                 if (attemptsLeft <= 0)
                     continue done
-            } while (!gaa)
-
-            areas.push(...gaa.areaInfo.filter(e => e.type == type))
+            } while (true)
         }
     }
 
@@ -75,7 +71,7 @@ events.once("load", async () => {
 
     sortData()
 
-    const KIDNames = [,
+    const KingdomNames = [,
         "\u001b[2;33mBurning Sands\u001b[0m     ",
         "\u001b[2;34mEverwinter Glacier\u001b[0m",
         "\u001b[2;31mFire peaks\u001b[0m        "
@@ -86,18 +82,18 @@ events.once("load", async () => {
         let msg = "```ansi\nLocation           Coords  Time\n"
         let everwinterGlacier = 0
 
-        areas.every(area => {
-            const kingdomID = area.extraData[4]
-            const deltaTime = area.extraData[2] - (date - area.timeSinceRequest) / 1000
+        areas.every(areaInfo => {
+            const kingdomID = areaInfo.extraData[4]
+            const deltaTime = areaInfo.extraData[2] - (date - areaInfo.timeSinceRequest) / 1000
 
             if (kingdomID == 2 && everwinterGlacier++ >= 15)
                 return true
 
             if (deltaTime <= 0)
-                preSpyInfo(area.x, area.y, kingdomID)().then(({ areaInfo: area }) =>
-                    area.extraData[2] > 0 && sortData())
+                preSpyInfo(areaInfo.x, areaInfo.y, kingdomID).then(({ areaInfo }) =>
+                    areaInfo.extraData[2] > 0 && sortData())
 
-            msg += `${KIDNames[kingdomID]} ${area.x}\:${area.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
+            msg += `${KingdomNames[kingdomID]} ${areaInfo.x}\:${areaInfo.y} ${pretty(Math.max(0, Math.round(1000000000 * deltaTime)), 's')}\n`
 
             if (msg.length > 2000 - 3)
                 return (msg = msg.replace(/\n.*\n$/, ''), false)
@@ -116,6 +112,6 @@ events.once("load", async () => {
         if (message.content == msg)
             return
 
-        message.edit(msg)
+        await message.edit(msg)
     }, 6 * 1000).unref()
 })

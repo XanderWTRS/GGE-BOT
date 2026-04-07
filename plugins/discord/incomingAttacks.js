@@ -3,143 +3,119 @@ if (require('node:worker_threads').isMainThread)
         pluginOptions: [
             {
                 type: "Channel",
-                key: "channelID",
-            },            {
+                key: "channelID"
+            }, 
+            {
                 type: "Channel",
-                key: "StormChannelID",
+                key: "stormChannelID"
             }
         ]
     }
 
 const { PresenceUpdateStatus, AttachmentBuilder } = require("discord.js")
 
-const { xtHandler, botConfig, playerInfo, events, i18n } = require("../../ggeBot.js")
-const { clientReady, client } = require('./discord.js')
+const { botConfig, playerInfo, i18n } = require("../../ggeBot.js")
+const { movementEvents, KingdomID } = require("../../protocols.js")
 const { createLayout } = require("../../imageGen.js")
-const path = require('path')
-const pluginOptions = botConfig.plugins[path.basename(__filename).slice(0, -3)] ?? {}
+const { clientReady, client } = require("./discord.js")
 
-let movements = []
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 
-xtHandler.on("gam", func = async obj => {
+const kingdomName = [
+    `\u001b[2;32m${i18n.__(KingdomID[0])}\u001b[0m`,
+    `\u001b[2;33m${i18n.__(KingdomID[1])}\u001b[0m`,
+    `\u001b[2;34m${i18n.__(KingdomID[2])}\u001b[0m`,
+    `\u001b[2;31m${i18n.__(KingdomID[3])}\u001b[0m`,
+    `\u001b[2;36m${i18n.__(KingdomID[4])}\u001b[0m`
+]
+
+const storedMessages = new WeakMap()
+
+movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
     await clientReady
-    obj.M.forEach(async movement => {
-        if (![0, 25, 31, 24, 29].includes(movement.M.T))
-            return
 
-        if(movement.M.SID <= 0)
-            return
+    if (![0, 25, 31, 24, 29].includes(movement.type))
+        return
+    if (movement.sourceOwner == undefined)
+        return
+    if (movement.targetOwner == undefined)
+        return
+    if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
+        return
+    if (movement.targetOwner.allianceID != playerInfo.alliance.id)
+        return
 
-        if(movement.M.TID <= 0)
-            return
+    if (kingdomName[movement.kingdomID] == undefined)
+        return
 
-        let attacker = obj.O.find((e) => e.OID == movement.M.SID)
-        let victim = obj.O.find((e) => e.OID == movement.M.TID)
-
-        if (attacker.AID == playerInfo.alliance.id)
-            return
-
-        let e = movements.find((e) => e.M.MID == movement.M.MID)
-
-        if (e) {
-            if (movement.GA && movement.M.KID != 4 && (await e.message)?.attachments.size == 0) {
-                let stream = await createLayout(movement.GA)
-                stream.on("error", console.warn)
-                const file = new AttachmentBuilder(stream)
-                await (await e.message).edit({ content: (await e.message).content, files: [file] })
-            }
-            return
+    if (movement.canSeeArmy) {
+        const message = await storedMessages.get(movement)
+        if (message?.attachments.size == 0) {
+            const stream = await createLayout(movement.left, movement.middle, movement.right, movement.courtyard)
+            stream.on("error", console.warn)
+            message.edit({
+                content: message.content, 
+                files: [
+                    new AttachmentBuilder(stream)
+                ]
+            })
         }
+        return
+    }
 
-        let timetaken = movement.M.TT
-        let timespent = movement.M.PT
-        let time = timetaken - timespent
+    const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
 
-        let attackerName = attacker.N
-        let attackerAlliance = attacker.AN
-        let attackerArea = movement.M.SA[10]
+    try {
+        var channelAlert = await client.channels.fetch(pluginOptions.channelID)
+    }
+    catch (e) {
+        console.warn(e)
+    }
+    try {
+        if (pluginOptions.channelAquaAlert)
+            var channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
+    }
+    catch (e) {
+        console.warn(e)
+    }
 
-        let victimName = victim.N
-        let victimArea = movement.M.TA[10]
+    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
 
-        if (botConfig.externalEvent) {
-            victimName = victimName.replace(/_[^_]+$/, '')
+    const channel = movement.kingdomID != 4 ? channelAlert : channelAquaAlert
+    
+    if (channel == undefined)
+        return
+
+    const member = channelAlert.members.find(e => e.displayName == (botConfig.externalEvent ? movement.targetOwner.name.replace(/_[^_]+$/, '') : movement.targetOwner.name))
+
+    const mention = member?.displayName ? `<@${member.id}> ` : ``
+    const data = {
+        content : `${mention}` +
+        "```ansi\n" +
+        `${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.sourceOwner.allianceName}` +
+        `${i18n.__("incomingIsAttacking")}${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
+        "```" +
+        `<t:${Math.round(Date.now() / 1000 + timeLeft)}:R>`
+    }
+
+    if (movement.canSeeArmy)
+        data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
+    
+    storedMessages.set(movement, channel.send(data))
+
+    if (!channelAlert)
+        return
+
+    if (member != undefined) {
+        if (movement.kingdomID != KingdomID.stormIslands && shouldAlertMember()) {
+            const spreadAlert = () =>
+                (member?.presence?.status == undefined ||
+                    member?.presence?.status !== PresenceUpdateStatus.Online &&
+                    member?.presence?.status !== PresenceUpdateStatus.DoNotDisturb) ? channelAlert.send(`<@${member.id}> `) : undefined
+            setTimeout(spreadAlert, timeLeft * 1000 / 4).unref()
+            setTimeout(spreadAlert, timeLeft * 1000 / 3).unref()
+            setTimeout(spreadAlert, timeLeft * 1000 / 2).unref()
+            setTimeout(spreadAlert, timeLeft * 1000 / 1.5).unref()
         }
-
-        let channelAlert
-        try {
-            channelAlert = await client.channels.fetch(pluginOptions.channelID)
-        }
-        catch (e) {
-            console.warn(e)
-        }
-        let channelAquaAlert
-        try {
-            if (pluginOptions.channelAquaAlert)
-                channelAquaAlert = await client.channels.fetch(pluginOptions.stormChannelID)
-        }
-        catch (e) {
-            console.warn(e)
-        }
-        
-        let member = channelAlert.members.find((e) => e.displayName == victimName)
-        let mention = member?.displayName ? `<@${member.id}> ` : ``
-
-        let kidName = [
-            "\u001b[2;32mThe Great Empire\u001b[0m",
-            "\u001b[2;33mBurning Sands\u001b[0m",
-            "\u001b[2;34mEverwinter Glacier\u001b[0m",
-            "\u001b[2;31mFire peaks\u001b[0m",
-            "\u001b[2;36mThe Storm Islands\u001b[0m"
-        ]
-
-        if (kidName[movement.M.KID] == undefined)
-            return
-
-        if (victimArea == undefined && movement.M.KID == 4)
-            victimArea = "Storm island"
-
-        let x1 = movement.M.TA[1]
-        let y1 = movement.M.TA[2]
-        let x2 = movement.M.SA[1]
-        let y2 = movement.M.SA[2]
-
-        let clicks = Math.round(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 10) / 10
-
-        let channel = ((movement.M.KID != 4) ? channelAlert : channelAquaAlert)
-        if (channel == undefined)
-            return
-        let content = `${mention}` +
-            "```ansi\n" +
-            `${attackerName} (${attackerArea})${i18n.__("incomingFrom")}${attackerAlliance}${i18n.__("incomingIsAttacking")}${victimName} (${victimArea})${i18n.__("incomingIn")}${kidName[movement.M.KID]} ${clicks}${i18n.__("incomingClicks")}` +
-            "```" +
-            `<t:${Math.round(Date.now() / 1000 + time)}:R>`
-        let data = {}
-        data.content = content
-        movements.push(movement)
-
-        if (movement.GA != undefined) {
-            const file = new AttachmentBuilder(await createLayout(movement.GA))
-            data.files = [file]
-        }
-        let message = channel.send(data)
-
-        if (member != undefined) {
-            let shouldAlertMember = () => member?.presence?.status == undefined || (member?.presence?.status !== PresenceUpdateStatus.Online && member?.presence?.status !== PresenceUpdateStatus.DoNotDisturb)
-            if (movement.M.KID != 4 && shouldAlertMember()) {
-                let spreadAlert = async () => shouldAlertMember() ? await channelAlert.send(mention) : void 0
-                setTimeout(spreadAlert, time * 1000 / 4).unref()
-                setTimeout(spreadAlert, time * 1000 / 3).unref()
-                setTimeout(spreadAlert, time * 1000 / 2).unref()
-                setTimeout(spreadAlert, time * 1000 / 1.5).unref()
-            }
-        }
-        if (movement?.GA == undefined)
-            movement.message = message
-
-        setTimeout(() => {
-            movements = movements.filter(item => item.M.MID !== movement.M.MID)
-        }, time * 1000)
-        await message
-    })
+    }
 })

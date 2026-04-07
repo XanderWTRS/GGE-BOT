@@ -1,88 +1,71 @@
-
 if (require('node:worker_threads').isMainThread)
     return module.exports = {
         pluginOptions: [
             {
                 type: "Channel",
-                key: "channelID",
+                key: "channelID"
             }
         ]
     }
 
-const { xtHandler, botConfig, playerInfo, i18n } = require("../../ggeBot.js")
-const { clientReady, client } = require('./discord')
-const path = require('path')
-const pluginOptions = botConfig.plugins[path.basename(__filename).slice(0, -3)] ?? {}
+const { AttachmentBuilder } = require("discord.js")
 
-let movements = []
+const { botConfig, playerInfo, i18n } = require("../../ggeBot.js")
+const { movementEvents, KingdomID } = require("../../protocols.js")
+const { createLayout } = require("../../imageGen.js")
+const { clientReady, client } = require("./discord.js")
 
-xtHandler.addListener("gam", async obj => {
+const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
+
+const kingdomName = [
+    `\u001b[2;32m${i18n.__(KingdomID[0])}\u001b[0m`,
+    `\u001b[2;33m${i18n.__(KingdomID[1])}\u001b[0m`,
+    `\u001b[2;34m${i18n.__(KingdomID[2])}\u001b[0m`,
+    `\u001b[2;31m${i18n.__(KingdomID[3])}\u001b[0m`,
+    `\u001b[2;36m${i18n.__(KingdomID[4])}\u001b[0m`
+]
+
+movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
     await clientReady
-    obj.M.forEach(async movement => {
-        var movementType = {
-            attack: 0,
-            defence: 1
-        }
 
-        if (movements.find(e => e == movement.M.MID))
-            return
+    if (![0, 25, 31, 24, 29].includes(movement.type))
+        return
+    if (movement.sourceOwner == undefined)
+        return
+    if (movement.targetOwner == undefined)
+        return
+    if (movement.sourceOwner?.allianceID == playerInfo.alliance.id)
+        return
+    if (movement.targetOwner?.allianceID != playerInfo.alliance.id)
+        return
 
-        if (movement.M.T != movementType.attack)
-            return
+    if (kingdomName[movement.kingdomID] == undefined)
+        return
 
-        if (!([0, 1, 2, 3].includes(movement.M.KID)))
-            return
-        
-        if(movement.M.SID <= 0)
-            return
+    const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
 
-        if(movement.M.TID <= 0)
-            return
+    try {
+        var channelAlert = await client.channels.fetch(pluginOptions.channelID)
+    }
+    catch (e) {
+        console.warn(e)
+    }
 
-        let attacker = obj.O.find(e => e.OID == movement.M.SID)
-        let victim = obj.O.find(e => e.OID == movement.M.TID)
+    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
 
-        if (attacker.AID != playerInfo.alliance.id) //if victim is outside of our alliance then ignore it for alerts
-            return
+    const channel = channelAlert
+    
+    if (channel == undefined)
+        return
 
-        let attackerName = attacker.N
-        let attackerArea = movement.M.SA[10]
-        let attackerAlliance = attacker.AN
-
-        let victimName = victim.N
-        let victimArea = movement.M.TA[10]
-        let victimAlliance = victim.AN
-
-        var timetaken = movement.M.TT
-        var timespent = movement.M.PT
-
-        let x1 = movement.M.TA[1]
-        let y1 = movement.M.TA[2]
-        let x2 = movement.M.SA[1]
-        let y2 = movement.M.SA[2]
-
-        let kidName = [
-            "\u001b[2;32mThe Great Empire\u001b[0m",
-            "\u001b[2;33mBurning Sands\u001b[0m",
-            "\u001b[2;34mEverwinter Glacier\u001b[0m",
-            "\u001b[2;31mFire peaks\u001b[0m",
-            "\u001b[2;36mThe Storm Islands\u001b[0m"
-        ]
-        let clicks = Math.round(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 10) / 10
-
-        let time = timetaken - timespent
-
-        movements.push(movement.M.MID)
-
-        const channel = await client.channels.fetch(pluginOptions.channelID)
-        channel.send( //<-- asyncronous bastard causing my fucking hack
-            "```ansi\n" +
-            `${attackerName} (${attackerArea})${i18n.__("incomingFrom")}${attackerAlliance}${i18n.__("incomingIsAttacking")}${victimName} (${victimArea}) ${victimAlliance} ${i18n.__("incomingIn")}${kidName[movement.M.KID]} ${clicks}${i18n.__("incomingClicks")}` +
-            "```" +
-            `<t:${Math.round(Date.now() / 1000 + time)}:R>`)
-
-        setTimeout(() => {
-            movements = movements.filter(item => item !== movement.M.MID)
-        }, time * 1000).unref()
-    })
+    const data = {}
+    data.content = "```ansi\n" +
+        `${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})` +
+        `${i18n.__("incomingFrom")}${movement.targetOwner.allianceName}` +
+        `${i18n.__("incomingIsAttacking")}${movement.sourceOwner.name}` +
+        ` (${movement.sourceAttack.extraData[7]})${i18n.__("incomingIn")}` +
+        `${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
+        "```" +
+        `<t:${Math.round(Date.now() / 1000 + timeLeft)}:R>`
+    data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
 })
