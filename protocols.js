@@ -478,22 +478,23 @@ const clientActiveQuestList = async () => {
 }
 
 //TODO: May conflict with other clientGetMinuteSkipKingdom
-const clientGetMinuteSkipKingdom = (skipType, kingdomID, kingdomSkipType) => {
-    const limiter = sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
-    
-    return async () => {
-        await limiter
-        const [obj, result] = await waitForResult("msk", 1000 * 10)
+const clientGetMinuteSkipKingdom = async (skipType, kingdomID, kingdomSkipType) => {
+    await sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
 
-        return KingdomInfo({ ...obj.kpi, result: result })
-    }
+    const [obj, result] = await waitForResult("msk", 1000 * 10)
+
+    return KingdomInfo({ ...obj.kpi, result: result })
 }
 
 let _activeEventList = {}
 
-function setEvent(obj, result) {
+let hasStarted = new Promise(r => events.on("load", r))
+
+async function setEvent(obj, result) {
     if(result != 0)
         return
+
+    await hasStarted
     
     obj.E.find(e => {
         if (_activeEventList.E?.find(a => a.EID == e.EID))
@@ -715,7 +716,7 @@ function getKingdomInfoList(obj, result)  {
     if (obj.UT)
         Array.from(obj.UT).map(a =>
             castles.find(e => e.kingdomID == a.KID &&
-                [AreaType.mainCastle, AreaType.externalKingdom].includes(e.areaInfo.type)).troopTransfer = TroopTransfer(a))
+                [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type)).troopTransfer = TroopTransfer(a))
 }
 xtHandler.on("kpi", getKingdomInfoList)
 xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))
@@ -1287,10 +1288,10 @@ module.exports = {
         Movement,
         BuildingInfo,
         Unit,
-        KingdomSkipType,
-        HighscoreType,
         KingdomInfo
     },
+    KingdomSkipType,
+    HighscoreType,
     KingdomID,
     AreaType
 }

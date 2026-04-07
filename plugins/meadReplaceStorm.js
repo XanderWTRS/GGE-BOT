@@ -44,7 +44,7 @@ events.once("load", async () => {
             for (let i = 0; i < resource.remainingTime / 60 / 30; i++) {
                 await ClientCommands.getMinuteSkipKingdom("MS3", kingdomID, KingdomSkipType.sendResource)()
             }
-            stormCastle.resourceTransfer?.remainingTime = 0
+            stormCastle.resourceTransfer.remainingTime = 0
         }
         else
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
