@@ -39,12 +39,12 @@ events.once("load", async () => {
         if (stormCastle.getProductionData.maxAmountMead / stormCastle.getProductionData.MeadConsumptionRate < hoursLeftTillRefilWarning)
             console.warn("notEnoughTimeForMeadReplace", hoursLeftTillRefilWarning, "hoursForFoodMeadReplace")
 
-        if (stormCastle?.resourceTransfer.remainingTime >= 
+        if (stormCastle.resourceTransfer?.remainingTime >= 
                 (stormCastle.mead - stormCastle.resourceTransfer.resources.mead) / stormCastle.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
             for (let i = 0; i < resource.remainingTime / 60 / 30; i++) {
                 await ClientCommands.getMinuteSkipKingdom("MS3", kingdomID, KingdomSkipType.sendResource)()
             }
-            stormCastle.resourceTransfer.remainingTime = 0
+            stormCastle.resourceTransfer?.remainingTime = 0
         }
         else
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
