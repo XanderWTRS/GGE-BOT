@@ -22,11 +22,10 @@ cd ..
 git pull 
 
 if gh auth status >/dev/null 2>&1; then
-  cd plugins-extra
   if [ ! -f plugins-extra ]; then
-    mkdir plugins-extra
-    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git .
+    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
   fi
+  cd plugins-extra
   git pull
   cd ..
 fi
