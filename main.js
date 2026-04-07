@@ -799,7 +799,7 @@ async function start() {
             else {
               let restartedUser = false
               for (const [key, value] of Object.entries(oldUser.plugins)) {
-                if (user.plugins[key].state == value.state)
+                if (user.plugins[key]?.state == value.state)
                   continue
                 restartedUser = true
                 removeBot(user.id)
