@@ -469,7 +469,7 @@ let getHonourRanking = async (interaction) => {
 
 let getAllianceQuestPointCount = async (interaction) => {
     await interaction.deferReply()
-    let allianceQuestsScore = await ClientCommands.allianceQuestPointCount()()
+    let allianceQuestsScore = await ClientCommands.allianceQuestPointCount()
     allianceQuestsScore.list.sort((a,b) => a.points - b.points)
     let msg = "```"
     

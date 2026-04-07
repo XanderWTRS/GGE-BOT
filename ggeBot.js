@@ -148,7 +148,7 @@ const playerInfo = {
     isCheater: Boolean(),
     name: String(),
     alliance: {
-        id: String(),
+        id: Number(),
         rank: Number(),
         name: String(),
         fame: Number(),
@@ -256,7 +256,7 @@ events.once("load", async () => {
 
 xtHandler.on("rlu", () => webSocket.send('<msg t="sys"><body action="autoJoin" r="-1"></body></msg>'))
 xtHandler.on("gal", obj => {
-    playerInfo.alliance.id = String(obj.AID)
+    playerInfo.alliance.id = Number(obj.AID)
     playerInfo.alliance.rank = Number(obj.R)
     playerInfo.alliance.name = String(obj.N)
     playerInfo.alliance.fame = Number(obj.ACF)
