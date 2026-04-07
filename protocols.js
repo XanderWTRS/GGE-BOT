@@ -478,8 +478,11 @@ const clientActiveQuestList = async () => {
 //TODO: May conflict with other clientGetMinuteSkipKingdom
 const clientGetMinuteSkipKingdom = async (skipType, kingdomID, kingdomSkipType) => {
     await sendXT("msk", JSON.stringify({ MST: skipType, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
+    const [obj, result] = await waitForResult("msk", 1000 * 10)
+    if(result)
+        return { result }
 
-    return waitForResult("msk", 1000 * 10)
+    return { transferTime : obj.kpi.UT?.find(e => e.KID == KingdomID.berimond)?.RS, result : 0 }
 }
 
 let _activeEventList = {}
@@ -706,11 +709,14 @@ function getKingdomInfoList(obj, result)  {
         })
     }
     if (obj.RT) {
+        castles.forEach(e => e.resourceTransfer = undefined)
         Array.from(obj.RT).map(a =>
             castles.find(e => e.kingdomID == a.KID &&
                 [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type)).resourceTransfer = ResourceTransfer(a))
-    }
+    } else 
+        castles.forEach(e => e.resourceTransfer = undefined)
     if (obj.UT) {
+        castles.forEach(e => e.troopTransfer = undefined)
         Array.from(obj.UT).map(a => {
             const castle = castles.find(e => e.kingdomID == a.KID &&
                 [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type))
@@ -719,10 +725,8 @@ function getKingdomInfoList(obj, result)  {
             
             castle.troopTransfer = TroopTransfer(a)
         })
-    }
-    else {
+    } else 
         castles.forEach(e => e.troopTransfer = undefined)
-    }
 }
 xtHandler.on("kpi", getKingdomInfoList)
 xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))

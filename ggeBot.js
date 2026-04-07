@@ -178,6 +178,9 @@ webSocket.onmessage = e => {
         const [,,cmd,, r, obj] = message.split("%")
         const result = Number(r)
 
+        // if(!["dcl", "fnm"].includes(cmd))
+        //     _console.log(message)
+
         switch (cmd) {
             case "gbd":
                 for (const [key, value] of Object.entries(JSON.parse(obj)))
