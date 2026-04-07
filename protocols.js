@@ -458,7 +458,7 @@ const clientKingdomUnitTransfer = async (skipType, kingdomID, kingdomSkipType) =
 async function clientskipResourceTransfer(sourceAreaID, sourceKingdomID, targetKingdomID, resources) {
     await sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
     
-    const [, result] = await waitForResult("msk", 1000 * 10)
+    const [, result] = await waitForResult("kgt", 1000 * 10)
     return result
 }
 const SubActiveQuests = e => ({
