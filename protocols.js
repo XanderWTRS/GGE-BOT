@@ -438,7 +438,7 @@ const ResourceTransfer = e => ({
 })
 const TroopTransfer = e => ({
     remainingTime: Number(e.RS),
-    units: Array.from(e.I).map(Unit)
+    units: Array.from(e.I ?? []).map(Unit)
 })
 const KingdomInfo = e => ({ //KPI
     unlockInfo: Array.from(e.UL ?? []).map(e => new UnlockInfo(e)),
@@ -477,7 +477,7 @@ const clientActiveQuestList = async () => {
 
 //TODO: May conflict with other clientGetMinuteSkipKingdom
 const clientGetMinuteSkipKingdom = async (skipType, kingdomID, kingdomSkipType) => {
-    await sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
+    await sendXT("msk", JSON.stringify({ MST: skipType, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
 
     return waitForResult("msk", 1000 * 10)
 }
@@ -705,14 +705,24 @@ function getKingdomInfoList(obj, result)  {
             unlockInfoList.push(unlockInfoChanges)
         })
     }
-    if (obj.RT)
+    if (obj.RT) {
         Array.from(obj.RT).map(a =>
             castles.find(e => e.kingdomID == a.KID &&
-                [AreaType.mainCastle, AreaType.externalKingdom].includes(e.areaInfo.type)).resourceTransfer = ResourceTransfer(a))
-    if (obj.UT)
-        Array.from(obj.UT).map(a =>
-            castles.find(e => e.kingdomID == a.KID &&
-                [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type)).troopTransfer = TroopTransfer(a))
+                [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type)).resourceTransfer = ResourceTransfer(a))
+    }
+    if (obj.UT) {
+        Array.from(obj.UT).map(a => {
+            const castle = castles.find(e => e.kingdomID == a.KID &&
+                [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type))
+            if(castle == undefined)
+                debugger
+            
+            castle.troopTransfer = TroopTransfer(a)
+        })
+    }
+    else {
+        castles.forEach(e => e.troopTransfer = undefined)
+    }
 }
 xtHandler.on("kpi", getKingdomInfoList)
 xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))
