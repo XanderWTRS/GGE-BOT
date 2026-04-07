@@ -448,7 +448,7 @@ const KingdomInfo = e => ({ //KPI
 })
 
 //TODO: May conflict with other clientskipResourceTransfer
-const clientSkipUnitTransfer = async (skipType, kingdomID, kingdomSkipType) => {
+const clientKingdomUnitTransfer = async (skipType, kingdomID, kingdomSkipType) => {
     await sendXT("msk", JSON.stringify({ MST: skipType, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
     const [, result] = await waitForResult("msk", 1000 * 10)
     return result
@@ -1287,7 +1287,7 @@ module.exports = {
         getAreaInfo: getAreaInfo,
         startFeast: clientStartFeast,
         getStormIslandInfo: clientGetStormIslandInfo,
-        skipUnitTransfer: clientSkipUnitTransfer,
+        kingdomUnitTransfer: clientKingdomUnitTransfer,
         skipResourceTransfer: clientskipResourceTransfer,
         activeQuestList: clientActiveQuestList,
         joinArea: clientJoinArea,

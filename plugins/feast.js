@@ -29,7 +29,6 @@ const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood
 const minimumFoodRate = pluginOptions.minimumFoodRate ? Number(pluginOptions.minimumFoodRate) : 0
 
 const tryToFeast = async () => {
-    let mainCastleAreaID = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle).id
     let feasts = 0
 
     castles.forEach(castle => {
@@ -37,13 +36,14 @@ const tryToFeast = async () => {
             return
         if (castle.kingdomID == KingdomID.berimond)
             return
-
         let foodRate = castle.getProductionData.deltaFood - castle.getProductionData.FoodConsumptionRate * 
             castle.getProductionData.foodConsumptionReductionPercentage
         if (foodRate < Math.max(0, minimumFoodRate))
             return
-        if (castle.id == mainCastleAreaID && castle.getProductionData.maxAmountFood < castle.food)
+        
+        if(e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle && castle.getProductionData.maxAmountFood < castle.food)
             return
+
         while (minimumFood < (castle.food - feastFoodReduction) && feastFoodReduction <= castle.food) {
             ClientCommands.startFeast(8, castle.id, castle.kingdomID)
             feasts++

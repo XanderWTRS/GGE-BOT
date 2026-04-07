@@ -63,7 +63,7 @@ events.once("load", async () => {
         setTimeout(async () => {
             let amount = Math.floor((stormCastle.getProductionData.maxAmountMead - stormCastle.mead))
 
-            let result = await ClientCommands.skipUnitTransfer(
+            let result = await ClientCommands.kingdomUnitTransfer(
                 mainCastle.id,
                 KingdomID.greatEmpire,
                 kingdomID,

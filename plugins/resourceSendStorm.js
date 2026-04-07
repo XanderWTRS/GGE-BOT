@@ -29,7 +29,7 @@ async function trySendRes() {
             continue
         if (!allowedAIDS.includes(castle.areaID))
             continue
-        if (stormCastle.resourceTransfer?.remainingTime > 0)
+        if (castle.resourceTransfer?.remainingTime > 0)
             continue
 
         let maxWoodToSend = Math.min(castle.getProductionData.maxAmountWood - castle.wood, stormCastle.wood)
@@ -43,8 +43,8 @@ async function trySendRes() {
         if (G.length == 0)
             continue
 
-        let result = await ClientCommands.skipUnitTransfer(stormCastle.areaID, KingdomID.stormIslands, castle.kingdomID, G)
-
+        let result = await ClientCommands.kingdomUnitTransfer(stormCastle.areaID, KingdomID.stormIslands, castle.kingdomID, G)
+        
         if (result != 0)
             continue
 
