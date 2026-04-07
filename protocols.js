@@ -696,6 +696,9 @@ let unlockInfoList = []
 function getKingdomInfoList(obj, result)  {
     if(result != 0)
         return
+    if(!obj)
+        debugger
+    
     if (obj.UL) {
         Array.from(obj.UL).map(e => new UnlockInfo(e)).forEach(unlockInfoChanges => {
             const unlockInfo = unlockInfoList.find(e => e.kingdomID == unlockInfoChanges.kingdomID)
