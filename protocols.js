@@ -451,9 +451,7 @@ const KingdomInfo = e => ({ //KPI
 async function clientGetKingdomInfo(sourceAreaID, sourceKingdomID, targetKingdomID, resources) {
     await sendXT("kgt", JSON.stringify({ SCID: sourceAreaID, SKID: sourceKingdomID, TKID: targetKingdomID, G: resources }))
 
-    const [obj, result] = await waitForResult("kgt", 1000 * 10)
-
-    return KingdomInfo({ ...obj.kpi, result: result })
+    return waitForResult("kgt", 1000 * 10)
 }
 const SubActiveQuests = e => ({
     playerID: Number(e.PID),
@@ -481,9 +479,7 @@ const clientActiveQuestList = async () => {
 const clientGetMinuteSkipKingdom = async (skipType, kingdomID, kingdomSkipType) => {
     await sendXT("msk", JSON.stringify({ MST: `${skipType}`, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
 
-    const [obj, result] = await waitForResult("msk", 1000 * 10)
-
-    return KingdomInfo({ ...obj.kpi, result: result })
+    return waitForResult("msk", 1000 * 10)
 }
 
 let _activeEventList = {}
@@ -720,6 +716,9 @@ function getKingdomInfoList(obj, result)  {
 }
 xtHandler.on("kpi", getKingdomInfoList)
 xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))
+xtHandler.on("kgt", (obj, result) => getKingdomInfoList(obj?.kpi, result))
+xtHandler.on("msk", (obj, result) => getKingdomInfoList(obj?.kpi, result))
+xtHandler.on("kut", (obj, result) => getKingdomInfoList(obj?.kpi, result))
 
 const decapitalizeFirstLetter = val => 
     String(val).charAt(0).toLowerCase() + String(val).slice(1)
