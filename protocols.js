@@ -717,8 +717,12 @@ function getKingdomInfoList(obj, result)  {
 xtHandler.on("kpi", getKingdomInfoList)
 xtHandler.on("fjf", (obj, result) => getKingdomInfoList(obj?.kpi, result))
 xtHandler.on("kgt", (obj, result) => getKingdomInfoList(obj?.kpi, result))
-xtHandler.on("msk", (obj, result) => getKingdomInfoList(obj?.kpi, result))
-xtHandler.on("kut", (obj, result) => getKingdomInfoList(obj?.kpi, result))
+xtHandler.on("msk", (obj, result) => {
+    getKingdomInfoList(obj?.kpi, result)
+})
+xtHandler.on("kut", (obj, result) => {
+    getKingdomInfoList(obj, result)
+})
 
 const decapitalizeFirstLetter = val => 
     String(val).charAt(0).toLowerCase() + String(val).slice(1)
