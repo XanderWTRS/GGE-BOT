@@ -478,11 +478,8 @@ const clientActiveQuestList = async () => {
 //TODO: May conflict with other clientGetMinuteSkipKingdom
 const clientGetMinuteSkipKingdom = async (skipType, kingdomID, kingdomSkipType) => {
     await sendXT("msk", JSON.stringify({ MST: skipType, KID: `${kingdomID}`, TT: `${kingdomSkipType}` }))
-    const [obj, result] = await waitForResult("msk", 1000 * 10)
-    if(result)
-        return { result }
-
-    return { transferTime : obj.kpi.UT?.find(e => e.KID == KingdomID.berimond)?.RS, result : 0 }
+    const [, result] = await waitForResult("msk", 1000 * 10)
+    return result
 }
 
 let _activeEventList = {}
@@ -735,7 +732,7 @@ xtHandler.on("msk", (obj, result) => {
     getKingdomInfoList(obj?.kpi, result)
 })
 xtHandler.on("kut", (obj, result) => {
-    getKingdomInfoList(obj, result)
+    getKingdomInfoList(obj.kpi, result)
 })
 
 const decapitalizeFirstLetter = val => 
