@@ -25,12 +25,17 @@ cd ..
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   if not exist "plugins-extra" (
-    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
-  ) else (
-    cd plugins-extra
-    git pull origin main
-    cd ..
+    mkdir plugins-extra
   )
+  cd plugins-extra
+  git init -b main >NUL 2>&1
+  git remote add origin https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git >NUL 2>&1
+  git add . >NUL 2>&1
+  git fetch origin >NUL 2>&1
+  git reset --hard >NUL 2>&1
+  git clean -f -d >NUL 2>&1
+  git pull origin main >NUL 2>&1
+  cd ..
 )
 
 echo "Last commit message:"

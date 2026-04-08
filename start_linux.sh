@@ -23,10 +23,16 @@ git pull origin main --recurse-submodules
 
 if gh auth status >/dev/null 2>&1; then
   if [ ! -f "plugins-extra" ]; then
-    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
+    mkdir plugins-extra
   fi
   cd plugins-extra
-  git pull origin main 
+  git init -b main >NUL 2>&1
+  git remote add origin https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git >NUL 2>&1
+  git add . >NUL 2>&1
+  git fetch origin >NUL 2>&1
+  git reset --hard >NUL 2>&1
+  git clean -f -d >NUL 2>&1
+  git pull origin main >NUL 2>&1
   cd ..
 fi
 
