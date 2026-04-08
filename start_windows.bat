@@ -19,13 +19,15 @@ git config --local core.hooksPath .githooks/
 cd website 
 git config --local core.hooksPath .githooks/
 cd ..
-git pull
+git pull origin main --recurse-submodules
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   if not exist "plugins-extra" (
     git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
   )
-  git pull
+  cd plugins-extra
+  git pull origin main
+  cd ..
 )
 
 echo "Last commit message:"

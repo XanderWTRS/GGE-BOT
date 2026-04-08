@@ -19,14 +19,14 @@ cd website
 git config --local core.hooksPath .githooks/
 cd ..
 
-git pull 
+git pull origin main --recurse-submodules
 
 if gh auth status >/dev/null 2>&1; then
   if [ ! -f "plugins-extra" ]; then
     git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
   fi
   cd plugins-extra
-  git pull
+  git pull origin main 
   cd ..
 fi
 
