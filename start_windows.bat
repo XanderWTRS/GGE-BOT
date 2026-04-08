@@ -22,13 +22,10 @@ cd ..
 git pull
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
-  cd "plugins-extra"
   if not exist "plugins-extra" (
-    mkdir plugins-extra
-    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git .
+    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
   )
   git pull
-  cd ..
 )
 
 echo "Last commit message:"
