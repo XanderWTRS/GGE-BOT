@@ -129,38 +129,38 @@ events.on("eventStart", async eventInfo => {
                     const unit = castle.unitInventory[i]
 
 
-                    if (unitInfo.wodID == 277)
+                    if (unit.unitInfo.wodID == 277)
                         continue
 
-                    else if (unitInfo.pointBonus && !pluginOptions.noEventTools) {
-                        if (unitInfo.gateBonus)
+                    else if (unit.unitInfo.pointBonus && !pluginOptions.noEventTools) {
+                        if (unit.unitInfo.gateBonus)
                             attackerGateBerimondTools.push(unit)
-                        else if (unitInfo.wallBonus)
+                        else if (unit.unitInfo.wallBonus)
                             attackerWallBerimondTools.push(unit)
-                        else if (unitInfo.defRangeBonus)
+                        else if (unit.unitInfo.defRangeBonus)
                             attackerShieldBerimondTools.push(unit)
                         else if (!pluginOptions.reputation)
                             attackerBerimondTools.push(unit)
                     }
-                    else if (unitInfo.reputationBonus && pluginOptions.reputation && !pluginOptions.noEventTools) {
+                    else if (unit.unitInfo.reputationBonus && pluginOptions.reputation && !pluginOptions.noEventTools) {
                         attackerBerimondTools.push(unit)
                     }
                     else if (
-                        unitInfo.toolCategory &&
-                        unitInfo.usageEventID == undefined &&
-                        unitInfo.allowedToAttack == undefined &&
-                        unitInfo.typ == 'Attack' &&
-                        unitInfo.amountPerWave == undefined
+                        unit.unitInfo.toolCategory &&
+                        unit.unitInfo.usageEventID == undefined &&
+                        unit.unitInfo.allowedToAttack == undefined &&
+                        unit.unitInfo.typ == 'Attack' &&
+                        unit.unitInfo.amountPerWave == undefined
                     ) {
-                        if (unitInfo.wallBonus)
+                        if (unit.unitInfo.wallBonus)
                             attackerWallTools.push(unit)
-                        else if (unitInfo.defRangeBonus)
+                        else if (unit.unitInfo.defRangeBonus)
                             attackerShieldTools.push(unit)
                     }
-                    else if (unitInfo.fightType == 0) {
-                        if (unitInfo.role == "melee")
+                    else if (unit.unitInfo.fightType == 0) {
+                        if (unit.unitInfo.role == "melee")
                             attackerMeleeTroops.push(unit)
-                        else if (unitInfo.role == "ranged")
+                        else if (unit.unitInfo.role == "ranged")
                             attackerRangeTroops.push(unit)
                     }
                 }

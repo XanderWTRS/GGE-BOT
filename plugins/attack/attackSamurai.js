@@ -182,35 +182,35 @@ events.on("eventStart", async eventInfo => {
                     if (unit.amount <= 0)
                         continue
 
-                    if (unitInfo.wodID == 277)
+                    if (unit.unitInfo.wodID == 277)
                         continue
 
-                    else if (unitInfo.samuraiTokenBooster != undefined) {
-                        if (unitInfo.gateBonus)
+                    else if (unit.unitInfo.samuraiTokenBooster != undefined) {
+                        if (unit.unitInfo.gateBonus)
                             attackerGateSamuraiTools.push(unit)
-                        else if (unitInfo.wallBonus)
+                        else if (unit.unitInfo.wallBonus)
                             attackerWallSamuraiTools.push(unit)
-                        else if (unitInfo.defRangeBonus)
+                        else if (unit.unitInfo.defRangeBonus)
                             attackerShieldSamuraiTools.push(unit)
                         else
                             attackerSamuraiTools.push(unit)
                     }
                     else if (
-                        unitInfo.toolCategory &&
-                        unitInfo.usageEventID == undefined &&
-                        unitInfo.allowedToAttack == undefined &&
-                        unitInfo.typ == 'Attack' &&
-                        unitInfo.amountPerWave == undefined
+                        unit.unitInfo.toolCategory &&
+                        unit.unitInfo.usageEventID == undefined &&
+                        unit.unitInfo.allowedToAttack == undefined &&
+                        unit.unitInfo.typ == 'Attack' &&
+                        unit.unitInfo.amountPerWave == undefined
                     ) {
-                        if (unitInfo.wallBonus)
+                        if (unit.unitInfo.wallBonus)
                             attackerWallTools.push(unit)
-                        else if (unitInfo.defRangeBonus)
+                        else if (unit.unitInfo.defRangeBonus)
                             attackerShieldTools.push(unit)
                     }
-                    else if (unitInfo.fightType == 0) {
-                        if (unitInfo.role == "melee")
+                    else if (unit.unitInfo.fightType == 0) {
+                        if (unit.unitInfo.role == "melee")
                             attackerMeleeTroops.push(unit)
-                        else if (unitInfo.role == "ranged")
+                        else if (unit.unitInfo.role == "ranged")
                             attackerRangeTroops.push(unit)
                     }
                 }
