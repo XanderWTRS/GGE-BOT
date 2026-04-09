@@ -46,7 +46,7 @@ if (require('node:worker_threads').isMainThread) {
     })
 }
 
-const { getCommanderStats } = require("../../getEquipment.js")
+
 const { movementEvents, ClientCommands, AreaType, KingdomID, movements, spiralCoordinates, castles } = require("../../protocols.js")
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
@@ -160,8 +160,7 @@ events.once("load", async () => {
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(pluginOptions.commanderWhiteList, undefined,
-            (a, b) => getCommanderStats(b).lootBonus - getCommanderStats(a).lootBonus)
-
+            (a, b) => b.getEffects().lootBonus - a.getEffects().lootBonus)
         try {
             const attackInfo = await waitToAttack(async () => {
                 let index = -1
@@ -239,7 +238,7 @@ events.once("load", async () => {
                 if (allTroopCount < minTroopCount)
                     throw "NO_MORE_TROOPS"
 
-                const commanderStats = getCommanderStats(commander)
+                const commanderStats = commander.getEffects()
                 const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, 3, pluginOptions, commanderStats.additionalWaves)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
                 const maxToolsFlank = 10

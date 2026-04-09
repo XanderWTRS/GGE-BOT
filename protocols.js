@@ -6,8 +6,18 @@ const { waitForResult, sendXT, xtHandler, events, status, playerInfo } = require
 const currencies = require("./items/currencies.json")
 const ActionType = require("./actions.json")
 const units = require("./items/units.json")
+const effects = require("./items/effects.json")
+const effectTypes = require("./items/effecttypes.json")
+const effectCaps = require("./items/effectCaps.json")
+const generalSkills = require("./items/generalSkills.json")
+const relicEffects = require("./items/relicEffects.json")
+const equipmentEffects = require("./items/equipment_effects.json")
 
 const myCache = new NodeCache({useClones : false})
+
+let generals = []
+
+xtHandler.on("gie", obj => generals = obj.G)
 
 function spiralCoordinates(n) {
     if (n === 0) return { x: 0, y: 0 }
@@ -1072,13 +1082,87 @@ class Lord {
         // this.??? = Number(e.W)
         // this.??? = Number(e.D)
         // this.??? = Number(e.SPR)
-        this.EQ = e.EQ ? Array.from(e.EQ) : undefined
         // this.??? = Array.from(e.GASAIDS)
         // this.??? = Array.from(e.SIDS)
         // this.??? = Array.from(e.AE)
 
         // setEffects = ()
         // areaTypeEffects = ()
+
+        let ungroupedActiveEffects = {}
+
+        generals.find(a => a.GID == e.generalID)?.SIDS.forEach(skillID => {
+            const generalSkill = generalSkills.find(e => e.skillID == skillID)
+            if (!generalSkill)
+                return
+
+            const [effectID, value] = generalSkill.effects.split("&")
+            let effect = effects.find(e => e.effectID == effectID)
+
+            let maxCap = Number(effectCaps.find(e => e.capID == effect.capID)?.maxTotalBonus ?? Infinity)
+
+            ungroupedActiveEffects[effectID] = Math.min(maxCap, (ungroupedActiveEffects[effectID] ?? 0) + Number(value))
+        })
+        this.areaEffects = {}
+
+        e.EQ.forEach(equipment => {
+            const isRelic = equipment[11] == 3
+            const getEffects = ([id, var1, var2]) => {
+                const effectValues = isRelic ? var2 : var1
+                const { effectID } = isRelic ? relicEffects.find(e => e.id == id) : equipmentEffects.find(e => e.equipmentEffectID == id)
+
+                if (effectID == undefined)
+                    return
+
+                let { areaTypeID, capID } = effects.find(e => e.effectID == effectID)
+
+                if (areaTypeID)
+                    return areaTypeID.split(',').map(Number).forEach(areaType => {
+                        const maxCap = Number(effectCaps.find(e => e.capID == capID).maxTotalBonus ?? Infinity)
+
+                        this.areaEffects[areaType] ??= {}
+                        this.areaEffects[areaType][effectID] = Math.min(maxCap, (this.areaEffects[areaType][effectID] ?? 0) + Number(effectValues[0]))
+                    })
+
+                let maxCap = Number(effectCaps.find(e => e.capID == capID).maxTotalBonus ?? Infinity)
+
+                ungroupedActiveEffects[effectID] = Math.min(maxCap, (ungroupedActiveEffects[effectID] ?? 0) + Number(effectValues[0]))
+            }
+            equipment[5]?.forEach(getEffects)
+            equipment[12]?.[3]?.[4]?.forEach(getEffects)
+        })
+
+        this.effects = {}
+
+        for (const key in ungroupedActiveEffects) {
+            const { effectTypeID } = effects.find(e => e.effectID == key)
+            const { name } = effectTypes.find(e => e.effectTypeID == effectTypeID)
+            this.effects[name] ??= 0
+            this.effects[name] += ungroupedActiveEffects[key]
+        }
+    }
+    getEffects(type, areaEffects) {
+        if(type == undefined && areaEffects == undefined)
+            return this.effects
+
+        let activeEffects = {...this.effects}
+        let ungroupedActiveEffects = this.areaEffects[type] ?? {}
+        
+        areaEffects?.forEach(([effectID, effectValues]) => {
+            let effect = effects.find(e => e.effectID == effectID)
+
+            let maxCap = Number(effectCaps.find(e => e.capID == effect.capID)?.maxTotalBonus ?? Infinity)
+
+            ungroupedActiveEffects[effectID] = Math.min(maxCap, (ungroupedActiveEffects[effectID] ?? 0) + Number(effectValues[0]))
+        })
+
+        for (const key in ungroupedActiveEffects) {
+            const { effectTypeID } = effects.find(e => e.effectID == key)
+            const { name } = effectTypes.find(e => e.effectTypeID == effectTypeID)
+            activeEffects[name] ??= 0
+            activeEffects[name] += ungroupedActiveEffects[key]
+        }
+        return activeEffects
     }
 }
 /** @type {Array<Movement>} */

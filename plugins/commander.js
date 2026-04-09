@@ -41,6 +41,13 @@ movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTyp
 
     freeCommander(movement.lord.lordID)
 })
+/**
+ * 
+ * @param {string} commanderWhitelist 
+ * @param {filterCallback} filterCallback 
+ * @param {sortCallback} sortCallback 
+ * @returns 
+ */
 
 const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sortCallback) => {
     if (![, 0, ""].includes(commanderWhitelist) &&
@@ -69,7 +76,7 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
 
     lordID ??= await new Promise(resolve => {
         const checkForCommander = currentEvent => {
-            const commander = commanders.find(e => e.ID == currentEvent.detail)
+            const commander = commanders.find(e => e.lordID == currentEvent.detail)
             if (!commanderWhitelist) {
                 event.removeEventListener("freedCommander", checkForCommander)
                 currentEvent.stopImmediatePropagation()
@@ -90,6 +97,14 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
     useCommander(lordID)
     return commanders.find(e => e.lordID == lordID)
 }
+
+/**
+ * @callback filterCallback
+ * @param {import("../protocols.js").ClassTypes.Lord}
+ * @callback sortCallback
+ * @param {import("../protocols.js").ClassTypes.Lord}
+ * @param {import("../protocols.js").ClassTypes.Lord}
+ */
 
 module.exports = {
     movementEvents,

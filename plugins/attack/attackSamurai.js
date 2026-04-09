@@ -58,7 +58,7 @@ const { movementEvents, ClassTypes, castles, AreaType, KingdomID, ClientCommands
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
-const { getCommanderStats } = require("../../getEquipment")
+
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const ggeConfig = require("../../ggeConfig.json")
 const samuraiCampsClassic = require("../../items/samuraiCamps.json")
@@ -248,7 +248,7 @@ events.on("eventStart", async eventInfo => {
                 attackerWallSamuraiTools.push(...attackerWallTools)
                 attackerShieldSamuraiTools.push(...attackerShieldTools)
 
-                const commanderStats = getCommanderStats(commander)
+                const commanderStats = commander.getEffects()
                 const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)

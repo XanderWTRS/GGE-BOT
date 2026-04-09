@@ -69,7 +69,7 @@ const { movementEvents, AreaType, KingdomID, castles, ClientCommands } = require
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander.js")
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require("../../ggeBot.js")
-const { getCommanderStats } = require("../../getEquipment.js")
+
 const eventsDifficulties = require("../../items/eventAutoScalingDifficulties.json")
 const eventAutoScalingCamps = require("../../items/eventAutoScalingCamps.json")
 const nomadCampsClassic = require("../../items/nomadCamps.json")
@@ -262,7 +262,7 @@ events.on("eventStart", async eventInfo => {
 
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)
                 const maxToolsFront = getTotalAmountToolsFront(level)
-                const commanderStats = getCommanderStats(commander)
+                const commanderStats = commander.getEffects()
                 const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)

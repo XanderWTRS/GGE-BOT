@@ -8,7 +8,7 @@ const { movements, movementEvents, castles, ClientCommands, AreaType, KingdomID,
 const { waitToAttack, getAttackInfo, assignUnit, getAmountSoldiersFlank, getMaxUnitsInReinforcementWave } = require("./attack")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require("../commander")
 const { sendXT, waitForResult, playerInfo } = require("../../ggeBot.js")
-const { getCommanderStats } = require('../../getEquipment')
+
 const err = require('../../err.json')
 
 const minTroopCount = 100
@@ -26,9 +26,9 @@ async function fortressHit(kingdomID, level, options) {
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList,
             undefined,
-            (a, b) => getCommanderStats(b).speedBonus - getCommanderStats(a).speedBonus)
+            (a, b) => b.getEffects().speedBonus - a.getEffects().speedBonus)
 
-        const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
+        const hasShieldMadiens = commander.getEffects().AttackSupportUnits
         try {
             const attackInfo = await waitToAttack(async () => {
                 let index = -1

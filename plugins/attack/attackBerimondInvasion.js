@@ -44,7 +44,7 @@ const { movementEvents, ClassTypes, castles, ClientCommands, AreaType, KingdomID
 const { waitToAttack, getAttackInfo, assignUnit, getTotalAmountToolsFlank, getTotalAmountToolsFront, getAmountSoldiersFlank, getAmountSoldiersFront, getMaxUnitsInReinforcementWave } = require("./attack.js")
 const { waitForCommanderAvailable, freeCommander, useCommander } = require('../commander.js')
 const { sendXT, waitForResult, xtHandler, events, playerInfo, botConfig } = require('../../ggeBot.js')
-const { getCommanderStats } = require('../../getEquipment.js')
+
 
 const pretty = require('pretty-time')
 
@@ -203,7 +203,7 @@ events.on("eventStart", async eventInfo => {
                 attackerWallBerimondTools.push(...attackerWallTools)
                 attackerShieldBerimondTools.push(...attackerShieldTools)
 
-                const commanderStats = getCommanderStats(commander)
+                const commanderStats = commander.getEffects()
                 const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, undefined, pluginOptions, commanderStats.additionalWaves)
 
                 const maxToolsFlank = getTotalAmountToolsFlank(level, 0)

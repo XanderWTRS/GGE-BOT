@@ -2,7 +2,7 @@ if (require("node:worker_threads").isMainThread)
     return module.exports = { hidden: true }
 
 const pretty = require("pretty-time")
-const { getCommanderStats } = require("../../getEquipment")
+
 const { spendSkip, haveEnoughSkips } = require("../skips.js")
 const { castles, ClientCommands, AreaType, KingdomID, movements, movementEvents, resources } = require("../../protocols")
 const {
@@ -63,7 +63,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList)
-        const hasShieldMadiens = !(((commander.EQ[3] ?? [])[5]?.every(([id, _]) => id == 121 ? false : true)) ?? true)
+        const hasShieldMadiens = commander.getEffects(type).AttackSupportUnits
         try {
             const attackInfo = await waitToAttack(async () => {
                 let index = -1
@@ -150,7 +150,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     Number(a.unitInfo.defRangeBonus) - Number(b.unitInfo.defRangeBonus))
 
                 const autoConfigure = !(options.attackLeft || options.attackRight || options.attackMiddle)
-                const commanderStats = getCommanderStats(commander)
+                const commanderStats = commander.getEffects()
                 const attackInfo = getAttackInfo(kingdomID, castle, areaInfo, commander, level, parseInt(options.attackWaves), options, commanderStats.additionalWaves)
                 const maxTroopFront = getAmountSoldiersFront(level, commanderStats.attackUnitAmountFront)
                 const maxTroopFlank = getAmountSoldiersFlank(level, commanderStats.attackUnitAmountFlank)
