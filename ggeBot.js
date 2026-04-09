@@ -70,7 +70,7 @@ async function sendXT(cmdName, paramObj) {
 }
 
 let importantErrors = 0
-
+let timedOut = 0
 /**
  * 
  * @param {string} key 
@@ -108,6 +108,12 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             xtHandler.removeListener(key, helperFunction)
             const msg = (result == undefined || result == 0) ? "TIMED_OUT" : !err[result] ? result : err[result]
             result = -1
+
+            if(msg == "TIMED_OUT") {
+                if(timedOut++ == 5) {
+                    process.exit(0)
+                }
+            }
             
             console.warn(key, msg)
 

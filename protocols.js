@@ -1076,6 +1076,9 @@ class Lord {
         // this.??? = Array.from(e.GASAIDS)
         // this.??? = Array.from(e.SIDS)
         // this.??? = Array.from(e.AE)
+
+        // setEffects = ()
+        // areaTypeEffects = ()
     }
 }
 /** @type {Array<Movement>} */

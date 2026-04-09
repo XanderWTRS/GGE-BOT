@@ -41,7 +41,7 @@ const tryToFeast = async () => {
         if (foodRate < Math.max(0, minimumFoodRate))
             return
         
-        if(e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle && castle.getProductionData.maxAmountFood < castle.food)
+        if(castle.kingdomID == KingdomID.greatEmpire && castle.areaInfo.type == AreaType.mainCastle && castle.getProductionData.maxAmountFood < castle.food)
             return
 
         while (minimumFood < (castle.food - feastFoodReduction) && feastFoodReduction <= castle.food) {
