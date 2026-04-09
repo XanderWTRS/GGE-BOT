@@ -1105,7 +1105,7 @@ class Lord {
         })
         this.areaEffects = {}
 
-        e.EQ.forEach(equipment => {
+        e.EQ?.forEach(equipment => {
             const isRelic = equipment[11] == 3
             const getEffects = ([id, var1, var2]) => {
                 const effectValues = isRelic ? var2 : var1
