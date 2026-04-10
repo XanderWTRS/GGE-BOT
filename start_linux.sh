@@ -36,6 +36,18 @@ if gh auth status >/dev/null 2>&1; then
   cd ..
 fi
 
+if [ ! -f "website" ]; then
+  git clone https://github.com/darrenthebozz/GGE-BOT-Website.git website
+fi
+if [ -f "plugins-extra" ]; then
+  git config --local core.hooksPath .githooks/
+  cd "website"
+  git pull
+  cd ..
+fi
+
+  
+
 echo "Last commit message:"
 git show --format=%s -s
 

@@ -32,7 +32,6 @@ if not exist "website" (
 )
 if exist "website" (
   git config --local core.hooksPath .githooks/
-  cd ..
   cd "website"
   git pull
   cd ..
