@@ -10,31 +10,31 @@ if not exist ".git"\ (
   git reset --hard >NUL 2>&1
   git clean -f -d >NUL 2>&1
   git pull origin main >NUL 2>&1
-  
-  git submodule deinit -f website >NUL 2>&1
-  git submodule init website >NUL 2>&1
 )
 
-git pull origin main --recurse-submodules
-
 git config --local core.hooksPath .githooks/
-cd website 
-git config --local core.hooksPath .githooks/
-cd ..
+git pull origin main
 
 gh auth status >NUL 2>&1
 if %ERRORLEVEL% EQU 0 (
   if not exist "plugins-extra" (
-    mkdir plugins-extra
+    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
   )
-  cd plugins-extra
-  git init -b main >NUL 2>&1
-  git remote add origin https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git >NUL 2>&1
-  git add . >NUL 2>&1
-  git fetch origin >NUL 2>&1
-  git reset --hard >NUL 2>&1
-  git clean -f -d >NUL 2>&1
-  git pull origin main >NUL 2>&1
+  if exist "plugins-extra" (
+    cd "plugins-extra"
+    git pull
+    cd ..
+  )
+)
+
+if not exist "website" (
+  git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
+)
+if exist "website" (
+  git config --local core.hooksPath .githooks/
+  cd ..
+  cd "website"
+  git pull
   cd ..
 )
 
