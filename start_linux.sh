@@ -21,7 +21,7 @@ if gh auth status >/dev/null 2>&1; then
   fi
   if [ -f "plugins-extra" ]; then
     cd plugins-extra
-    git pull
+    git pull origin main
     cd ..
   fi
   
@@ -33,7 +33,7 @@ fi
 if [ -f "plugins-extra" ]; then
   cd "website"
   git config --local core.hooksPath .githooks/
-  git pull
+  git pull origin main
   cd ..
 fi
   

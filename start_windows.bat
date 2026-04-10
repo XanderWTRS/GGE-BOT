@@ -22,7 +22,7 @@ if %ERRORLEVEL% EQU 0 (
   )
   if exist "plugins-extra" (
     cd "plugins-extra"
-    git pull
+    git pull origin main
     cd ..
   )
 )
@@ -33,7 +33,7 @@ if not exist "website" (
 if exist "website" (
   cd "website"
   git config --local core.hooksPath .githooks/
-  git pull
+  git pull origin main
   cd ..
 )
 
