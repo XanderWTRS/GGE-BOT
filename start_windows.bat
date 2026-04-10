@@ -28,7 +28,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 if not exist "website" (
-  git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
+  git clone https://github.com/darrenthebozz/GGE-BOT-Website.git website
 )
 if exist "website" (
   git config --local core.hooksPath .githooks/
