@@ -1272,7 +1272,7 @@ xtHandler.on("dms", ({MID}) => MID.forEach(movementID => () => {
 async function clientGetAllianceByID(allianceID) {
     await sendXT("ain", JSON.stringify({ AID: allianceID }))
 
-    const [obj, result] = await waitForResult("ain", 1000 * 10, obj =>
+    const [obj, result] = await waitForResult("ain", 1000 * 10, (obj, result) =>
         result != 0 || obj?.A.AID == allianceID)
 
     return result == 0 ? Alliance(obj.A) : { result }
