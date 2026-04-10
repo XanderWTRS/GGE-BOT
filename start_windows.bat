@@ -31,8 +31,8 @@ if not exist "website" (
   git clone https://github.com/darrenthebozz/GGE-BOT-Website.git website
 )
 if exist "website" (
-  git config --local core.hooksPath .githooks/
   cd "website"
+  git config --local core.hooksPath .githooks/
   git pull
   cd ..
 )

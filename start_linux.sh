@@ -9,43 +9,33 @@ if [ ! -d ".git" ]; then
   git reset --hard 
   git clean -f -d
   git pull origin main
-  git submodule deinit -f website
-  git submodule init website
-  git submodule update --init -f website
 fi
 
 git config --local core.hooksPath .githooks/
-cd website 
-git config --local core.hooksPath .githooks/
-cd ..
 
-git pull origin main --recurse-submodules
+git pull origin main
 
 if gh auth status >/dev/null 2>&1; then
   if [ ! -f "plugins-extra" ]; then
-    mkdir plugins-extra
+    git clone https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git plugins-extra
   fi
-  cd plugins-extra
-  git init -b main >NUL 2>&1
-  git remote add origin https://github.com/darrenthebozz/GGE-BOT-Extra-Plugins.git >NUL 2>&1
-  git add . >NUL 2>&1
-  git fetch origin >NUL 2>&1
-  git reset --hard >NUL 2>&1
-  git clean -f -d >NUL 2>&1
-  git pull origin main >NUL 2>&1
-  cd ..
+  if [ -f "plugins-extra" ]; then
+    cd plugins-extra
+    git pull
+    cd ..
+  fi
+  
 fi
 
 if [ ! -f "website" ]; then
   git clone https://github.com/darrenthebozz/GGE-BOT-Website.git website
 fi
 if [ -f "plugins-extra" ]; then
-  git config --local core.hooksPath .githooks/
   cd "website"
+  git config --local core.hooksPath .githooks/
   git pull
   cd ..
 fi
-
   
 
 echo "Last commit message:"
