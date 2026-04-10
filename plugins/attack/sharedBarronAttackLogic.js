@@ -124,6 +124,8 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                     }
                     else if (unit.unitInfo.fightType == 0 &&
                         unit.unitInfo.beefSupply == undefined) {
+                        if(options.foodTroopsOnly && unit.unitInfo.meadSupply)
+                            continue
                         if (options.useDogs && !unit.unitInfo.wodID == 277)
                             continue
                         if (!options.useDogs && unit.unitInfo.wodID == 277)

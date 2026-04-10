@@ -37,6 +37,11 @@ if (require('node:worker_threads').isMainThread)
                 key: "useDogs",
                 default: false
             },
+            {
+                type: "Checkbox",
+                key: "foodTroopsOnly",
+                default: false
+            },
             { type: "Label", key: "attackSettings" },
             {
                 type: "Checkbox",

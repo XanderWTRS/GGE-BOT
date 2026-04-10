@@ -50,6 +50,11 @@ if (require('node:worker_threads').isMainThread)
                 default: true
             },
             {
+                type: "Checkbox",
+                key: "foodTroopsOnly",
+                default: false
+            },
+            {
                 type: "Text",
                 key: "commanderWhiteList",
                 default: "1-99"
@@ -218,6 +223,8 @@ events.on("eventStart", async eventInfo => {
                             attackerShieldTools.push(unit)
                     }
                     else if (unit.unitInfo.fightType == 0 && !unit.unitInfo.beefSupply) {
+                        if(pluginOptions.foodTroopsOnly && unit.unitInfo.meadSupply)
+                            continue
                         if (unit.unitInfo.foodSupply && !pluginOptions.useFood)
                             continue
                         if (unit.unitInfo.role == "melee")

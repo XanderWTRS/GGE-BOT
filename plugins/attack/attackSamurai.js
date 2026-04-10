@@ -46,6 +46,11 @@ if (require('node:worker_threads').isMainThread)
                 default: false
             },
             {
+                type: "Checkbox",
+                key: "foodTroopsOnly",
+                default: false
+            },
+            {
                 type: "Text",
                 key: "scoreShutoff"
             }
@@ -208,6 +213,8 @@ events.on("eventStart", async eventInfo => {
                             attackerShieldTools.push(unit)
                     }
                     else if (unit.unitInfo.fightType == 0) {
+                        if(pluginOptions.foodTroopsOnly && unit.unitInfo.meadSupply)
+                            continue
                         if (unit.unitInfo.role == "melee")
                             attackerMeleeTroops.push(unit)
                         else if (unit.unitInfo.role == "ranged")

@@ -61,6 +61,11 @@ if (require('node:worker_threads').isMainThread)
                 default: true
             },
             {
+                type: "Checkbox",
+                key: "foodTroopsOnly",
+                default: false
+            },
+            {
                 type: "Text",
                 key: "scoreShutoff",
                 default: "881100"
@@ -248,6 +253,8 @@ events.on("eventStart", async ({ EID, EDID }) => {
                             attackerShieldTools.push(unit)
                     }
                     else if (unit.unitInfo.fightType == 0 && !unit.unitInfo.beefSupply) {
+                        if(pluginOptions.foodTroopsOnly && unit.unitInfo.meadSupply)
+                            continue
                         if (troopBlackList.includes(unit))
                             continue
                         if (unit.unitInfo.foodSupply && !pluginOptions.useFood)

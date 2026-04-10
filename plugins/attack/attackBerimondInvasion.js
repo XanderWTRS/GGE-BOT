@@ -35,6 +35,11 @@ if (require('node:worker_threads').isMainThread)
                 type: "Checkbox",
                 key: "reputation",
                 default: false
+            },
+            {
+                type: "Checkbox",
+                key: "foodTroopsOnly",
+                default: false
             }
         ]
 
