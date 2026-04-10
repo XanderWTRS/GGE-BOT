@@ -10,6 +10,6 @@ ItemsVersion.properties
 lang/*
 1.xml
 test.js
-plugins-personal/*
+plugins-personal
 update
-plugins-extra/*
+plugins-extra
