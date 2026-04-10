@@ -271,6 +271,7 @@ async function clientGetNextMapObject(type, kingdomID) {
 
 const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" })
 
+let currentCastle = undefined
 /**
  * 
  * @param {Number} kingdomID 
@@ -285,7 +286,7 @@ async function getAreaInfo(kingdomID, fromX, fromY, toX, toY) {
     let response = myCache.get(key)
     
     if(!response) {
-        await limiter.removeTokens(1).then(() => kingdomLock(() =>
+        await limiter.removeTokens(1).then(() => setCastle(undefined, () =>
             sendXT("gaa", JSON.stringify({
                 KID: Number(kingdomID),
                 AX1: Number(fromX),
@@ -1000,7 +1001,7 @@ async function clientJoinArea(x, y, kingdomID) {
 async function clientJoinCastle(areaID, kingdomID) {
     await sendXT("jca", JSON.stringify({ CID: areaID, KID: kingdomID }))
 
-    const [obj] = await waitForResult("jaa", 1000 * 10, (o, r) => {
+    const [obj, r] = await waitForResult("jaa", 1000 * 10, (o, r) => {
         return r != 0 || o.grc.KID == kingdomID && o.grc.AID == areaID
     })
     obj.grc.gca ??= obj.gca
@@ -1015,6 +1016,7 @@ async function clientJoinCastle(areaID, kingdomID) {
         debugger
 
     Object.assign(castle, castleChanges)
+    return r
 }
 
 async function clientSearchPlayerName(playerName) {
@@ -1042,33 +1044,6 @@ async function clientAllianceQuestPointCount() {
 
     return result == 0 ? AllianceQuestPointCount(obj) : result
 }
-
-let kingdomLockCallbacks = []
-let kingdomLockInUse = false
-
-let kingdomLock = callback => new Promise(async (resolve, reject) => {
-    if (callback)
-        kingdomLockCallbacks.push(async () => {
-            try {
-                resolve(await callback())
-            }
-            catch (e) {
-                reject(e)
-            }
-        })
-    else resolve()
-
-    if (kingdomLockInUse)
-        return
-
-    kingdomLockInUse = true
-
-    while (kingdomLockCallbacks.length > 0) {
-        await (kingdomLockCallbacks.shift())()
-    }
-    
-    kingdomLockInUse = false
-})
 
 class Lord {
     constructor(e) {
@@ -1358,9 +1333,57 @@ function updateStatus() {
 xtHandler.on("gcu", updateStatus)
 xtHandler.on("sce", updateStatus)
 
+let kingdomCallbacks = new Map()
+let kingdomInUse = false
+
+let setCastle = (castle, callback) => new Promise(async (resolve, reject) => {
+    let callbacks = kingdomCallbacks.get(castle)
+    if(!callbacks) {
+        callbacks = []
+        kingdomCallbacks.set(castle, callbacks)
+    }
+    
+    callbacks.push(async castle => {
+        try {
+            if (castle && currentCastle != castle) {
+                console.log("Changing kingdoms")
+                if(await clientJoinCastle(castle.id, castle.kingdomID) != 0)
+                    throw new Error("FAILED_TO_SET_CASTLE")
+            }
+            if(currentCastle == castle)
+                console.log("Prevented changing castle")
+            if(undefined == castle)
+                console.log("Prevented changing on map data")
+
+            currentCastle = castle
+            resolve(await callback())
+        }
+        catch (e) {
+            reject(e)
+        }
+    })
+
+    if (kingdomInUse)
+        return
+
+    kingdomInUse = true
+
+    for (let wasntEmpty = true; wasntEmpty;) {
+        wasntEmpty = false
+        for (const [key, value] of kingdomCallbacks.entries()) {
+            while (value.length > 0) {
+               await (value.shift())(key)
+               wasntEmpty = true
+            }
+        }
+    }
+
+    kingdomInUse = false
+})
+
 module.exports = {
     spiralCoordinates,
-    kingdomLock,
+    setCastle,
     movementEvents,
     movements,
     castles,
