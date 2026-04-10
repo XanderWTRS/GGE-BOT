@@ -1346,14 +1346,14 @@ let setCastle = (castle, callback) => new Promise(async (resolve, reject) => {
     callbacks.push(async castle => {
         try {
             if (castle && currentCastle != castle) {
-                console.log("Changing kingdoms")
+                // console.log("Changing kingdoms")
                 if(await clientJoinCastle(castle.id, castle.kingdomID) != 0)
                     throw new Error("FAILED_TO_SET_CASTLE")
             }
-            if(currentCastle == castle)
-                console.log("Prevented changing castle")
-            if(undefined == castle)
-                console.log("Prevented changing on map data")
+            // if(currentCastle == castle)
+                // console.log("Prevented changing castle")
+            // if(undefined == castle)
+                // console.log("Prevented changing on map data")
 
             currentCastle = castle
             resolve(await callback())
