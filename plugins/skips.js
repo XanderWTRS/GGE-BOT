@@ -102,7 +102,7 @@ function spendSkip(time) {
     time = Math.ceil(time / 60)
     const skip = Object.entries(skips)
         .filter(e => e[1] > 0)
-        .filter(e => pluginOptions.bypassSkipTypeFilter || MinuteSkipType[e[0]] <= time * 2)
+        .filter(e => pluginOptions.bypassSkipTypeFilter || MinuteSkipType[e[0]] <= time * 4)
         .sort((a, b) => (time > MinuteSkipType[a[0]]) - (time > MinuteSkipType[b[0]]))
         .sort((a, b) => Math.min(Math.max(b[1], 950), 951) - Math.min(Math.max(a[1], 950), 951))
 
