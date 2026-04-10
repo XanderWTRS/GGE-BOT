@@ -126,9 +126,9 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                         unit.unitInfo.beefSupply == undefined) {
                         if(options.foodTroopsOnly && unit.unitInfo.meadSupply)
                             continue
-                        if (options.useDogs && !unit.unitInfo.wodID == 277)
-                            continue
                         if (!options.useDogs && unit.unitInfo.wodID == 277)
+                            continue
+                        if (options.useDogs && unit.unitInfo.wodID != 277)
                             continue
                         if (unit.unitInfo.role == "melee")
                             attackerMeleeTroops.push(unit)
