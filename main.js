@@ -409,7 +409,7 @@ async function start() {
 
             return undefined
           }).filter(e => e !== undefined)
-          let uuid = request.headers.cookie.split('; ').find(e => e.startsWith('uuid='))
+          let uuid = request.headers.cookie?.split('; ').find(e => e.startsWith('uuid='))
             .substring(5, Infinity)
           let valid = loginCheck(uuid)
           if (!valid)
