@@ -3,9 +3,7 @@ We are not affiliated with GoodGameStudios.
 
 Those facing "Please move or remove before merge." reinstall
 
-Discord: Darrenthebozz
-
-Slowly discontinuing within 2 months span.
+No longer maintained.
 
 If you need any help, have questions, or want to gain access to "plugins-extra" please contact me.
 
@@ -44,17 +42,3 @@ also find Token goto the ggeConfig and place it under discordToken.
 Optionally if you are hosting for online:
   https://webaddress:(webPort)/discordAuth
 6. From here restart the bot and press the "Link Discord".
-
-Extra Plugins (Not Public):
-  Berimond Kingdom
-  Barracks
-  Station on hit (Seems fixed)
-  Grab Tools (Blacksmith, Nomads, Samurai)
-  Grand Tornament (Reroll at selected time)
-  Affluence Ticket spender
-  Birded players slash commands
-  Automatic storm cargo upgrade
-  Attack Glory Invasion
-  Refinery
-  Auto khan defence (range 33/34/33) still need to swap cast
-  Attack Daimyo
