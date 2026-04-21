@@ -1203,8 +1203,8 @@ class Movement {
 
         this.lord = new Lord(movement.UM?.L ?? {})
         this.owner = ownerInfo.find(o => o.ownerID == Number(movement.M.OID)) ?? { ownerID : Number(movement.M.OID) }
-        this.targetOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.TID)) ?? { ownerID : Number(movement.M.TID) }
-        this.sourceOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.SID)) ?? { ownerID : Number(movement.M.SID) }
+        this.targetOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.TID)) ?? new OwnerInfo({ OID : Number(movement.M.TID) })
+        this.sourceOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.SID)) ?? new OwnerInfo({ OID : Number(movement.M.SID) })
         this.targetAttack = MapObject(new GAAAreaInfo(movement.M.TA), movement.M.KID)
         this.sourceAttack = MapObject(new GAAAreaInfo(movement.M.SA), movement.M.KID)
 
