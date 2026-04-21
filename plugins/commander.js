@@ -29,14 +29,14 @@ function useCommander(lordID) {
 }
 
 movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
-    if(movement.owner?.ownerID != playerInfo.playerID)
+    if(movement.owner.ownerID != playerInfo.playerID)
         return
 
     useCommander(movement.lord.lordID)
 })
 
 movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
-    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+    if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
 
     freeCommander(movement.lord.lordID)

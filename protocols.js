@@ -1145,9 +1145,9 @@ const movements = []
 const movementEvents = new EventEmitter()
 /** @param {Movement} movement */
 async function newMovement(movement) {
-    if (playerInfo.playerID == '')
+    if (isNaN(playerInfo.playerID))
         playerInfo.playerID = await new Promise(resolve =>
-            xtHandler.once("gpi", obj => resolve(String(obj.PID))))
+            xtHandler.once("gpi", obj => resolve(Number(obj.PID))))
 
     const e = movements.find(e => e.id == movement.id)
     if(e) {
@@ -1161,7 +1161,7 @@ async function newMovement(movement) {
 
     movementEvents.emit("outgoing", movement)
 
-    if (movement.targetOwner?.ownerID == movement.owner?.ownerID)
+    if (movement.targetOwner.ownerID == movement.owner.ownerID)
         movementEvents.emit("returning", movement)
     
     setTimeout(() => {
@@ -1173,7 +1173,7 @@ async function newMovement(movement) {
 
         movements.splice(movementIndex, 1)
 
-        if (movement.targetOwner?.ownerID == movement.owner?.ownerID)
+        if (movement.targetOwner.ownerID == movement.owner.ownerID)
             movementEvents.emit("return", movement)
 
     },  Math.max(0, movement.totalTime - (movement.deltaTime - Date.now()) + 1000))
@@ -1202,9 +1202,9 @@ class Movement {
         this.deltaTime = Number(movement.M.PT) * 1000 + Date.now()
 
         this.lord = new Lord(movement.UM?.L ?? {})
-        this.owner = ownerInfo.find(o => o.ownerID == Number(movement.M.OID))
-        this.targetOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.TID))
-        this.sourceOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.SID))
+        this.owner = ownerInfo.find(o => o.ownerID == Number(movement.M.OID)) ?? { ownerID : Number(movement.M.OID) }
+        this.targetOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.TID)) ?? { ownerID : Number(movement.M.TID) }
+        this.sourceOwner = ownerInfo.find(o => o.ownerID == Number(movement.M.SID)) ?? { ownerID : Number(movement.M.SID) }
         this.targetAttack = MapObject(new GAAAreaInfo(movement.M.TA), movement.M.KID)
         this.sourceAttack = MapObject(new GAAAreaInfo(movement.M.SA), movement.M.KID)
 
@@ -1229,7 +1229,7 @@ class Movement {
 }
 
 movementEvents.on("return", async (/** @type {Movement} */ movement) => {
-    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+    if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
 
     const castle = castles.find(castle => castle.kingdomID == movement.kingdomID && castle.id == movement.targetAttack.extraData[0])

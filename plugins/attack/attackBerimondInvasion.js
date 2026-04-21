@@ -77,7 +77,7 @@ const skipTarget = async areaInfo => {
 }
 
 movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
-    if (movement.targetOwner?.ownerID != playerInfo.playerID)
+    if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
 
     if (movement.sourceAttack.type != type)

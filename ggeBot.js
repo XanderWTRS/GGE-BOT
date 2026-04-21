@@ -146,8 +146,8 @@ const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`)
 const status = {}
 const playerInfo = {
     level: NaN,
-    userID: String(),
-    playerID: String(),
+    userID: Number(),
+    playerID: Number(),
     email: String(),
     acceptedTOS: Boolean(),
     verifiedEmail: Boolean(),
@@ -278,8 +278,8 @@ xtHandler.on("gxp", obj => {
     parentPort.postMessage([ActionType.StatusUser, status])
 })
 xtHandler.on("gpi", obj => {
-    playerInfo.userID = String(obj.UID)
-    playerInfo.playerID = String(obj.PID)
+    playerInfo.userID = Number(obj.UID)
+    playerInfo.playerID = Number(obj.PID)
     playerInfo.name = String(obj.PN)
     playerInfo.email = String(obj.E)
     playerInfo.verifiedEmail = Boolean(obj.V)
