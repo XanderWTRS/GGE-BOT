@@ -1152,13 +1152,18 @@ async function newMovement(movement) {
     const e = movements.find(e => e.id == movement.id)
     if(e) {
         Object.assign(e, movement)
-        if(e.canSeeArmy != movement.canSeeArmy)
+        if(e.canSeeArmy != movement.canSeeArmy) {
+            console.log(`Movement changed: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
+    
             movementEvents.emit("outgoing", movement)
+        }
         return
     }
 
     movements.push(movement)
-
+    
+    console.log(`New movement: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
+    
     movementEvents.emit("outgoing", movement)
 
     if (movement.targetOwner.ownerID == movement.owner.ownerID)
@@ -1173,8 +1178,10 @@ async function newMovement(movement) {
 
         movements.splice(movementIndex, 1)
 
-        if (movement.targetOwner.ownerID == movement.owner.ownerID)
+        if (movement.targetOwner.ownerID == movement.owner.ownerID) {
+            console.log(`Removed movement: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
             movementEvents.emit("return", movement)
+        }
 
     },  Math.max(0, movement.totalTime - (movement.deltaTime - Date.now()) + 1000))
 }

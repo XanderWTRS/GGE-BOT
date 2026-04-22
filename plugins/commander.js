@@ -32,12 +32,16 @@ movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassT
     if(movement.owner.ownerID != playerInfo.playerID)
         return
 
+    console.log(`using: ${movement.lord.lordID}`)
+
     useCommander(movement.lord.lordID)
 })
 
 movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
+
+    console.log(`freeing: ${movement.lord.lordID}`)
 
     freeCommander(movement.lord.lordID)
 })
@@ -77,12 +81,7 @@ const waitForCommanderAvailable = async (commanderWhitelist, filterCallback, sor
     lordID ??= await new Promise(resolve => {
         const checkForCommander = currentEvent => {
             const commander = commanders.find(e => e.lordID == currentEvent.detail)
-            if (!commanderWhitelist) {
-                event.removeEventListener("freedCommander", checkForCommander)
-                currentEvent.stopImmediatePropagation()
-                return resolve(currentEvent.detail)
-            }
-            if(!commanderWhitelist.includes(commander.lordPosition))
+            if(commanderWhitelist && !commanderWhitelist.includes(commander.lordPosition))
                 return
             if(!(!filterCallback || filterCallback(commander)))
                 return
