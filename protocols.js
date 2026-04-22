@@ -1236,6 +1236,8 @@ class Movement {
 }
 
 movementEvents.on("return", async (/** @type {Movement} */ movement) => {
+    if (movement.owner.ownerID != playerInfo.playerID)
+        return
     if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
 
