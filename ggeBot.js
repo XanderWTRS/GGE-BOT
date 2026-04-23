@@ -146,15 +146,15 @@ const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`)
 const status = {}
 const playerInfo = {
     level: NaN,
-    userID: Number(),
-    playerID: Number(),
+    userID: NaN,
+    playerID: NaN,
     email: String(),
     acceptedTOS: Boolean(),
     verifiedEmail: Boolean(),
     isCheater: Boolean(),
     name: String(),
     alliance: {
-        id: Number(),
+        id: NaN,
         rank: Number(),
         name: String(),
         fame: Number(),

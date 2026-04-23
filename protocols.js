@@ -1146,8 +1146,7 @@ const movementEvents = new EventEmitter()
 /** @param {Movement} movement */
 async function newMovement(movement) {
     if (isNaN(playerInfo.playerID))
-        playerInfo.playerID = await new Promise(resolve =>
-            xtHandler.once("gpi", obj => resolve(Number(obj.PID))))
+        playerInfo.playerID = Number(await new Promise(r => xtHandler.once("gpi", ({PID}) => r(PID))))
 
     const e = movements.find(e => e.id == movement.id)
     if(e) {
@@ -1162,13 +1161,13 @@ async function newMovement(movement) {
 
     movements.push(movement)
     
-    console.log(`New movement: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
+    // console.log(`New movement: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
     
     movementEvents.emit("outgoing", movement)
 
     if (movement.targetOwner.ownerID == movement.owner.ownerID)
         movementEvents.emit("returning", movement)
-    
+    console.log(`${Math.floor((movement.totalTime - (movement.deltaTime - Date.now()) + 1000) / 1000)} seconds`)
     setTimeout(() => {
         const movementIndex = movements.findIndex(e => e.id == movement.id)
         if(movementIndex == -1) {
@@ -1179,7 +1178,7 @@ async function newMovement(movement) {
         movements.splice(movementIndex, 1)
 
         if (movement.targetOwner.ownerID == movement.owner.ownerID) {
-            console.log(`Removed movement: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
+            // console.log(`Removed movement: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
             movementEvents.emit("return", movement)
         }
 
@@ -1202,6 +1201,9 @@ class Resources {
 class Movement {
     /** @param {Array<OwnerInfo>} ownerInfo */
     constructor(movement, ownerInfo) {
+        if(movement.M.T == undefined)
+            debugger
+
         this.id = Number(movement.M.MID)
         this.type = Number(movement.M.T)
         this.kingdomID = Number(movement.M.KID)

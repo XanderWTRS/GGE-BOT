@@ -17,18 +17,18 @@ function freeCommander(lordID) {
     const index = usedCommanders.findIndex(e => e == lordID)
     if (index == -1)
         return
-
+    
     usedCommanders.splice(index, 1)
     event.dispatchEvent(new CustomEvent('freedCommander', { detail: lordID }))
 }
 function useCommander(lordID) {
     if (!usedCommanders.includes(lordID))
         usedCommanders.push(lordID)
-
+    
     return lordID
 }
 
-movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
+movementEvents.on("outgoing", (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if(movement.owner.ownerID != playerInfo.playerID)
         return
 
@@ -37,7 +37,7 @@ movementEvents.on("outgoing", async (/** @type {import("../protocols.js").ClassT
     useCommander(movement.lord.lordID)
 })
 
-movementEvents.on("return", async (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
+movementEvents.on("return", (/** @type {import("../protocols.js").ClassTypes.Movement} */ movement) => {
     if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
 
