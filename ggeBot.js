@@ -2,7 +2,7 @@ const { isMainThread, workerData : botConfig, parentPort } = require("node:worke
 if (isMainThread)
     throw new Error("Run as worker")
 
-process.on("uncaughtException", console.error) //Wanna cry? Remove this.
+process.on("uncaughtException", console.error)
 
 const { getCallSites } = require("node:util")
 const EventEmitter = require("node:events")
