@@ -1,2 +1,2 @@
 #!/bin/sh
-ncu -u
+npx npm-check-updates -u
