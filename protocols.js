@@ -1167,7 +1167,7 @@ async function newMovement(movement) {
 
     if (movement.targetOwner.ownerID == movement.owner.ownerID)
         movementEvents.emit("returning", movement)
-    console.log(`${Math.floor((movement.totalTime - (movement.deltaTime - Date.now()) + 1000) / 1000)} seconds`)
+    // console.log(`${Math.floor((movement.totalTime - (movement.deltaTime - Date.now()) + 1000) / 1000)} seconds`)
     setTimeout(() => {
         const movementIndex = movements.findIndex(e => e.id == movement.id)
         if(movementIndex == -1) {
