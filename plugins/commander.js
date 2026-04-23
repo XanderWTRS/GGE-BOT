@@ -32,7 +32,7 @@ movementEvents.on("outgoing", (/** @type {import("../protocols.js").ClassTypes.M
     if(movement.owner.ownerID != playerInfo.playerID)
         return
 
-    console.log(`using: ${movement.lord.lordID}`)
+    // console.log(`using: ${movement.lord.lordID}`)
 
     useCommander(movement.lord.lordID)
 })
@@ -41,7 +41,7 @@ movementEvents.on("return", (/** @type {import("../protocols.js").ClassTypes.Mov
     if (movement.targetOwner.ownerID != playerInfo.playerID)
         return
 
-    console.log(`freeing: ${movement.lord.lordID}`)
+    // console.log(`freeing: ${movement.lord.lordID}`)
 
     freeCommander(movement.lord.lordID)
 })
