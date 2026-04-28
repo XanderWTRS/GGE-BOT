@@ -24,10 +24,10 @@ test("area cooldowns skip unavailable areas until their retry delay expires", ()
     cooldowns.mark(secondArea)
 
     assert.equal(cooldowns.getNext(areas), undefined)
-    assert.equal(DEFAULT_RETRY_DELAY_MS, 30 * 60 * 1000)
-    assert.equal(cooldowns.getWaitMs(areas), 30 * 60 * 1000)
+    assert.equal(DEFAULT_RETRY_DELAY_MS, 22 * 60 * 1000)
+    assert.equal(cooldowns.getWaitMs(areas), 22 * 60 * 1000)
 
-    now += 30 * 60 * 1000
+    now += 22 * 60 * 1000
 
     assert.equal(cooldowns.getWaitMs(areas), 0)
     assert.equal(cooldowns.getNext(areas), firstArea)

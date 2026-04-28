@@ -1,4 +1,4 @@
-const DEFAULT_RETRY_DELAY_MS = 30 * 60 * 1000
+const DEFAULT_RETRY_DELAY_MS = 22 * 60 * 1000
 
 const getAreaKey = areaInfo => `${areaInfo.x}:${areaInfo.y}`
 
