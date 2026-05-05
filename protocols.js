@@ -12,6 +12,7 @@ const effectCaps = require("./items/effectCaps.json")
 const generalSkills = require("./items/generalSkills.json")
 const relicEffects = require("./items/relicEffects.json")
 const equipmentEffects = require("./items/equipment_effects.json")
+const { warnOnce } = require("./utils/logging.js")
 
 const myCache = new NodeCache({useClones : false})
 
@@ -1073,6 +1074,8 @@ class Lord {
 
             const [effectID, value] = generalSkill.effects.split("&")
             let effect = effects.find(e => e.effectID == effectID)
+            if (!effect)
+                return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID)?.maxTotalBonus ?? Infinity)
 
@@ -1084,22 +1087,58 @@ class Lord {
             const isRelic = equipment[11] == 3
             const getEffects = ([id, var1, var2]) => {
                 const effectValues = isRelic ? var2 : var1
-                const { effectID } = isRelic ? relicEffects.find(e => e.id == id) : equipmentEffects.find(e => e.equipmentEffectID == id)
+                const effectID = isRelic ? relicEffects.find(e => e.id == id)?.effectID : equipmentEffects.find(e => e.equipmentEffectID == id)?.effectID
 
-                if (effectID == undefined)
+                if (effectID == undefined) {
+                    warnOnce(
+                        `lord:${this.lordID}:unknown-equipment-effect:${id}`,
+                        `Commander effect skipped: unknown ${isRelic ? "relic" : "equipment"} effect id ${id} on lord "${this.name}"`,
+                        {
+                            lordID: this.lordID,
+                            generalID: this.generalID
+                        }
+                    )
                     return
+                }
 
-                let { areaTypeID, capID } = effects.find(e => e.effectID == effectID)
+                if (!Array.isArray(effectValues)) {
+                    warnOnce(
+                        `lord:${this.lordID}:missing-effect-values:${id}`,
+                        `Commander effect skipped: missing effect values for ${isRelic ? "relic" : "equipment"} effect id ${id} on lord "${this.name}"`,
+                        {
+                            lordID: this.lordID,
+                            generalID: this.generalID,
+                            effectID
+                        }
+                    )
+                    return
+                }
+
+                let effect = effects.find(e => e.effectID == effectID)
+                if (!effect) {
+                    warnOnce(
+                        `lord:${this.lordID}:unknown-effect-metadata:${effectID}`,
+                        `Commander effect skipped: unknown effect metadata id ${effectID} on lord "${this.name}"`,
+                        {
+                            lordID: this.lordID,
+                            generalID: this.generalID,
+                            sourceEffectID: id
+                        }
+                    )
+                    return
+                }
+
+                let { areaTypeID, capID } = effect
 
                 if (areaTypeID)
                     return areaTypeID.split(',').map(Number).forEach(areaType => {
-                        const maxCap = Number(effectCaps.find(e => e.capID == capID).maxTotalBonus ?? Infinity)
+                        const maxCap = Number(effectCaps.find(e => e.capID == capID)?.maxTotalBonus ?? Infinity)
 
                         this.areaEffects[areaType] ??= {}
                         this.areaEffects[areaType][effectID] = Math.min(maxCap, (this.areaEffects[areaType][effectID] ?? 0) + Number(effectValues[0]))
                     })
 
-                let maxCap = Number(effectCaps.find(e => e.capID == capID).maxTotalBonus ?? Infinity)
+                let maxCap = Number(effectCaps.find(e => e.capID == capID)?.maxTotalBonus ?? Infinity)
 
                 ungroupedActiveEffects[effectID] = Math.min(maxCap, (ungroupedActiveEffects[effectID] ?? 0) + Number(effectValues[0]))
             }
@@ -1110,8 +1149,11 @@ class Lord {
         this.effects = {}
 
         for (const key in ungroupedActiveEffects) {
-            const { effectTypeID } = effects.find(e => e.effectID == key)
-            const { name } = effectTypes.find(e => e.effectTypeID == effectTypeID)
+            const effect = effects.find(e => e.effectID == key)
+            const effectType = effectTypes.find(e => e.effectTypeID == effect?.effectTypeID)
+            if (!effectType)
+                continue
+            const { name } = effectType
             this.effects[name] ??= 0
             this.effects[name] += ungroupedActiveEffects[key]
         }
@@ -1125,6 +1167,8 @@ class Lord {
         
         areaEffects?.forEach(([effectID, effectValues]) => {
             let effect = effects.find(e => e.effectID == effectID)
+            if (!effect || !Array.isArray(effectValues))
+                return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID)?.maxTotalBonus ?? Infinity)
 
@@ -1132,8 +1176,11 @@ class Lord {
         })
 
         for (const key in ungroupedActiveEffects) {
-            const { effectTypeID } = effects.find(e => e.effectID == key)
-            const { name } = effectTypes.find(e => e.effectTypeID == effectTypeID)
+            const effect = effects.find(e => e.effectID == key)
+            const effectType = effectTypes.find(e => e.effectTypeID == effect?.effectTypeID)
+            if (!effectType)
+                continue
+            const { name } = effectType
             activeEffects[name] ??= 0
             activeEffects[name] += ungroupedActiveEffects[key]
         }

@@ -13,6 +13,7 @@ const { I18n } = require("i18n")
 const ggeConfig = require("./ggeConfig.json")
 const ActionType = require("./actions.json")
 const err = require("./err.json")
+const { warnOnce } = require("./utils/logging.js")
 
 const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "sec" })
 const events = new EventEmitter()
@@ -115,9 +116,16 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
                 }
             }
             
-            console.warn(key, msg)
+            if (msg == "TIMED_OUT") {
+                warnOnce(
+                    `protocol-timeout:${key}`,
+                    `Protocol timeout: command ${key} did not receive a matching response within ${timeout * (ggeConfig.timeoutMultiplier ?? 1)}ms; continuing without crashing`
+                )
+            } else {
+                console.warn(key, msg)
+            }
 
-            reject(msg)
+            resolve([{}, msg])
         }, timeout * (ggeConfig.timeoutMultiplier ?? 1))
     }
 

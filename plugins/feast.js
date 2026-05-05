@@ -23,6 +23,7 @@ if (require('node:worker_threads').isMainThread) {
 
 const { ClientCommands, KingdomID, AreaType, castles } = require("../protocols.js")
 const { events, botConfig } = require("../ggeBot.js")
+const { warnOnce } = require("../utils/logging.js")
 const pluginOptions = botConfig.plugins[require("path").basename(__filename).slice(0, -3)] ?? {}
 const feastFoodReduction = pluginOptions.feastFoodReduction ? Number(pluginOptions.feastFoodReduction): 150000
 const minimumFood = pluginOptions.minimumFood ? Number(pluginOptions.minimumFood): 150000
@@ -36,12 +37,20 @@ const tryToFeast = async () => {
             return
         if (castle.kingdomID == KingdomID.berimond)
             return
-        let foodRate = castle.getProductionData.deltaFood - castle.getProductionData.FoodConsumptionRate * 
-            castle.getProductionData.foodConsumptionReductionPercentage
+        const productionData = castle.getProductionData
+        if (!productionData) {
+            warnOnce(
+                `feast:missing-production-data:${castle.kingdomID}:${castle.id}`,
+                `Feast skipped castle ${castle.id} in ${KingdomID[castle.kingdomID] ?? `kingdom ${castle.kingdomID}`}: production data not loaded yet`
+            )
+            return
+        }
+        let foodRate = productionData.deltaFood - productionData.FoodConsumptionRate * 
+            productionData.foodConsumptionReductionPercentage
         if (foodRate < Math.max(0, minimumFoodRate))
             return
         
-        if(castle.kingdomID == KingdomID.greatEmpire && castle.areaInfo.type == AreaType.mainCastle && castle.getProductionData.maxAmountFood < castle.food)
+        if(castle.kingdomID == KingdomID.greatEmpire && castle.areaInfo?.type == AreaType.mainCastle && productionData.maxAmountFood < castle.food)
             return
 
         while (minimumFood < (castle.food - feastFoodReduction) && feastFoodReduction <= castle.food) {
