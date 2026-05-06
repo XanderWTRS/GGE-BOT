@@ -25,7 +25,7 @@ if (require('node:worker_threads').isMainThread) {
                 default: false
             },
             { type: "Checkbox", key: "useCoin", default: false },
-            { type: "Checkbox", key: "meadReplace", default: false },
+            // { type: "Checkbox", key: "meadReplace", default: false },
             { type: "Checkbox", key: "resourceSend", default: false },
         ]
     }
@@ -68,14 +68,14 @@ if (pluginOptions.upgradeStormForts) {
         console.warn(e)
     }
 }
-if (pluginOptions.meadReplace) {
-    try {
-        require("../meadReplaceStorm.js")
-    }
-    catch (e) {
-        console.warn(e)
-    }
-}
+// if (pluginOptions.meadReplace) {
+//     try {
+//         require("../meadReplaceStorm.js")
+//     }
+//     catch (e) {
+//         console.warn(e)
+//     }
+// }
 if (pluginOptions.resourceSend) {
     try {
         require("../resourceSendStorm.js")
