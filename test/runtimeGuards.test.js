@@ -157,6 +157,81 @@ test("feast skips castles whose production data has not loaded yet", async () =>
     assert.match(warnings.join("\n"), /production data not loaded yet/)
 })
 
+test("Berimond Kingdom extra attack plugin loads commander stats helper", () => {
+    const pluginPath = path.resolve(__dirname, "../plugins-extra/attack/attackBerimondKingdom.js")
+    const code = fs.readFileSync(pluginPath, "utf8")
+    const events = new EventEmitter()
+    const module = { exports: {} }
+    const customRequire = id => {
+        if (id == "node:worker_threads")
+            return { isMainThread: false }
+        if (id == "pretty-time")
+            return () => "0s"
+        if (id == "path")
+            return path
+        if (id == "../../plugins/skips.js")
+            return { spendSkip: () => undefined }
+        if (id == "../../protocols")
+            return {
+                movementEvents: new EventEmitter(),
+                ClassTypes: {},
+                ClientCommands: {},
+                AreaType: { watchTower: 1, beriCastle: 2, mainCastle: 3 },
+                KingdomID: { berimond: 10, greatEmpire: 0 },
+                KingdomSkipType: { sendTroops: 1 },
+                kingdomLock: callback => callback(),
+                castles: [],
+                unlockInfoList: []
+            }
+        if (id == "../../plugins/attack/attack")
+            return {
+                waitToAttack: async callback => callback(),
+                getAttackInfo: () => ({ A: [] }),
+                assignUnit: () => 0,
+                getTotalAmountToolsFlank: () => 0,
+                getTotalAmountToolsFront: () => 0,
+                getAmountSoldiersFlank: () => 0
+            }
+        if (id == "../../plugins/commander")
+            return {
+                waitForCommanderAvailable: async () => ({}),
+                useCommander: () => {},
+                freeCommander: () => {}
+            }
+        if (id == "../../ggeBot.js")
+            return {
+                sendXT: () => {},
+                waitForResult: async () => [{}, 0],
+                events,
+                botConfig: { plugins: { attackBerimondKingdom: {} } }
+            }
+        if (id == "../../err.json")
+            return {}
+        if (id == "../../items/units.json")
+            return []
+        if (id == "../../items/buildings.json")
+            return [{ wodID: 627 }]
+        if (id == "../getCommanderStats.js")
+            return { getCommanderStats: () => ({ speedBonus: 0 }) }
+        return require(path.resolve(path.dirname(pluginPath), id))
+    }
+
+    const wrapper = vm.runInNewContext(
+        `(function (exports, require, module, __filename, __dirname) {\n${code}\n})`,
+        {
+            require: customRequire,
+            module,
+            exports: module.exports,
+            console,
+            setTimeout,
+            __dirname: path.dirname(pluginPath),
+            __filename: pluginPath
+        }
+    )
+
+    assert.doesNotThrow(() => wrapper(module.exports, customRequire, module, pluginPath, path.dirname(pluginPath)))
+})
+
 test("waitForResult resolves protocol timeouts instead of rejecting", async () => {
     const ggeBotPath = path.resolve(__dirname, "../ggeBot.js")
     const code = fs.readFileSync(ggeBotPath, "utf8")
