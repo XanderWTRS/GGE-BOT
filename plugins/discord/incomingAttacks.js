@@ -53,15 +53,17 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (movement.canSeeArmy) {
         const message = await storedMessages.get(movement)
-        if (message?.attachments.size == 0) {
-            const stream = await createLayout(movement.left, movement.middle, movement.right, movement.courtyard)
-            stream.on("error", console.warn)
-            message.edit({
-                content: message.content, 
-                files: [
-                    new AttachmentBuilder(stream)
-                ]
-            })
+        if (message) {
+            if (message?.attachments.size == 0) {
+                const stream = await createLayout(movement.left, movement.middle, movement.right, movement.courtyard)
+                stream.on("error", console.warn)
+                message.edit({
+                    content: message.content,
+                    files: [
+                        new AttachmentBuilder(stream)
+                    ]
+                })
+            }
             return
         }
     }
