@@ -34,8 +34,11 @@ const storedMessages = new WeakMap()
 movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
     await clientReady
 
-    if (![0, 25, 31, 24, 29].includes(movement.type))
+    if (![0, 25, 31, 24, 29].includes(movement.type)) {
+        // if(movement.type == 1 && movement.sourceOwner.allianceID != movement.targetOwner.allianceID)
+            // return
         return
+    }
     if (movement.sourceOwner.ownerID > 0)
         return
     if (movement.targetOwner.ownerID > 0)
@@ -59,8 +62,8 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
                     new AttachmentBuilder(stream)
                 ]
             })
+            return
         }
-        return
     }
 
     const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000

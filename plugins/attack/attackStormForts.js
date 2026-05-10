@@ -176,7 +176,7 @@ events.once("load", async () => {
                     if ((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch > 0)
                         continue
 
-                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID, false)
 
                     if (!allowedLevels.includes(areaInfo.extraData[2]))
                         continue

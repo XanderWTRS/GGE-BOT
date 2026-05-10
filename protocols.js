@@ -217,10 +217,11 @@ class ServerGetAreaInfo {
  * @param {Number} y 
  * @param {Number} kingdomID
  */
-async function clientPreSpyInfo(x, y, kingdomID) {
+async function clientPreSpyInfo(x, y, kingdomID, useCache) {
+    useCache ??= true
     /** @type {GAAAreaInfo} */
     const cachedMapData = map[`${kingdomID}_${x}_${y}`]?.deref()
-    if((Date.now() - cachedMapData?.timeSinceRequest) <= 1000 * 10) {
+    if(useCache && cachedMapData && (Date.now() - cachedMapData.timeSinceRequest) <= 1000 * 10) {
         console.debug("Using cached results")
         return {areaInfo: cachedMapData, result: 0}
     }
@@ -1152,7 +1153,7 @@ async function newMovement(movement) {
     if(e) {
         Object.assign(e, movement)
         if(e.canSeeArmy != movement.canSeeArmy) {
-            console.log(`Movement changed: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
+            // console.log(`Movement changed: lordID: ${movement.lord.lordID}, lordName: ${movement.lord.name}, name: ${movement.owner.name}`)
     
             movementEvents.emit("outgoing", movement)
         }
