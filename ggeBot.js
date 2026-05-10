@@ -184,10 +184,12 @@ let errorCount = 0
 webSocket.onmessage = ({data : message}) => {
     message = message.toString()
     if (message.charAt(0) == "%") {
-        const [,,cmd,, r, obj] = message.split("%")
+        let [,,cmd,, r, obj] = message.split("%")
         const result = Number(r)
-        try { obj = JSON.parse(_obj) }
-        catch {}
+        try { obj = JSON.parse(obj) }
+        catch(e) {
+            console.debug(e)
+        }
 
         switch (cmd) {
             case "gbd":
