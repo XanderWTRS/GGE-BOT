@@ -141,7 +141,9 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
     xtHandler.addListener(key, helperFunction)
 })
 
-const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`)
+const webSocket = new WebSocket(`wss://${botConfig.gameURL}/`, {
+    skipUTF8Validation: ggeConfig.skipUTF8Validation ? true : false
+  })
 
 const status = {}
 const playerInfo = {
@@ -174,22 +176,22 @@ module.exports = {
     i18n
 }
 
-webSocket.onopen = () => webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
-
+webSocket.onopen = () => {
+    webSocket.send('<msg t="sys"><body action="verChk" r="0"><ver v="166"/></body></msg>')
+}
 let errorCount = 0
 
-webSocket.onmessage = e => {
-    let message = String(e.data.toString())
+webSocket.onmessage = ({data : message}) => {
+    message = message.toString()
     if (message.charAt(0) == "%") {
         const [,,cmd,, r, obj] = message.split("%")
         const result = Number(r)
-
-        // if(!["dcl", "fnm"].includes(cmd))
-        //     _console.log(message)
+        try { obj = JSON.parse(_obj) }
+        catch {}
 
         switch (cmd) {
             case "gbd":
-                for (const [key, value] of Object.entries(JSON.parse(obj)))
+                for (const [key, value] of Object.entries(obj))
                     xtHandler.emit(key, value, 0)
                 break
             case "vck":
@@ -207,13 +209,7 @@ webSocket.onmessage = e => {
             case "rlu":
                 if (xtHandler.listenerCount(cmd) == 0)
                     return
-                try {
-                    var obj2 = JSON.parse(obj)
-                }
-                catch {
-                    obj2 = obj
-                }
-                xtHandler.emit(cmd, obj2, result)
+                xtHandler.emit(cmd, obj, result)
         }
     }
 

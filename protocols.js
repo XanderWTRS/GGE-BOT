@@ -271,7 +271,9 @@ async function clientGetNextMapObject(type, kingdomID) {
 }
 
 const limiter = new RateLimiter({ tokensPerInterval: 5, interval: "second" })
-
+/**
+ * @type { CastleInfo }
+ */
 let currentCastle = undefined
 /**
  * 
@@ -552,6 +554,12 @@ class CastleAreaInfo extends EventEmitter {
         this.kingdomID = kingdomID
     }
 }
+class ConstructionItem {
+    constructor(e) {
+        this.ownerID = e.OID
+        this.constructionItemSlot = Array.from(e.CIL).map(e => ({ constructionItemID : e.CID }))
+    }
+}
 class CastleResourceInfo extends EventEmitter {
     constructor(e, kingdomID) {
         super()
@@ -579,7 +587,7 @@ class CastleResourceInfo extends EventEmitter {
         this.hasDefenseWorkshop = Boolean(e.DW)
         this.hasHospital = Boolean(e.H)
         e.OGT ? this.openGateTime = Number(e.OGT) : undefined
-        e.gca?.BD ? this.buildings = Array.from(e.gca?.BD).map(BuildingInfo) : undefined
+        e.gca?.BD ? this.buildings = Array.from(e.gca.BD).map(BuildingInfo) : undefined
         e.scl?.OIDL ? this.buildingSlots = Array.from(e.scl.OIDL).map(Number) : undefined
         // this.ownerInfo: new OwnerInfo(o.O)
         //??? : Number(e.RAF)
@@ -590,7 +598,7 @@ class CastleResourceInfo extends EventEmitter {
         //??? : Array.from(e.T).map()
         //??? : Array.from(e.G).map()
         //??? : Array.from(e.D).map()
-        //??? : Array.from(e.CI).map()
+        e.gca?.CI ? this.constructionItems = Array.from(e.gca.CI).map(e => new ConstructionItem(e)) : undefined
         // this.areaInfo = MapObject(new GAAAreaInfo(o.A), KID)
     }
 }
@@ -638,11 +646,22 @@ class CastleInfo extends EventEmitter { //JSDOC: HACK
         this.buildingSlots = Array.from(o.scl?.OIDL ?? []).map(Number)
         this.resourceTransfer = ResourceTransfer(e)
         this.troopTransfer = TroopTransfer(e)
+        this.constructionItems = Array.from(e.gca.CI).map(e => new ConstructionItem(e))
     }
 }
 /** @type {Array<CastleInfo>} */
 const castles = []
+xtHandler.on("hru", (obj, r) => {
+    if(r != 0)
+        return
+    if(!currentCastle)
+        return
 
+    currentCastle.unitInventory = new UnitInventory(obj.gui)
+    
+    if(obj.gcu)
+        xtHandler.emit("gcu", obj.gcu)
+})
 xtHandler.on("dcl", (obj, result) => {
     if(result != 0)
         return
@@ -1348,6 +1367,12 @@ xtHandler.on("sce", updateStatus)
 let kingdomCallbacks = new Map()
 let kingdomInUse = false
 
+/**
+ * 
+ * @param {CastleInfo} castle 
+ * @param {*} callback 
+ * @returns 
+ */
 let setCastle = (castle, callback) => new Promise(async (resolve, reject) => {
     let callbacks = kingdomCallbacks.get(castle)
     if(!callbacks) {
@@ -1426,6 +1451,7 @@ module.exports = {
         Lord,
         GAAAreaInfo,
         Movement,
+        CastleInfo,
         BuildingInfo,
         Unit,
         KingdomInfo
