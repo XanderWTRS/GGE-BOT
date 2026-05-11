@@ -41,7 +41,7 @@ async function fortressHit(kingdomID, level, options) {
                         movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
-                    if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > 0)
+                    if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > 3800)
                         continue
 
                     await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID, false)
