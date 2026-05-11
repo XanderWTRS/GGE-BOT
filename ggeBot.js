@@ -420,7 +420,7 @@ xtHandler.on("lli", async (obj, r) => {
 
     status.hasError = true
     parentPort.postMessage([ActionType.StatusUser, status])
-    parentPort.postMessage([ActionType.KillBot])
+    setTimeout(() => parentPort.postMessage([ActionType.KillBot]), 1000 * 8)
 })
 
 try {
