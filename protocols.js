@@ -430,10 +430,10 @@ const Unit = e => ({
 })
 class UnitInventory { 
     constructor(e) {
-    this.unitInventory = Array.from(e.I ?? []).map(Unit)
-    this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
-    this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
-    this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
+    if(e.I) this.unitInventory = Array.from(e.I).map(Unit)
+    if(e.SHI) this.strongHoldInventory = Array.from(e.SHI ?? []).map(Unit)
+    if(e.HI) this.hospitalInventory = Array.from(e.HI ?? []).map(Unit)
+    if(e.TU) this.travelingUnits = Array.from(e.TU ?? []).map(Unit)
     }
 }
 class UnlockInfo {
