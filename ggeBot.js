@@ -203,14 +203,10 @@ webSocket.onmessage = ({data : message}) => {
                 xtHandler.emit(cmd, obj, result)
                 break
             default:
-                if (result != 0 && !(cmd == "lli" && result == 453)) {
-                    console.debug(err[result] ?? result, cmd)
-                    errorCount++
-                }
+                console.debug(err[result] ?? result, cmd)
             case "core_pol":
             case "rlu":
-                if (xtHandler.listenerCount(cmd) == 0)
-                    return
+            case "lli":
                 xtHandler.emit(cmd, obj, result)
         }
     }
