@@ -1,5 +1,5 @@
 if (require('node:worker_threads').isMainThread)
-    return module.exports = { hidden : true }
+    return module.exports = { }
 
 const {
     ClientCommands,
@@ -9,7 +9,7 @@ const {
     castles,
     unlockInfoList
 } = require("../protocols.js")
-
+const { spendSkip } = require("./skips.js")
 const { events } = require("../ggeBot.js")
 
 const hoursLeftTillRefilMandatory = 2.1
@@ -17,6 +17,11 @@ const hoursLeftTillRefilWarning = 3.1
 const sendResTimeout = 29 * 30 * 1000
 const kingdomID = KingdomID.stormIslands
 
+/**
+ * 
+ * @param {import("../protocols.js").ClassTypes.CastleInfo} castle 
+ * @returns 
+ */
 const skipResource = async castle => {
     while (castle.troopTransfer?.remainingTime > 0) {
         let skip = spendSkip(castle.troopTransfer.remainingTime)
@@ -37,7 +42,7 @@ events.once("load", async () => {
     const stormCastle = castles.find(e => e.kingdomID == kingdomID &&
         e.areaInfo.type == AreaType.externalKingdom)
     
-    const mainCastle = castles.find(e => e.kingdomID == KingdomID.greatEmpire && e.areaInfo.type == AreaType.mainCastle)
+    const mainCastle = castles.find(({ kingdomID, areaInfo }) => kingdomID == KingdomID.greatEmpire && areaInfo.type == AreaType.mainCastle)
 
     let checkMead = async () => {
         if (stormCastle.resourceTransfer?.resources.mead)
