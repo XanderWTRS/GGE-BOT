@@ -22,12 +22,11 @@ async function fortressHit(kingdomID, level, options) {
     const areas = []
 
     const castle = castles.find(e => e.kingdomID == kingdomID && e.areaInfo.type == AreaType.externalKingdom)
-
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList,
             undefined,
             (a, b) => b.getEffects().speedBonus - a.getEffects().speedBonus)
-
+        
         const hasShieldMadiens = commander.getEffects().AttackSupportUnits
         try {
             const attackInfo = await waitToAttack(async () => {
@@ -41,7 +40,7 @@ async function fortressHit(kingdomID, level, options) {
                         movement.targetAttack.x == areaInfo.x && movement.targetAttack.y == areaInfo.y))
                         continue
 
-                    if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > 3800)
+                    if (((areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000) - timeSinceEpoch) > -5000)
                         continue
 
                     await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID, false)
@@ -203,7 +202,7 @@ async function fortressHit(kingdomID, level, options) {
                 return
             minimumTimeTillHit = Math.min(minimumTimeTillHit, (areaInfo.timeSinceRequest + areaInfo.extraData[2] * 1000))
         })
-        const time = (Math.max(0, minimumTimeTillHit - Date.now()))
+        const time = (Math.max(0, minimumTimeTillHit - Date.now())) + 5000
         console.info("waitingForNextPossibleHit", Math.round(time / 1000), "waitingForNextPossibleHit2")
         await new Promise(r => setTimeout(r, time).unref())
 
