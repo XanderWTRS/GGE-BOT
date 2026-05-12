@@ -206,7 +206,7 @@ class ServerGetAreaInfo {
     constructor(o) {
         this.kingdomID = Number(o?.KID)
         this.userAttackProtection = ServerUserAttackProtection(o?.uap)
-        this.ownerInfo = o?.OI ? Array.from(o.OI).map(o => new OwnerInfo(o)) : undefined
+        this.ownerInfo = o?.OI ? Array.from(o?.OI).map(o => new OwnerInfo(o)) : undefined
         this.areaInfo = o?.AI ? Array.from(o?.AI).map(o => MapObject(new GAAAreaInfo(o), this.kingdomID)) : undefined
         this.result = Number(o.result)
     }
@@ -1045,7 +1045,7 @@ async function clientSearchPlayerName(playerName) {
     const [obj, result] = await waitForResult("wsp", 1000 * 10, (o, r) =>
         r != 0 || o.gaa?.OI.find(e => e.N == playerName))
 
-    return result == 0 ? new ServerGetAreaInfo({ ...obj.gaa, result: result }) : { result }
+    return new ServerGetAreaInfo({ ...obj.gaa, result: result })
 }
 const AllianceQuestPlayerScore = e => ({
     playerID: Number(e.PID),
