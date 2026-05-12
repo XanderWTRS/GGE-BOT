@@ -657,7 +657,7 @@ xtHandler.on("hru", (obj, r) => {
     if(!currentCastle)
         return
 
-    currentCastle.unitInventory = new UnitInventory(obj.gui)
+    Object.assign(currentCastle.unitInventory, new UnitInventory(obj.gui))
     
     if(obj.gcu)
         xtHandler.emit("gcu", obj.gcu)
