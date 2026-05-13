@@ -45,18 +45,16 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
 
     try {
-        var channelAlert = await client.channels.fetch(pluginOptions.channelID)
+        var channel = await client.channels.fetch(pluginOptions.channelID)
     }
     catch (e) {
         console.warn(e)
     }
 
-    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
-
-    const channel = channelAlert
-    
     if (channel == undefined)
         return
+
+    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
 
     const data = {}
     data.content = "```ansi\n" +

@@ -81,12 +81,13 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
         console.warn(e)
     }
 
-    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
-
     const channel = movement.kingdomID != 4 ? channelAlert : channelAquaAlert
     
     if (channel == undefined)
         return
+    
+    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
+
 
     const member = channelAlert.members.find(e => e.displayName == (botConfig.externalEvent ? movement.targetOwner.name.replace(/_[^_]+$/, '') : movement.targetOwner.name))
 
