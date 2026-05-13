@@ -30,9 +30,9 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (![0, 25, 31, 24, 29].includes(movement.type))
         return
-    if (movement.sourceOwner.ownerID > 0)
+    if (movement.sourceOwner.ownerID < 0)
         return
-    if (movement.targetOwner.ownerID > 0)
+    if (movement.targetOwner.ownerID < 0)
         return
     if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
         return
