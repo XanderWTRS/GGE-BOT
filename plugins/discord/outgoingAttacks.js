@@ -9,7 +9,6 @@ if (require('node:worker_threads').isMainThread)
     }
 
 const { AttachmentBuilder } = require("discord.js")
-
 const { botConfig, playerInfo, i18n } = require("../../ggeBot.js")
 const { movementEvents, KingdomID } = require("../../protocols.js")
 const { createLayout } = require("../../imageGen.js")

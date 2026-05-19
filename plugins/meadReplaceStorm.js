@@ -45,8 +45,8 @@ events.once("load", async () => {
     const mainCastle = castles.find(({ kingdomID, areaInfo }) => kingdomID == KingdomID.greatEmpire && areaInfo.type == AreaType.mainCastle)
 
     let checkMead = async () => {
-        if (stormCastle.resourceTransfer?.resources.mead)
-            stormCastle.mead += stormCastle.resourceTransfer.resources.mead
+        if (stormCastle.resourceTransfer?.resources?.mead)
+            stormCastle.mead += (stormCastle?.resourceTransfer?.resources?.mead ?? 0)
 
         let meadLossPerHour = stormCastle.mead / stormCastle.getProductionData.MeadConsumptionRate
         let hoursTillRefill = Math.max(0, meadLossPerHour - hoursLeftTillRefilMandatory)
@@ -58,9 +58,9 @@ events.once("load", async () => {
             console.warn("notEnoughTimeForMeadReplace", hoursLeftTillRefilWarning, "hoursForFoodMeadReplace")
 
         if (stormCastle.resourceTransfer?.remainingTime >= 
-                (stormCastle.mead - stormCastle.resourceTransfer.resources.mead) / stormCastle.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
+                (stormCastle.mead - (stormCastle.resourceTransfer?.resources?.mead ?? 0)) / stormCastle.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
             await skipResource(stormCastle)
-            stormCastle.resourceTransfer.remainingTime = 0
+            stormCastle.resourceTransfer?.remainingTime = 0
         }
         else
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
