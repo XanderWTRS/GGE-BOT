@@ -448,7 +448,7 @@ class UnlockInfo {
 }
 const ResourceTransfer = e => ({
     remainingTime: Number(e.RS),
-    resources : new Resources(Object.fromEntries(e.G))
+    resources : e.G ? new Resources(Object.fromEntries(e.G)) : new Resources()
 })
 const TroopTransfer = e => ({
     remainingTime: Number(e.RS),
@@ -741,7 +741,7 @@ function skipUnitTransferList(obj, result)  {
         })
     }
     if (obj.RT) {
-        castles.forEach(e => e.resourceTransfer = undefined)
+        castles.forEach(e => e.resourceTransfer = ResourceTransfer())
         Array.from(obj.RT).map(a =>
             castles.find(e => e.kingdomID == a.KID &&
                 [AreaType.mainCastle, AreaType.externalKingdom, AreaType.beriCastle].includes(e.areaInfo.type)).resourceTransfer = ResourceTransfer(a))

@@ -60,8 +60,6 @@ events.once("load", async () => {
         if (stormCastle.resourceTransfer?.remainingTime >= 
                 (stormCastle.mead - (stormCastle.resourceTransfer?.resources?.mead ?? 0)) / stormCastle.getProductionData.MeadConsumptionRate / 60 / 60) { //TODO: Partial Skipping
             await skipResource(stormCastle)
-            if(stormCastle.resourceTransfer)
-            stormCastle.resourceTransfer.remainingTime = 0
         }
         else
             console.log("dontNeedMeadForAnother", Math.round(hoursTillRefill), "hoursMeadReplace")
