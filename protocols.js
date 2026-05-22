@@ -1145,6 +1145,9 @@ class Lord {
         
         areaEffects?.forEach(([effectID, effectValues]) => {
             let effect = effects.find(e => e.effectID == effectID)
+            
+            if (!effect.areaTypeID?.split(',').map(Number).find(areaType => areaType == type))
+                return
 
             let maxCap = Number(effectCaps.find(e => e.capID == effect.capID)?.maxTotalBonus ?? Infinity)
 
