@@ -447,8 +447,8 @@ class UnlockInfo {
     }
 }
 const ResourceTransfer = e => ({
-    remainingTime: Number(e.RS),
-    resources : e.G ? new Resources(Object.fromEntries(e.G)) : new Resources()
+    remainingTime: Number(e?.RS),
+    resources : e?.G ? new Resources(Object.fromEntries(e.G)) : new Resources()
 })
 const TroopTransfer = e => ({
     remainingTime: Number(e.RS),
