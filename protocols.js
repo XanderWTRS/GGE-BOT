@@ -1209,16 +1209,16 @@ async function newMovement(movement) {
 }
 class Resources {
     constructor(e) {
-        this.wood = Number(e.W ?? 0)
-        this.stone = Number(e.S ?? 0)
-        this.food = Number(e.F ?? 0)
-        this.coal = Number(e.C ?? 0)
-        this.oil = Number(e.O ?? 0)
-        this.glass = Number(e.G ?? 0)
-        this.iron = Number(e.I ?? 0)
-        this.honey = Number(e.HONEY ?? 0)
-        this.mead = Number(e.MEAD ?? 0)
-        this.aqua = Number(e.A ?? 0)
+        this.wood = Number(e?.W ?? 0)
+        this.stone = Number(e?.S ?? 0)
+        this.food = Number(e?.F ?? 0)
+        this.coal = Number(e?.C ?? 0)
+        this.oil = Number(e?.O ?? 0)
+        this.glass = Number(e?.G ?? 0)
+        this.iron = Number(e?.I ?? 0)
+        this.honey = Number(e?.HONEY ?? 0)
+        this.mead = Number(e?.MEAD ?? 0)
+        this.aqua = Number(e?.A ?? 0)
     }
 }
 class Movement {
