@@ -65,4 +65,6 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
         "```" +
         `<t:${Math.round(Date.now() / 1000 + timeLeft)}:R>`
     data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
+
+    await channel.send(data)
 })

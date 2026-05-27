@@ -101,7 +101,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if (movement.canSeeArmy)
         data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
     
-    storedMessages.set(movement, channel.send(data))
+    storedMessages.set(movement, await channel.send(data))
 
     if (!channelAlert)
         return
