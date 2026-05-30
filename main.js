@@ -294,6 +294,12 @@ async function start() {
       gameID: e['$'].value
     }))
 
+  instances.push({
+    gameURL: "ep-live-mz-nw2-game.goodgamestudios.com",
+    gameServer: "EmpireExSP_3",
+    gameID: 100 + 3
+  })
+
   let pluginData = require('./plugins')
 
   try {
