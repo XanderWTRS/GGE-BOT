@@ -53,7 +53,7 @@ const ggeConfigExample = `{
     "discordToken" : "",
     "discordClientId" : "",
     "discordClientSecret" : "",
-    "timeoutMultiplier" : 1,
+    "timeoutMultiplier" : 5,
     "secondsTillRestartBot": 10,
     "debug" : false
 }`

@@ -118,7 +118,7 @@ const waitForResult = (key, timeout, func) => new Promise((resolve, reject) => {
             console.warn(key, msg)
 
             reject(msg)
-        }, timeout * (ggeConfig.timeoutMultiplier ?? 1))
+        }, timeout * (ggeConfig.timeoutMultiplier ?? 1) * 5)
     }
 
     const helperFunction = (data, _result) => {
