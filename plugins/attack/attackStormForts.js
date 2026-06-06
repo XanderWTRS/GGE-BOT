@@ -181,7 +181,7 @@ events.once("load", async () => {
                     if (!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
 
-                    if (timeSinceEpoch - (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) > 0)
+                    if (areaInfo.extraData[3] > 0)
                         continue
 
                     index = i
