@@ -184,7 +184,7 @@ events.once("load", async () => {
                     if (areaInfo.extraData[3] > 0)
                         continue
                     
-                    if (areaInfo.extraData[5] == 0)
+                    if (areaInfo.extraData[5] != 0)
                         continue
 
                     index = i
