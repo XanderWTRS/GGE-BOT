@@ -281,9 +281,8 @@ const waitToAttack = callback => new Promise(async (resolve, reject) => {
                 await limiter.removeTokens(1)
                 await sleep(naturalDelay)
             } catch (innerError) {
-                if (innerError !== "NO_MORE_TROOPS") {
+                if (!["NO_MORE_TROOPS", "COOLING_DOWN"].includes(innerError)) {
                     console.warn("failedToHandleAttack", innerError)
-                    console.error(innerError)
                 }
             }
         }
