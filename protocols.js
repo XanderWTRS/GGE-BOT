@@ -1043,9 +1043,8 @@ async function clientJoinCastle(areaID, kingdomID) {
 async function clientSearchPlayerName(playerName, kingdomID) {
     kingdomID ??= 0
     const castle = castles.find(castle => castle.kingdomID == kingdomID)
-    const areaInfo = castle.areaInfo
-    await getAreaInfo(kingdomID, areaInfo.x - 50, areaInfo.y - 50, areaInfo.x + 50, areaInfo.y - 50, false)
-    await setCastle(undefined, () => await sendXT("wsp", JSON.stringify({ PN: playerName })))
+    
+    await setCastle(castle, () => await sendXT("wsp", JSON.stringify({ PN: playerName })))
 
     const [obj, result] = await waitForResult("wsp", 1000 * 10, (o, r) =>
         r != 0 || o.gaa?.OI.find(e => e.N == playerName))
