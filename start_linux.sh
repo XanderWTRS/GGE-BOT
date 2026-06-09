@@ -43,7 +43,8 @@ git show --format=%s -s
 
 if [ ! -f website/build/index.html ] || [ -f website/needsRebuild ]; then
   cd website
-  npm install
+  npm i
+  npm update
   npm run build
   rm -f needsRebuild
   cd ..
@@ -51,6 +52,7 @@ fi
 
 if test -f update || [ ! -d "node_modules" ]; then
   npm i
+  npm update
   rm -f update
 fi
  
