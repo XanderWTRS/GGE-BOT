@@ -284,11 +284,12 @@ let currentCastle = undefined
  * @param {Number} toY 
  * @returns {Promise<import("./protocols.js").ClassTypes.ServerGetAreaInfo>}
  */
-async function getAreaInfo(kingdomID, fromX, fromY, toX, toY) {
+async function getAreaInfo(kingdomID, fromX, fromY, toX, toY, useCache) {
+    useCache ??= true
     const key = `${kingdomID}_${fromX}_${fromY}_${fromX}_${fromY}`
     let response = myCache.get(key)
     
-    if(!response) {
+    if(!response || !useCache) {
         await limiter.removeTokens(1).then(() => setCastle(undefined, () =>
             sendXT("gaa", JSON.stringify({
                 KID: Number(kingdomID),
@@ -1039,8 +1040,12 @@ async function clientJoinCastle(areaID, kingdomID) {
     return r
 }
 
-async function clientSearchPlayerName(playerName) {
-    await sendXT("wsp", JSON.stringify({ PN: playerName }))
+async function clientSearchPlayerName(playerName, kingdomID) {
+    kingdomID ??= 0
+    const castle = castles.find(castle => castle.kingdomID == kingdomID)
+    const areaInfo = castle.areaInfo
+    await getAreaInfo(kingdomID, areaInfo.x - 50, areaInfo.y - 50, areaInfo.x + 50, areaInfo.y - 50, false)
+    await setCastle(undefined, () => await sendXT("wsp", JSON.stringify({ PN: playerName })))
 
     const [obj, result] = await waitForResult("wsp", 1000 * 10, (o, r) =>
         r != 0 || o.gaa?.OI.find(e => e.N == playerName))
