@@ -1,5 +1,4 @@
 #!/bin/sh
 touch update
 npm i
-npm update
 rm -f update

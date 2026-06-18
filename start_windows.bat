@@ -54,7 +54,6 @@ exit
 echo. 2> "website\needsRebuild"
 cd website
 call npm i
-call npm update
 call npm run build
 if exist "website\needsRebuild" del /f /q "needsRebuild"
 cd ..
@@ -62,6 +61,5 @@ goto start
 :update
 echo. 2> "update"
 call npm i
-call npm update
 del /f /q "update"
 goto start
