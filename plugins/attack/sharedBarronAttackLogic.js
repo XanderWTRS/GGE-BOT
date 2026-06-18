@@ -60,6 +60,29 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 break
         }
     }
+    
+    movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
+        if (movement.targetOwner.ownerID != playerInfo.playerID)
+            return
+
+        if(movement.kingdomID != kingdomID)
+            return
+
+        if (movement.sourceAttack.type != type)
+            return
+
+        const shouldUpgradeTower = options.upgradeTowers && getLevel(movement.sourceAttack.extraData[1], kingdomID) != maxLevel
+
+        if ((options.useTimeSkips || shouldUpgradeTower)) {
+            try {
+                await skipTarget(movement.sourceAttack)
+            }
+            catch (e) {
+                console.warn(e)
+                continue
+            }
+        }
+    })
 
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList)
