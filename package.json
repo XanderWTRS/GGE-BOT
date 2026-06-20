@@ -14,7 +14,7 @@
     "npm-check-updates": "^22.2.3",
     "pretty-time": "^1.1.0",
     "pureimage": "^0.4.18",
-    "sharp": "^0.35.1",
+    "sharp": "^0.35.2",
     "turl": "^1.1.2",
     "undici": "^8.5.0",
     "ws": "^8.21.0",

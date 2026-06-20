@@ -8,6 +8,10 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Channel",
                 key: "stormChannelID"
+            }, 
+            {
+                type: "Checkbox",
+                key: "mentionEveryone"
             }
         ]
     }
@@ -90,7 +94,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     const member = channelAlert.members.find(e => e.displayName == (botConfig.externalEvent ? movement.targetOwner.name.replace(/_[^_]+$/, '') : movement.targetOwner.name))
     const mention = member?.displayName ? `<@${member.id}> ` : ``
     const data = {
-        content : `${mention}` +
+        content : `${mention}` +  (pluginOptions.mentionEveryone ? "" : " @everyone") +
         "```ansi\n" +
         `${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.sourceOwner.allianceName}` +
         `${i18n.__("incomingIsAttacking")}${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
