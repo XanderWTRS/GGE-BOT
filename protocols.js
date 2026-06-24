@@ -790,7 +790,11 @@ const ResourceList = obj => {
             component7: "chains",
             component8: "metalPlates",
         }
-        let name = decapitalizeFirstLetter(currencies.find(e => e.JSONKey == type).Name)
+        let name = decapitalizeFirstLetter(currencies.find(e => e.JSONKey == type)?.Name)
+        
+        if(!name)
+            return
+
         let realName = nameOverrides[name] ?? name
         resource[realName] = amount
     })
