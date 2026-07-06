@@ -129,7 +129,7 @@ events.once("load", async () => {
             resUpdate = true
         }
         if(resUpdate)
-            stormCastle.emit("resourceUpdate")
+            castle.emit("resourceUpdate")
     }
     await onResourceUpdate()
     castle.on("resourceUpdate", onResourceUpdate)
