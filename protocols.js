@@ -386,7 +386,7 @@ const GetProductionData = e => ({
 
     maxAmountFood: Number(e.MRF),
     maxAmountStone: Number(e.MRS),
-    maxAmountWood: Number(e.MRF),
+    maxAmountWood: Number(e.MRW),
     maxAmountCoal: Number(e.MRC),
     maxAmountIron: Number(e.MRI),
     maxAmountOil: Number(e.MRO),
