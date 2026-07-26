@@ -491,7 +491,7 @@ const ActiveQuests = e => ({
 })
 
 const clientActiveQuestList = async () => {
-    await sendXT("aqs", JSON.stringify({}))
+    await sendXT("aqs", JSON.stringify({"EID":129}))
 
     const [obj, result] = await waitForResult("aqs", 1000 * 10)
 
