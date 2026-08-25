@@ -25,7 +25,7 @@ if (require('node:worker_threads').isMainThread) {
                 default: false
             },
             { type: "Checkbox", key: "useCoin", default: false },
-            { type: "Checkbox", key: "meadReplace", default: false },
+            // { type: "Checkbox", key: "meadReplace", default: false },
             { type: "Checkbox", key: "resourceSend", default: false },
         ]
     }
@@ -68,14 +68,14 @@ if (pluginOptions.upgradeStormForts) {
         console.warn(e)
     }
 }
-if (pluginOptions.meadReplace) {
-    try {
-        require("../meadReplaceStorm.js")
-    }
-    catch (e) {
-        console.warn(e)
-    }
-}
+// if (pluginOptions.meadReplace) {
+//     try {
+//         require("../meadReplaceStorm.js")
+//     }
+//     catch (e) {
+//         console.warn(e)
+//     }
+// }
 if (pluginOptions.resourceSend) {
     try {
         require("../resourceSendStorm.js")
@@ -129,7 +129,7 @@ events.once("load", async () => {
             resUpdate = true
         }
         if(resUpdate)
-            stormCastle.emit("resourceUpdate")
+            castle.emit("resourceUpdate")
     }
     await onResourceUpdate()
     castle.on("resourceUpdate", onResourceUpdate)
@@ -176,12 +176,15 @@ events.once("load", async () => {
                     if ((areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) - timeSinceEpoch > 0)
                         continue
 
-                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID)
+                    await ClientCommands.preSpyInfo(areaInfo.x, areaInfo.y, kingdomID, false)
 
                     if (!allowedLevels.includes(areaInfo.extraData[2]))
                         continue
 
-                    if (timeSinceEpoch - (areaInfo.timeSinceRequest + areaInfo.extraData[3] * 1000) > 0)
+                    if (areaInfo.extraData[3] > 0)
+                        continue
+
+                    if (areaInfo.extraData[5] != 0)
                         continue
 
                     index = i

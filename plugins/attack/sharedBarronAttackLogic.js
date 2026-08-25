@@ -61,6 +61,26 @@ async function barronHit(type, kingdomID, options, maxLevel) {
         }
     }
 
+    movementEvents.on("returning", (/** @type {import("../../protocols.js").ClassTypes.Movement} */ movement) => {
+        if (movement.targetOwner.ownerID != playerInfo.playerID)
+            return
+
+        if(movement.kingdomID != kingdomID)
+            return
+
+        if (movement.sourceAttack.type != type)
+            return
+
+        const shouldUpgradeTower = options.upgradeTowers && getLevel(movement.sourceAttack.extraData[1], kingdomID) != maxLevel
+        if ((options.useTimeSkips || shouldUpgradeTower) &&
+            movements.find(movement2 =>
+                movement2.kingdomID           == kingdomID               &&
+                movement2.sourceAttack.type   == type                    &&
+                movement2.sourceAttack.x      == movement.sourceAttack.x &&
+                movement2.sourceAttack.y      == movement.sourceAttack.y))
+                skipTarget(movement.sourceAttack)
+    })
+
     const sendHit = async () => {
         const commander = await waitForCommanderAvailable(options.commanderWhiteList)
         const hasShieldMadiens = commander.getEffects(type).AttackSupportUnits
@@ -259,7 +279,7 @@ async function barronHit(type, kingdomID, options, maxLevel) {
                 case "NO_MORE_TROOPS":
                     try {
                         if (botConfig.externalEvent && kingdomID == KingdomID.greatEmpire && recruitTroops) {
-                            await recruitTroops()
+                            await recruitTroops(castle)
                             return true
                         }
                     }

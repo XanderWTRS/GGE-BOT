@@ -9,7 +9,6 @@ if (require('node:worker_threads').isMainThread)
     }
 
 const { AttachmentBuilder } = require("discord.js")
-
 const { botConfig, playerInfo, i18n } = require("../../ggeBot.js")
 const { movementEvents, KingdomID } = require("../../protocols.js")
 const { createLayout } = require("../../imageGen.js")
@@ -30,13 +29,13 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (![0, 25, 31, 24, 29].includes(movement.type))
         return
-    if (movement.sourceOwner.ownerID > 0)
+    if (movement.sourceOwner.ownerID < 0)
         return
-    if (movement.targetOwner.ownerID > 0)
+    if (movement.targetOwner.ownerID < 0)
         return
-    if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
+    if (movement.sourceOwner.allianceID != playerInfo.alliance.id)
         return
-    if (movement.targetOwner.allianceID != playerInfo.alliance.id)
+    if (movement.targetOwner.allianceID == playerInfo.alliance.id)
         return
 
     if (kingdomName[movement.kingdomID] == undefined)
@@ -45,18 +44,16 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
 
     try {
-        var channelAlert = await client.channels.fetch(pluginOptions.channelID)
+        var channel = await client.channels.fetch(pluginOptions.channelID)
     }
     catch (e) {
         console.warn(e)
     }
 
-    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
-
-    const channel = channelAlert
-    
     if (channel == undefined)
         return
+
+    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
 
     const data = {}
     data.content = "```ansi\n" +
@@ -68,4 +65,6 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
         "```" +
         `<t:${Math.round(Date.now() / 1000 + timeLeft)}:R>`
     data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
+
+    await channel.send(data)
 })

@@ -53,7 +53,7 @@ const ggeConfigExample = `{
     "discordToken" : "",
     "discordClientId" : "",
     "discordClientSecret" : "",
-    "timeoutMultiplier" : 1,
+    "timeoutMultiplier" : 5,
     "secondsTillRestartBot": 10,
     "debug" : false
 }`
@@ -293,6 +293,12 @@ async function start() {
       gameServer: e.zone[0],
       gameID: e['$'].value
     }))
+
+  instances.push({
+    gameURL: "ep-live-mz-nw2-game.goodgamestudios.com",
+    gameServer: "EmpireExSP_3",
+    gameID: 100 + 3
+  })
 
   let pluginData = require('./plugins')
 

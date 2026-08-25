@@ -4,10 +4,14 @@ if (require('node:worker_threads').isMainThread)
             {
                 type: "Channel",
                 key: "channelID"
-            }, 
+            },
             {
                 type: "Channel",
                 key: "stormChannelID"
+            },
+            {
+                type: "Checkbox",
+                key: "mentionEveryone"
             }
         ]
     }
@@ -36,9 +40,9 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (![0, 25, 31, 24, 29].includes(movement.type))
         return
-    if (movement.sourceOwner.ownerID > 0)
+    if (movement.sourceOwner.ownerID < 0)
         return
-    if (movement.targetOwner.ownerID > 0)
+    if (movement.targetOwner.ownerID < 0)
         return
     if (movement.sourceOwner.allianceID == playerInfo.alliance.id)
         return
@@ -50,17 +54,19 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
 
     if (movement.canSeeArmy) {
         const message = await storedMessages.get(movement)
-        if (message?.attachments.size == 0) {
-            const stream = await createLayout(movement.left, movement.middle, movement.right, movement.courtyard)
-            stream.on("error", console.warn)
-            message.edit({
-                content: message.content, 
-                files: [
-                    new AttachmentBuilder(stream)
-                ]
-            })
+        if (message) {
+            if (message?.attachments.size == 0) {
+                const stream = await createLayout(movement.left, movement.middle, movement.right, movement.courtyard)
+                stream.on("error", console.warn)
+                message.edit({
+                    content: message.content,
+                    files: [
+                        new AttachmentBuilder(stream)
+                    ]
+                })
+            }
+            return
         }
-        return
     }
 
     const timeLeft = (movement.totalTime - (movement.deltaTime - Date.now())) / 1000
@@ -79,18 +85,16 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
         console.warn(e)
     }
 
-    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
-
     const channel = movement.kingdomID != 4 ? channelAlert : channelAquaAlert
     
     if (channel == undefined)
         return
 
+    const clicks = Math.round(Math.sqrt(Math.pow(movement.sourceAttack.x - movement.targetAttack.x, 2) + Math.pow(movement.sourceAttack.y - movement.targetAttack.y, 2)) * 10) / 10
     const member = channelAlert.members.find(e => e.displayName == (botConfig.externalEvent ? movement.targetOwner.name.replace(/_[^_]+$/, '') : movement.targetOwner.name))
-
     const mention = member?.displayName ? `<@${member.id}> ` : ``
     const data = {
-        content : `${mention}` +
+        content : `${mention}` +  (pluginOptions.mentionEveryone ? " @everyone" : "") +
         "```ansi\n" +
         `${movement.sourceOwner.name} (${movement.sourceAttack.extraData[7]})${i18n.__("incomingFrom")}${movement.sourceOwner.allianceName}` +
         `${i18n.__("incomingIsAttacking")}${movement.targetOwner.name} (${movement.targetAttack.extraData[7]})${i18n.__("incomingIn")}${kingdomName[movement.kingdomID]} ${clicks}${i18n.__("incomingClicks")}` +
@@ -101,7 +105,7 @@ movementEvents.on("outgoing", async (/** @type {import("../../protocols.js").Cla
     if (movement.canSeeArmy)
         data.files = [new AttachmentBuilder(await createLayout(movement.left, movement.middle, movement.right,movement.courtyard))]
     
-    storedMessages.set(movement, channel.send(data))
+    storedMessages.set(movement, await channel.send(data))
 
     if (!channelAlert)
         return

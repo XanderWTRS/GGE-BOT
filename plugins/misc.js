@@ -16,7 +16,7 @@ xtHandler.on("sne", obj => obj.MSG.forEach(([messageID, messageType]) => {
         sendXT("dms", JSON.stringify({ MID: messageID })) 
 }))
 
-xtHandler.on("qli", obj => obj.QL.forEach(({ QID }) => {
+xtHandler.on("qli", obj => obj.QL?.forEach(({ QID }) => {
     if(quests.includes(QID))
         sendXT("qsc", JSON.stringify({ QID }))
 }))
