@@ -157,7 +157,7 @@ test("feast skips castles whose production data has not loaded yet", async () =>
     assert.match(warnings.join("\n"), /production data not loaded yet/)
 })
 
-test("Berimond Kingdom extra attack plugin loads commander stats helper", () => {
+test("Berimond Kingdom extra attack plugin loads with the Lord effects API", () => {
     const pluginPath = path.resolve(__dirname, "../plugins-extra/attack/attackBerimondKingdom.js")
     const code = fs.readFileSync(pluginPath, "utf8")
     const events = new EventEmitter()
@@ -211,8 +211,14 @@ test("Berimond Kingdom extra attack plugin loads commander stats helper", () => 
             return []
         if (id == "../../items/buildings.json")
             return [{ wodID: 627 }]
+        if (id == "../buildings.js")
+            return {
+                costTable: () => [],
+                getBuildingsByGroup: () => [],
+                upgradeBuilding: async () => {}
+            }
         if (id == "../getCommanderStats.js")
-            return { getCommanderStats: () => ({ speedBonus: 0 }) }
+            assert.fail("legacy getCommanderStats helper should not be loaded")
         return require(path.resolve(path.dirname(pluginPath), id))
     }
 
